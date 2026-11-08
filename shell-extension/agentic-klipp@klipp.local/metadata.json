@@ -1,0 +1,6 @@
+{
+  "uuid": "agentic-klipp@klipp.local",
+  "name": "Agentic Klipp",
+  "description": "Lar Agentic Klipp ta skjermbilder uten blits og lukkerlyd, og åpne overlegget uten GNOMEs vindusanimasjon.",
+  "shell-version": ["50"]
+}

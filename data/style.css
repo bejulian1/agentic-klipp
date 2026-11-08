@@ -1,0 +1,157 @@
+/* Bare det libadwaita ikke gir selv. Farger kommer fra systemet. */
+.klipp-kbd {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+headerbar.klipp-narrow > windowhandle > box { min-height: 40px; padding: 0 3px 0 5px; }
+headerbar.klipp-narrow button { min-height: 20px; }
+headerbar.klipp-narrow splitbutton > button,
+headerbar.klipp-narrow splitbutton > menubutton > button { min-height: 20px; }
+.klipp-mode-row { font-weight: normal; }
+headerbar.klipp-narrow button.image-button { min-width: 20px; }
+
+statuspage.compact image.icon { -gtk-icon-size: 48px; }
+statuspage.compact .title { font-size: 17px; }
+
+listview.klipp-strip { background: none; }
+listview.klipp-strip > row {
+  padding: 0 6px 6px 6px;
+  background: none;
+  border-radius: 0;
+  outline: none;
+}
+listview.klipp-strip > row:focus-visible klipp-tile {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+}
+
+klipp-tile {
+  border-radius: 9px;
+  background: var(--thumbnail-bg-color);
+  box-shadow: 0 0 0 1px var(--shade-color);
+}
+klipp-tile { transition: opacity 120ms; }
+klipp-tile.dragging { opacity: 0.45; }
+klipp-tile.fresh { animation: klipp-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+.klipp-tile-osd {
+  margin: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+  font-size: 11.5px;
+  font-feature-settings: "tnum";
+  opacity: 0;
+  transition: opacity 100ms;
+}
+klipp-tile:hover .klipp-tile-osd,
+row:focus-visible .klipp-tile-osd { opacity: 1; }
+
+button.klipp-tile-trash {
+  margin: 4px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+  opacity: 0;
+  transition: opacity 100ms, background 100ms;
+}
+button.klipp-tile-trash:hover { background: var(--destructive-bg-color); }
+klipp-tile:hover button.klipp-tile-trash,
+row:focus-visible button.klipp-tile-trash,
+button.klipp-tile-trash:focus-visible { opacity: 1; }
+/* I valgmodus har bunnlinja søppelbøtta. Haken eier hjørnene. */
+klipp-tile.selecting button.klipp-tile-trash { opacity: 0; }
+
+/* Haken i valgmodus: tom ring ved hover, fylt med aksentfarge når valgt. */
+.klipp-tile-check {
+  margin: 6px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 99px;
+  -gtk-icon-size: 14px;
+  color: transparent;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.92), 0 1px 3px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 120ms, transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 120ms, color 120ms, box-shadow 120ms;
+}
+klipp-tile.selecting:hover .klipp-tile-check,
+row:focus-visible klipp-tile.selecting .klipp-tile-check { opacity: 1; transform: none; }
+klipp-tile.selected .klipp-tile-check {
+  opacity: 1;
+  transform: none;
+  color: var(--accent-fg-color);
+  background: var(--accent-bg-color);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+/* Valgt har allerede aksentkant, så fokus legges utenpå. */
+listview.klipp-strip > row:focus-visible klipp-tile.selected { outline-offset: 2px; }
+
+.klipp-reveal { padding: 0 8px 0 12px; min-height: 56px; }
+.klipp-reveal-thumb {
+  border-radius: 6px;
+  background: var(--thumbnail-bg-color);
+  box-shadow: 0 0 0 1px var(--shade-color);
+}
+.klipp-reveal-thumb.alpha {
+  background-image: conic-gradient(
+    color-mix(in srgb, currentColor 8%, transparent) 25%,
+    transparent 0 50%,
+    color-mix(in srgb, currentColor 8%, transparent) 0 75%,
+    transparent 0
+  );
+  background-size: 12px 12px;
+}
+.klipp-reveal-dims { font-weight: 700; font-size: 13px; font-feature-settings: "tnum"; }
+.klipp-reveal-status { font-size: 13px; opacity: 0.55; font-feature-settings: "tnum"; }
+.klipp-reveal button { min-height: 30px; padding: 0 9px; font-size: 14px; }
+
+.klipp-bottombar { min-height: 34px; padding: 2px 4px; }
+.klipp-bottombar button { min-height: 28px; min-width: 28px; padding: 0; }
+.klipp-bar-label { font-size: 12px; font-feature-settings: "tnum"; }
+.klipp-bar-normal .klipp-bar-label { margin-left: 8px; }
+.klipp-sel-count { margin-left: 4px; font-weight: 600; transition: opacity 120ms; }
+.klipp-bottombar button.klipp-bar-copy { padding: 0 12px; margin-left: 2px; }
+.klipp-bottombar button.klipp-bar-trash:hover { color: var(--destructive-color); }
+
+@keyframes klipp-pop {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+klipp-overlay .klipp-ov-bar {
+  animation: klipp-pop 130ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 5px;
+  border-radius: 12px;
+  background: var(--popover-bg-color);
+  color: var(--popover-fg-color);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.klipp-ov-sep { margin: 4px 8px; }
+.klipp-ov-dims {
+  padding: 0 8px 0 7px;
+  font-family: monospace;
+  font-size: 12px;
+  font-feature-settings: "tnum";
+  opacity: 0.7;
+}
+.klipp-pill {
+  padding: 5px 11px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.78);
+  color: white;
+  font-size: 13px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.klipp-pill.size { font-family: monospace; font-size: 12px; padding: 3px 8px; }
+.klipp-pill.warn { background: var(--warning-bg-color); color: black; font-weight: 600; }

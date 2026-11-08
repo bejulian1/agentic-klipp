@@ -1,0 +1,2920 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klipp – prototype</title>
+<link rel="icon" href="data:,">
+<style>
+/* ── Adwaita-tokens (dark) ── navnene følger GTK-fargene direkte */
+:root{
+  color-scheme:dark;
+  --window_bg_color:#222226;
+  --view_bg_color:#1d1d20;
+  --headerbar_bg_color:#2e2e32;
+  --dialog_bg_color:#36363a;
+  --popover_bg_color:#36363a;
+  --thumbnail_bg_color:#39393d;
+  --card_bg_color:rgba(255,255,255,.08);
+  --borders:rgba(255,255,255,.15);
+  --accent_bg_color:#3584e4;
+  --accent_color:#78aeed;
+  --destructive_bg_color:#e01b24;
+  --success_bg_color:#26a269;
+  --warning_bg_color:#cd9309;
+  --window_fg_color:#ffffff;
+  --dim_opacity:.55;
+
+  --headerbar_shade_color:rgba(0,0,0,.36);
+  --card_shade_color:rgba(0,0,0,.36);
+  --hover_color:rgba(255,255,255,.07);
+  --active_color:rgba(255,255,255,.16);
+  --checked_color:rgba(255,255,255,.1);
+  --pressed_color:rgba(255,255,255,.26);
+  --focus_color:rgba(120,174,237,.5);
+  --row_hover_color:rgba(255,255,255,.04);
+  --row_active_color:rgba(255,255,255,.09);
+  --toggle_on_color:rgba(255,255,255,.17);
+  --scrollbar_color:rgba(255,255,255,.28);
+  --error_color:#ff938c;
+  --check_a_color:#3a3a3e;
+  --check_b_color:#2c2c30;
+  --window_ring:0 0 0 1px rgba(0,0,0,.65);
+  --window_outline:rgba(255,255,255,.07);
+  --popover_ring:0 0 0 1px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.06);
+
+  --radius_window:15px;
+  --radius_card:12px;
+  --radius_button:9px;
+  --headerbar_height:47px;
+
+  --font:"Adwaita Sans",Cantarell,system-ui,sans-serif;
+  --mono:"Adwaita Mono","JetBrains Mono",monospace;
+}
+
+/* Klipp sine egne flater. Shell, Dock og de falske vinduene følger ikke temaet. */
+.adw{color:var(--window_fg_color);color-scheme:dark}
+:root[data-theme="light"] .adw{
+  color-scheme:light;
+  --window_bg_color:#fafafb;
+  --view_bg_color:#ffffff;
+  --headerbar_bg_color:#ffffff;
+  --dialog_bg_color:#fafafb;
+  --popover_bg_color:#ffffff;
+  --thumbnail_bg_color:#ffffff;
+  --card_bg_color:#ffffff;
+  --borders:rgba(0,0,6,.15);
+  --accent_bg_color:#3584e4;
+  --accent_color:#1c71d8;
+  --window_fg_color:rgba(0,0,6,.8);
+
+  --headerbar_shade_color:rgba(0,0,6,.12);
+  --card_shade_color:rgba(0,0,6,.12);
+  --hover_color:rgba(0,0,6,.07);
+  --active_color:rgba(0,0,6,.16);
+  --checked_color:rgba(0,0,6,.1);
+  --pressed_color:rgba(0,0,6,.22);
+  --focus_color:rgba(53,132,228,.5);
+  --row_hover_color:rgba(0,0,6,.04);
+  --row_active_color:rgba(0,0,6,.08);
+  --toggle_on_color:#ffffff;
+  --scrollbar_color:rgba(0,0,6,.3);
+  --error_color:#c30000;
+  --check_a_color:#ffffff;
+  --check_b_color:#e4e4e8;
+  --window_ring:0 0 0 1px rgba(0,0,6,.23);
+  --window_outline:transparent;
+  --popover_ring:0 0 0 1px rgba(0,0,6,.14);
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden;background:#000}
+body{
+  display:flex;flex-direction:column;
+  font:15px/1.35 var(--font);color:var(--window_fg_color);
+  cursor:default;user-select:none;-webkit-user-select:none;
+}
+button{font:inherit;color:inherit;cursor:default}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--focus_color);outline-offset:-2px}
+kbd{font:600 12px/1 var(--font);padding:3px 7px;border-radius:6px;background:var(--checked_color);white-space:nowrap}
+
+.ic{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── Skjerm og skrivebord ── */
+#screen{position:relative;flex:1;min-height:0;overflow:hidden;background:#17121f}
+#desktop{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+#dropZone{position:absolute;border-radius:var(--radius_window);z-index:2}
+#dropZone.over{background:rgba(53,132,228,.14);outline:2px solid var(--accent_bg_color);outline-offset:-2px}
+#dropZone .drop-label{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+#dropZone.over .drop-label{display:block}
+
+.topbtn{
+  position:absolute;top:2px;height:28px;z-index:3;
+  border:0;background:transparent;border-radius:14px;padding:0;
+  transition:background-color .1s;
+}
+.topbtn:hover{background:rgba(255,255,255,.15)}
+.topbtn.open,.topbtn:active{background:rgba(255,255,255,.22)}
+
+/* ── Vindu ── */
+.window{
+  position:absolute;display:flex;flex-direction:column;z-index:10;
+  background:var(--window_bg_color);
+  border-radius:var(--radius_window);overflow:hidden;
+  box-shadow:var(--window_ring),0 2px 6px rgba(0,0,0,.35),0 12px 30px rgba(0,0,0,.45);
+}
+.window::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;
+  box-shadow:inset 0 0 0 1px var(--window_outline);
+}
+#annWin{z-index:20}
+#setWin{z-index:25}
+#mainWin .headerbar{display:flex;justify-content:space-between}
+#mainWin.compact{transition:height .12s}
+#mainWin.compact #shelf,#mainWin.compact #bottomBar{display:none}
+
+.headerbar{
+  flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;
+  min-height:var(--headerbar_height);padding:0 6px;
+  background:var(--headerbar_bg_color);
+  box-shadow:0 1px var(--headerbar_shade_color);position:relative;z-index:2;
+}
+.hb-start,.hb-end{display:flex;align-items:center;gap:4px;min-width:0}
+.hb-start{justify-self:start}
+.hb-end{justify-self:end}
+.hb-title{display:flex;flex-direction:column;align-items:center;min-width:0;line-height:1.2;pointer-events:none}
+.hb-title b{font-weight:600}
+.hb-title small{font-size:12px;opacity:var(--dim_opacity);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.backdrop .headerbar{background:var(--window_bg_color)}
+.backdrop .hb-title,.backdrop .hb-start,.backdrop .hb-end{opacity:.6}
+
+.btn{
+  appearance:none;border:0;background:transparent;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:34px;min-width:34px;padding:0 10px;border-radius:var(--radius_button);
+  font-weight:600;white-space:nowrap;
+  transition:background-color .1s;
+}
+.btn.icon{width:34px;padding:0}
+.btn:hover{background:var(--hover_color)}
+.btn:active{background:var(--active_color)}
+.btn[aria-pressed="true"]{background:var(--active_color)}
+.btn:disabled{opacity:.4;background:transparent}
+.btn.suggested{background:var(--accent_bg_color);color:#fff}
+.btn.suggested:hover{background:#4990e7}
+.btn.suggested:active{background:#2a6fc4}
+.btn.suggested:focus-visible{outline-color:rgba(255,255,255,.6)}
+
+/* AdwSplitButton: pilen vises bare i smal stripe */
+.split{display:flex;gap:1px}
+.split-arrow{display:none;min-width:26px;padding:0 5px;border-radius:0 var(--radius_button) var(--radius_button) 0}
+.split-arrow .ic{width:14px;height:14px}
+
+/* AdwToggleGroup */
+.toggle-group{display:inline-flex;gap:2px;padding:3px;border-radius:var(--radius_button);background:var(--hover_color)}
+.toggle{
+  appearance:none;border:0;background:transparent;min-width:28px;min-height:28px;padding:0 6px;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:6px;
+  transition:background-color .1s;
+}
+.toggle:hover{background:var(--hover_color)}
+.toggle:active{background:var(--active_color)}
+.toggle[aria-checked="true"]{background:var(--toggle_on_color);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.toggle.wide{min-width:64px;font-size:14px}
+
+.win-close{
+  appearance:none;border:0;width:24px;height:24px;margin:0 5px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;background:var(--checked_color);
+  transition:background-color .1s;
+}
+.win-close .ic{width:14px;height:14px;stroke-width:1.8}
+.win-close:hover{background:var(--active_color)}
+.win-close:active{background:var(--pressed_color)}
+
+/* ── Hylla ── */
+.scroller{
+  flex:1;min-height:0;overflow:hidden auto;
+  background:var(--window_bg_color);
+  scrollbar-width:thin;scrollbar-color:var(--scrollbar_color) transparent;
+}
+.bottombar{flex:none;display:flex;align-items:center;gap:6px;min-height:34px;padding:2px 4px 2px 12px}
+.hintline{
+  flex:1;min-width:0;font-size:11.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:var(--dim_opacity);
+}
+.bottombar .btn{min-height:28px;min-width:28px;width:28px;margin-left:auto;flex:none}
+
+/* Sjakkbrett bak bilder med transparens */
+.alpha{background:repeating-conic-gradient(var(--check_a_color) 0 25%,var(--check_b_color) 0 50%) 0 0/12px 12px!important}
+
+/* Kompakt: slank rad etter capture (GtkRevealer) */
+.reveal{flex:none;height:0;overflow:hidden;transition:height .12s;background:var(--window_bg_color)}
+.reveal.open{height:56px}
+.reveal-inner{display:flex;align-items:center;gap:10px;height:56px;padding:0 8px 0 12px}
+.reveal-thumb{flex:none;width:44px;height:36px;border-radius:6px;overflow:hidden;background:var(--thumbnail_bg_color);box-shadow:0 0 0 1px var(--card_shade_color)}
+.reveal-thumb canvas{display:block;width:100%;height:100%;object-fit:contain}
+.reveal-text{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
+.reveal-text span{opacity:var(--dim_opacity)}
+.reveal .btn{min-height:30px;padding:0 9px;font-size:14px;background:var(--hover_color)}
+.reveal .btn:hover{background:var(--active_color)}
+
+.tile{position:relative;outline-offset:-2px}
+.tile canvas{display:block}
+.tile.dragging{opacity:.45}
+
+/* A: boxed list */
+.boxed-list{
+  margin:12px;border-radius:var(--radius_card);overflow:hidden;background:var(--card_bg_color);
+  box-shadow:0 0 0 1px rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.2);
+}
+.row{
+  display:flex;align-items:center;gap:12px;min-height:72px;padding:7px 12px;
+  transition:background-color .1s;
+}
+.row + .row{box-shadow:inset 0 1px var(--card_shade_color)}
+.row:hover{background:var(--row_hover_color)}
+.row:active{background:var(--row_active_color)}
+.row:first-child{border-radius:var(--radius_card) var(--radius_card) 0 0}
+.row:last-child{border-radius:0 0 var(--radius_card) var(--radius_card)}
+.row:only-child{border-radius:var(--radius_card)}
+.row .thumb{
+  flex:none;width:88px;height:58px;border-radius:6px;overflow:hidden;
+  background:var(--thumbnail_bg_color);box-shadow:0 0 0 1px var(--card_shade_color);
+}
+.row .thumb canvas{width:100%;height:100%;object-fit:contain}
+.row-text{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px}
+.row-title{font-weight:400;font-variant-numeric:tabular-nums}
+.row-sub{font-size:13px;opacity:var(--dim_opacity);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+
+/* B: rutenett */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px}
+.grid .tile{aspect-ratio:4/3;border-radius:var(--radius_button);overflow:hidden;background:var(--thumbnail_bg_color);box-shadow:0 0 0 1px var(--card_shade_color)}
+.grid .tile canvas{width:100%;height:100%;object-fit:cover;object-position:left top}
+
+/* C: stripe */
+.strip{display:flex;flex-direction:column;gap:6px;padding:0 6px 6px}
+.strip .tile{border-radius:var(--radius_button);overflow:hidden;background:var(--thumbnail_bg_color);box-shadow:0 0 0 1px var(--card_shade_color)}
+.strip .tile canvas{width:100%;height:auto;max-height:300px;object-fit:contain}
+
+.grid .tile::after,.strip .tile::after{
+  content:"";position:absolute;inset:0;background:transparent;pointer-events:none;
+  border-radius:inherit;transition:background-color .1s;
+}
+.grid .tile:hover::after,.strip .tile:hover::after{background:rgba(255,255,255,.05)}
+.grid .tile:active::after,.strip .tile:active::after{background:rgba(255,255,255,.12)}
+.grid .tile:focus-visible::after,.strip .tile:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus_color)}
+.tile.fresh{box-shadow:inset 0 0 0 2px var(--accent_bg_color)}
+.grid .tile.fresh::after,.strip .tile.fresh::after{box-shadow:inset 0 0 0 2px var(--accent_bg_color)}
+
+.tile-osd{
+  position:absolute;left:4px;right:4px;bottom:4px;z-index:1;
+  padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.72);
+  font-size:11.5px;line-height:1.3;font-variant-numeric:tabular-nums;
+  opacity:0;pointer-events:none;transition:opacity .1s;
+}
+.tile-osd span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile-osd span + span{opacity:.7}
+.tile:hover .tile-osd,.tile:focus-visible .tile-osd{opacity:1}
+
+/* Tom tilstand */
+.status-page{
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:24px 18px;text-align:center;
+}
+.status-page .ic{width:64px;height:64px;stroke-width:.9;opacity:.35;margin-bottom:12px}
+.status-page h2{margin:0;font-size:20px;font-weight:800}
+.status-page p{margin:0;opacity:.75;line-height:1.5;font-size:14px}
+.v-c .status-page .ic{width:48px;height:48px;stroke-width:1.1}
+.v-c .status-page h2{font-size:17px}
+
+/* Smal stripe (variant C uten kompakt) */
+.narrow .headerbar{min-height:40px;padding:0 3px 0 5px;background:var(--window_bg_color);box-shadow:none}
+.narrow .headerbar .btn{min-height:30px}
+.narrow .headerbar .btn.icon{min-width:30px;width:30px}
+.narrow #modeInline{display:none}
+.narrow .split-arrow{display:inline-flex}
+.narrow #btnCapture{border-radius:var(--radius_button) 0 0 var(--radius_button)}
+
+/* ── Toast ── */
+.toast-overlay{
+  position:absolute;left:0;right:0;bottom:0;z-index:5;pointer-events:none;
+  display:flex;justify-content:center;padding:0 10px 12px;
+}
+.toast{
+  pointer-events:auto;display:flex;align-items:center;gap:4px;max-width:100%;min-height:38px;
+  padding:3px 4px 3px 14px;border-radius:14px;
+  background:var(--dialog_bg_color);
+  box-shadow:var(--popover_ring),0 3px 9px rgba(0,0,0,.45);
+  font-size:14px;line-height:1.3;opacity:0;transition:opacity .12s;
+}
+.toast.in{opacity:1}
+.toast-title{padding:4px 2px}
+.toast .btn{min-height:30px;padding:0 10px;font-size:14px;color:var(--accent_color)}
+.toast .btn:hover{background:var(--hover_color)}
+.toast .win-close{margin:0 2px;background:transparent;width:30px;height:30px}
+.toast .win-close:hover{background:var(--hover_color)}
+
+/* ── Tooltip ── */
+#tip{
+  position:fixed;z-index:90;max-width:300px;padding:5px 10px;border-radius:9px;
+  background:rgba(0,0,0,.88);font-size:13px;line-height:1.4;white-space:pre-line;pointer-events:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08);
+}
+
+/* ── Capture-overlegg ── */
+#overlay{position:absolute;inset:0;z-index:40;touch-action:none}
+#ovCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.ov-bar{
+  position:absolute;display:flex;align-items:center;gap:4px;padding:5px;
+  border-radius:var(--radius_card);background:var(--popover_bg_color);
+  box-shadow:var(--popover_ring),0 4px 14px rgba(0,0,0,.45);
+}
+#ovBar{top:10px;left:50%;transform:translateX(-50%)}
+#ovBar .tb-sep{margin:0 4px}
+.ov-dims{padding:0 8px 0 7px;font:12px var(--mono);font-variant-numeric:tabular-nums;opacity:.7;white-space:nowrap}
+.osd-pill{
+  position:absolute;padding:5px 11px;border-radius:9px;white-space:nowrap;pointer-events:none;
+  background:rgba(0,0,0,.78);font-size:13px;line-height:1.35;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08);
+}
+#ovHint{left:50%;top:68px;transform:translateX(-50%)}
+#ovHint.warn{background:var(--warning_bg_color);color:#000;font-weight:600}
+#ovSize{font-family:var(--mono);font-size:12px;padding:3px 8px;font-variant-numeric:tabular-nums}
+#ovSize.warn{background:var(--warning_bg_color);color:#000}
+
+/* ── Annotering ── */
+.ann-toolbar{
+  flex:none;display:flex;align-items:center;justify-content:center;gap:2px;
+  min-height:46px;padding:0 6px;
+  background:var(--headerbar_bg_color);box-shadow:0 1px var(--headerbar_shade_color);
+  position:relative;z-index:1;
+}
+.backdrop .ann-toolbar{background:var(--window_bg_color)}
+.tb-sep{width:1px;height:22px;margin:0 8px;background:var(--borders);flex:none}
+.swatch{
+  appearance:none;border:0;background:transparent;padding:0;width:30px;height:34px;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius_button);
+  transition:background-color .1s;
+}
+.swatch:hover{background:var(--hover_color)}
+.swatch i{display:block;width:20px;height:20px;border-radius:50%;background:var(--c)}
+.swatch[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--headerbar_bg_color),0 0 0 4px var(--window_fg_color);width:16px;height:16px}
+.thick i{display:block;border-radius:50%;background:currentColor}
+.ann-stage{
+  flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+  padding:16px;background:var(--view_bg_color);overflow:hidden;
+}
+.ann-wrap{position:relative;flex:none;line-height:0;box-shadow:0 0 0 1px var(--borders)}
+#annView{display:block;cursor:crosshair;touch-action:none}
+#annView.t-text{cursor:text}
+#annView.zoomed{image-rendering:pixelated}
+.ann-text{
+  position:absolute;margin:0;padding:0;border:0;resize:none;overflow:hidden;background:rgba(0,0,0,.25);
+  font-family:var(--font);font-weight:600;line-height:1.25;white-space:pre;
+  outline:1px dashed rgba(255,255,255,.65);outline-offset:3px;
+  user-select:text;-webkit-user-select:text;cursor:text;
+}
+#annWin:focus,#setWin:focus{outline:none}
+
+/* ── Popover for modus i smal stripe ── */
+.popover{
+  position:absolute;z-index:30;min-width:210px;padding:6px;
+  background:var(--popover_bg_color);border-radius:var(--radius_card);
+  box-shadow:var(--popover_ring),0 6px 18px rgba(0,0,0,.4);
+}
+.popover button{
+  appearance:none;border:0;background:transparent;width:100%;
+  display:flex;align-items:center;gap:10px;min-height:34px;padding:0 10px;border-radius:7px;
+  font-size:14px;text-align:left;transition:background-color .1s;
+}
+.popover button:hover{background:var(--hover_color)}
+.popover button:active{background:var(--active_color)}
+.popover button[aria-checked="true"]{background:var(--checked_color)}
+.popover .accel{margin-left:auto;opacity:var(--dim_opacity);font-size:12.5px}
+
+/* ── Innstillinger (AdwPreferencesDialog) ── */
+#setWin{background:var(--dialog_bg_color)}
+#setWin .headerbar{background:var(--dialog_bg_color)}
+.prefs{
+  flex:1;min-height:0;overflow:hidden auto;padding:16px 24px 8px;
+  scrollbar-width:thin;scrollbar-color:var(--scrollbar_color) transparent;
+}
+.pref-group{margin-bottom:22px}
+.pref-head{display:flex;align-items:center;justify-content:space-between;min-height:32px;margin-bottom:6px}
+.pref-head h3{margin:0;font-size:15px;font-weight:600}
+.pref-head .btn{min-height:30px;font-size:14px;background:var(--hover_color)}
+.pref-head .btn:hover{background:var(--active_color)}
+.pref-head .btn:disabled{background:transparent}
+.pref-list{border-radius:var(--radius_card);overflow:hidden;background:var(--card_bg_color);box-shadow:0 0 0 1px var(--card_shade_color)}
+.pref-row{
+  appearance:none;border:0;background:transparent;width:100%;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  min-height:50px;padding:7px 12px;text-align:left;transition:background-color .1s;
+}
+.pref-row + .pref-row{box-shadow:inset 0 1px var(--card_shade_color)}
+button.pref-row:hover{background:var(--row_hover_color)}
+button.pref-row:active{background:var(--row_active_color)}
+.pref-text{min-width:0;display:flex;flex-direction:column;gap:1px}
+.pref-sub{font-size:13px;opacity:var(--dim_opacity);line-height:1.3}
+.pref-sub.err{opacity:1;color:var(--error_color);font-weight:600}
+.pref-listen{color:var(--accent_color);font-size:14px;font-weight:600;white-space:nowrap}
+.pref-off{opacity:var(--dim_opacity);font-size:14px;white-space:nowrap}
+.switch{flex:none;position:relative;width:46px;height:26px;border-radius:13px;background:var(--active_color);transition:background-color .1s}
+.switch i{position:absolute;left:2px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:left .1s}
+[aria-checked="true"] > .switch{background:var(--accent_bg_color)}
+[aria-checked="true"] > .switch i{left:22px}
+
+/* ── Systemfelt-meny og varsel (GNOME Shell, ikke appen) ── */
+.shell-menu{
+  position:absolute;top:36px;z-index:50;min-width:240px;padding:6px;
+  background:var(--popover_bg_color);border-radius:var(--radius_card);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.06),0 6px 18px rgba(0,0,0,.45);
+}
+.shell-menu button{
+  appearance:none;border:0;background:transparent;width:100%;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  min-height:34px;padding:0 12px;border-radius:7px;text-align:left;font-size:14px;
+  transition:background-color .1s;
+}
+.shell-menu button:hover,.shell-menu button:focus-visible{background:rgba(255,255,255,.1);outline:none}
+.shell-menu button:active{background:rgba(255,255,255,.16)}
+.shell-menu .accel{opacity:var(--dim_opacity);font-size:12.5px}
+.shell-menu .sep{height:1px;margin:6px 8px;background:var(--borders)}
+
+.shell-banner{
+  position:absolute;top:40px;left:50%;transform:translateX(-50%);z-index:45;width:380px;
+  display:flex;align-items:center;gap:12px;padding:10px 8px 10px 14px;
+  background:#2e2e32;border-radius:16px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.06),0 6px 18px rgba(0,0,0,.45);
+}
+.app-badge{
+  flex:none;width:32px;height:32px;border-radius:9px;background:var(--accent_bg_color);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.b-text{flex:1;min-width:0;font-size:14px;line-height:1.3}
+.b-text b{font-weight:600;display:block}
+.b-text span{opacity:.7;font-size:13px}
+
+#dragGhost{position:fixed;left:-9999px;top:0;width:140px;border-radius:6px;overflow:hidden;background:var(--thumbnail_bg_color);line-height:0}
+#dragGhost canvas{width:100%;height:auto;display:block}
+
+/* ── Prototype-stripe: bevisst ikke Adwaita ── */
+#proto{
+  flex:none;height:38px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  background:#0c0c0e;border-top:1px dashed rgba(205,147,9,.7);
+  font:12.5px/1 system-ui,sans-serif;color:#c8c8cc;
+}
+.p-tag{color:#000;background:var(--warning_bg_color);font-weight:700;font-size:11px;letter-spacing:.04em;padding:3px 6px;border-radius:3px;text-transform:uppercase}
+.p-note{opacity:.6}
+.p-seg{display:flex;border:1px solid #3c3c42;border-radius:4px;overflow:hidden}
+.p-seg button{appearance:none;border:0;background:transparent;padding:5px 10px}
+.p-seg button + button{border-left:1px solid #3c3c42}
+.p-seg button:hover{background:#26262a}
+.p-seg button[aria-checked="true"]{background:#d8d8dc;color:#000}
+.p-btn{appearance:none;border:1px solid #3c3c42;background:transparent;border-radius:4px;padding:5px 10px;display:inline-flex;gap:6px;align-items:center}
+.p-btn:hover{background:#26262a}
+.p-btn:active{background:#33333a}
+.p-btn:disabled{opacity:.4;background:transparent}
+.p-btn.primary{background:var(--accent_bg_color);border-color:var(--accent_bg_color);color:#fff}
+.p-btn kbd{font:600 11px/1 var(--mono);background:#26262a;padding:2px 4px;border-radius:3px}
+.p-status{margin-left:auto;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#proto :focus-visible{outline:2px solid var(--warning_bg_color);outline-offset:1px}
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-capture" viewBox="0 0 16 16"><path d="M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11M8 5.5v5M5.5 8h5"/></symbol>
+  <symbol id="i-clear" viewBox="0 0 16 16"><path d="M2 4h10M2 8h6M2 12h4M10 9l4 4M14 9l-4 4"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 16 16"><path d="M5.5 3l-3 3 3 3M3 6h7a3.5 3.5 0 0 1 0 7H6"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 16 16"><path d="M10.5 3l3 3-3 3M13 6H6a3.5 3.5 0 0 0 0 7h4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 13L12.5 3.5M6.5 3H13v6.5"/></symbol>
+  <symbol id="i-rect" viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></symbol>
+  <symbol id="i-free" viewBox="0 0 16 16"><path d="M2 11.5c2-6.5 4-7.5 5-5.5s-1 5.5 1 5.5 3-3 6-6.5"/></symbol>
+  <symbol id="i-text" viewBox="0 0 16 16"><path d="M3 3.5h10M8 3.5V13M6 13h4"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M6.8 6.2L8.2 5v6"/></symbol>
+  <symbol id="i-redact" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M2 2h4v4H2zM6 6h4v4H6zM10 2h4v4h-4zM2 10h4v4H2zM10 10h4v4h-4z"/><path fill="currentColor" stroke="none" opacity=".4" d="M6 2h4v4H6zM2 6h4v4H2zM10 6h4v4h-4zM6 10h4v4H6z"/></symbol>
+  <symbol id="i-shelf" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/></symbol>
+  <symbol id="i-area" viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="9" rx="1" stroke-dasharray="2.2 2"/></symbol>
+  <symbol id="i-lasso" viewBox="0 0 16 16"><path d="M8 2.5c3.6 0 6 1.7 6 3.8S11.6 10 8 10 2 8.4 2 6.3 4.4 2.5 8 2.5zM4.5 9.2c-1 .8-1.2 2-.2 2.8 1 .8 1 1.8 0 2.4"/></symbol>
+  <symbol id="i-window" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6.2h12"/></symbol>
+  <symbol id="i-full" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="9" rx="1.5"/><path d="M5.5 14h5M8 11.5V14"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><circle cx="8" cy="8" r="4.8"/><path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></symbol>
+</svg>
+
+<main id="screen">
+  <canvas id="desktop" role="img" aria-label="Simulert GNOME-skrivebord"></canvas>
+
+  <div id="dropZone"><span class="drop-label osd-pill">Slipp for å lime inn filstien</span></div>
+
+  <button id="trayBtn" class="topbtn" aria-label="Klipp i systemfeltet" aria-haspopup="menu" aria-expanded="false"></button>
+
+  <section id="mainWin" class="window adw" aria-label="Klipp">
+    <header class="headerbar">
+      <div class="hb-start">
+        <div class="split">
+          <button id="btnCapture" class="btn suggested">Ny</button>
+          <button id="btnModeMenu" class="btn suggested split-arrow" data-tip="Velg modus" aria-label="Velg modus" aria-haspopup="menu" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        </div>
+        <div id="modeInline" class="toggle-group" role="radiogroup" aria-label="Modus"></div>
+      </div>
+      <div class="hb-end">
+        <button id="btnCompact" class="btn icon"><svg class="ic" aria-hidden="true"><use href="#i-shelf"/></svg></button>
+        <button id="btnSettings" class="btn icon" data-tip="Innstillinger" aria-label="Innstillinger"><svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg></button>
+        <button id="btnClose" class="win-close" data-tip="Skjul til systemfeltet" aria-label="Lukk vinduet"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+      </div>
+    </header>
+    <div id="reveal" class="reveal" inert>
+      <div class="reveal-inner">
+        <div id="revThumb" class="reveal-thumb"></div>
+        <div class="reveal-text"><b id="revDims"></b><span id="revStatus"></span></div>
+        <button id="revAnnotate" class="btn">Annoter</button>
+        <button id="revShelf" class="btn">Vis hylla</button>
+      </div>
+    </div>
+    <div id="shelf" class="scroller"></div>
+    <div id="bottomBar" class="bottombar">
+      <span id="hintLine" class="hintline"></span>
+      <button id="btnClear" class="btn icon" data-tip="Tøm hylla&#10;Filene blir liggende i ~/Bilder/Klipp/" aria-label="Tøm hylla"><svg class="ic" aria-hidden="true"><use href="#i-clear"/></svg></button>
+    </div>
+    <div class="toast-overlay"></div>
+  </section>
+
+  <div id="modePopover" class="popover adw" role="menu" aria-label="Modus" hidden></div>
+
+  <section id="setWin" class="window adw" role="dialog" aria-label="Innstillinger" tabindex="-1" hidden>
+    <header class="headerbar">
+      <div class="hb-start"></div>
+      <div class="hb-title"><b>Innstillinger</b></div>
+      <div class="hb-end">
+        <button id="setClose" class="win-close" aria-label="Lukk innstillinger"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+      </div>
+    </header>
+    <div class="prefs">
+      <div class="pref-group">
+        <div class="pref-head"><h3>Utseende</h3></div>
+        <div class="pref-list">
+          <div class="pref-row">
+            <span class="pref-text">Tema</span>
+            <div id="themeGroup" class="toggle-group" role="radiogroup" aria-label="Tema"></div>
+          </div>
+        </div>
+      </div>
+      <div class="pref-group">
+        <div class="pref-head"><h3>Skjermbilde</h3></div>
+        <div class="pref-list">
+          <button id="rowInstant" class="pref-row" role="switch" aria-checked="false">
+            <span class="pref-text"><span>Ta bildet med en gang</span><span class="pref-sub">Bildet tas når du slipper musa, uten bekreftelse</span></span>
+            <span class="switch"><i></i></span>
+          </button>
+          <button id="rowAutocopy" class="pref-row" role="switch" aria-checked="true">
+            <span class="pref-text"><span>Kopier automatisk</span><span class="pref-sub">Legger hvert nye bilde på utklippstavlen</span></span>
+            <span class="switch"><i></i></span>
+          </button>
+        </div>
+      </div>
+      <div class="pref-group">
+        <div class="pref-head"><h3>Hurtigtaster</h3><button id="keysReset" class="btn">Tilbakestill</button></div>
+        <div id="keyList" class="pref-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="annWin" class="window adw" role="dialog" aria-label="Annoter skjermbilde" tabindex="-1" hidden>
+    <header class="headerbar">
+      <div class="hb-start">
+        <button id="annCancel" class="btn" data-tip="Avbryt (Esc)">Avbryt</button>
+        <button id="annUndo" class="btn icon" data-tip="Angre (Ctrl+Z)" aria-label="Angre"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg></button>
+        <button id="annRedo" class="btn icon" data-tip="Gjør om (Ctrl+Shift+Z)" aria-label="Gjør om"><svg class="ic" aria-hidden="true"><use href="#i-redo"/></svg></button>
+      </div>
+      <div class="hb-title"><b>Annoter</b><small id="annSub"></small></div>
+      <div class="hb-end">
+        <button id="annCopy" class="btn" data-tip="Kopier (Ctrl+C)">Kopier</button>
+        <button id="annDone" class="btn suggested" data-tip="Ferdig (Ctrl+Enter)">Ferdig</button>
+      </div>
+    </header>
+    <div id="annTools" class="ann-toolbar" role="toolbar" aria-label="Annoteringsverktøy"></div>
+    <div class="ann-stage">
+      <div id="annWrap" class="ann-wrap"><canvas id="annView"></canvas></div>
+    </div>
+    <div class="toast-overlay"></div>
+  </section>
+
+  <div id="trayMenu" class="shell-menu" role="menu" aria-label="Klipp" hidden>
+    <button id="tmCapture" role="menuitem"><span>Ta skjermbilde</span><span id="tmAccel" class="accel"></span></button>
+    <button id="tmToggle" role="menuitem"><span id="tmToggleLabel">Skjul Klipp</span></button>
+    <div class="sep" role="separator"></div>
+    <button id="tmQuit" role="menuitem"><span>Avslutt</span></button>
+  </div>
+
+  <div id="banner" class="shell-banner" role="status" hidden>
+    <span class="app-badge"><svg class="ic" aria-hidden="true"><use href="#i-capture"/></svg></span>
+    <div class="b-text"><b>Klipp kjører i bakgrunnen</b><span>Åpne den igjen fra ikonet i systemfeltet.</span></div>
+    <button id="bannerClose" class="win-close" aria-label="Lukk varselet"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+  </div>
+
+  <div id="overlay" tabindex="-1" hidden>
+    <canvas id="ovCanvas"></canvas>
+    <div id="ovBar" class="ov-bar adw" role="toolbar" aria-label="Capture">
+      <div id="ovModes" class="toggle-group" role="radiogroup" aria-label="Modus"></div>
+      <span class="tb-sep"></span>
+      <button id="ovClose" class="btn">Lukk</button>
+    </div>
+    <div id="ovActions" class="ov-bar adw" hidden>
+      <span id="ovDims" class="ov-dims"></span>
+      <button id="ovUndo" class="btn" data-tip="Angre (Ctrl+Z)">Angre</button>
+      <button id="ovTake" class="btn suggested" data-tip="Ta bilde (Enter)">Ta bilde</button>
+    </div>
+    <div id="ovHint" class="osd-pill"></div>
+    <div id="ovSize" class="osd-pill" hidden></div>
+  </div>
+</main>
+
+<footer id="proto" aria-label="Prototype-kontroller">
+  <span class="p-tag">Prototype</span>
+  <span class="p-note">ikke del av produktet</span>
+  <div class="p-seg" role="radiogroup" aria-label="Variant av hovedvinduet">
+    <button role="radio" data-v="A" aria-checked="false">A Liste</button>
+    <button role="radio" data-v="B" aria-checked="false">B Rutenett</button>
+    <button role="radio" data-v="C" aria-checked="false">C Stripe</button>
+  </div>
+  <button id="pCapture" class="p-btn">Ta skjermbilde <kbd>Ctrl+Alt+K</kbd></button>
+  <button id="pStart" class="p-btn primary" hidden>Start Klipp</button>
+  <button id="pReset" class="p-btn">Tilbakestill demo</button>
+  <span id="pStatus" class="p-status" aria-live="polite"></span>
+</footer>
+
+<div id="tip" role="tooltip" hidden></div>
+<div id="dragGhost" aria-hidden="true"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ───────────── Hjelpere ───────────── */
+const $ = (s, r) => (r || document).querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const pad2 = n => String(n).padStart(2, '0');
+const icon = n => '<svg class="ic" aria-hidden="true"><use href="#i-' + n + '"/></svg>';
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+const SANS = '"Adwaita Sans", Cantarell, system-ui, sans-serif';
+const MONO = '"Adwaita Mono", "JetBrains Mono", monospace';
+const TOP = 32;               /* høyde på toppstolpen */
+const DOCK = 56;              /* høyde på Ubuntu Dock */
+const STORE_KEY = 'klipp.prototype.variant';
+const PREFS_KEY = 'klipp.prototype.prefs';
+const DRAG_MIME = 'application/x-klipp-shot';
+const MIN_SIZE = 4;           /* minste område i canvas-piksler */
+const COMPACT_W = 380;
+const HEADER_H = 47;
+const REVEAL_H = 56;
+const WINDOW_NOTE = 'Vindu-modus er simulert, velges i fase 2';
+
+const MODES = [
+  { id: 'area', label: 'Område', icon: 'area', hint: 'Dra for å velge område' },
+  { id: 'free', label: 'Frihånd', icon: 'lasso', hint: 'Tegn en lukket form' },
+  { id: 'window', label: 'Vindu', icon: 'window', hint: 'Klikk på et vindu' },
+  { id: 'full', label: 'Hele skjermen', icon: 'full', hint: '' }
+];
+const ACTIONS = [
+  { id: 'global', label: 'Ta skjermbilde', def: 'Super+Shift+K', sub: 'GNOME bekrefter hurtigtasten selv via GlobalShortcuts-portalen' },
+  { id: 'area', label: 'Område', def: '1' },
+  { id: 'free', label: 'Frihånd', def: '2' },
+  { id: 'window', label: 'Vindu', def: '3' },
+  { id: 'full', label: 'Hele skjermen', def: '4' },
+  { id: 'shelf', label: 'Vis/skjul hylla', def: 'Ctrl+H' }
+];
+const RESERVED = ['Enter', 'Tab', 'Space', 'Ctrl+Z', 'Ctrl+Alt+K'];
+
+const VARIANTS = {
+  A: { w: 420, h: 540, cols: 1, hint: 'Klikk: kopier · Shift: filsti · Dobbeltklikk: annoter · Dra: til terminal' },
+  B: { w: 372, h: 476, cols: 2, hint: 'Klikk: kopier · Shift: sti · Dobbelt: annoter · Dra ut' },
+  C: { w: 236, h: 900, cols: 1, hint: '' }
+};
+const TILE_TIP = 'Klikk: kopier bilde\nShift+klikk: kopier filsti\nDobbeltklikk: annoter\nDra: slipp i terminalen';
+
+/* ───────────── Tilstand ───────────── */
+const prefs = loadPrefs();
+const S = {
+  running: true,
+  mainShown: true,
+  settingsOpen: false,
+  revealed: false,
+  variant: loadVariant(),
+  shots: [],
+  pasted: [],
+  closeHintShown: false,
+  capture: null,
+  needsLayout: false,
+  winPos: {}
+};
+const G = { W: 0, H: 0, term: null, edit: null, tray: null };
+
+let uid = 0;
+
+const screenEl = $('#screen');
+const desktop = $('#desktop');
+const dctx = desktop.getContext('2d');
+const mainWin = $('#mainWin');
+const annWin = $('#annWin');
+const shelfEl = $('#shelf');
+const dropZone = $('#dropZone');
+const trayBtn = $('#trayBtn');
+const trayMenu = $('#trayMenu');
+const banner = $('#banner');
+const overlay = $('#overlay');
+const ovCanvas = $('#ovCanvas');
+const ovCtx = ovCanvas.getContext('2d');
+const ovHint = $('#ovHint');
+const ovSize = $('#ovSize');
+const ovBar = $('#ovBar');
+const ovActions = $('#ovActions');
+const setWin = $('#setWin');
+const modePopover = $('#modePopover');
+const reveal = $('#reveal');
+const tipEl = $('#tip');
+
+function loadVariant() {
+  try { const v = localStorage.getItem(STORE_KEY); if (v === 'A' || v === 'B' || v === 'C') return v; } catch (e) { /* lagring blokkert */ }
+  return 'A';
+}
+function saveVariant(v) {
+  try { localStorage.setItem(STORE_KEY, v); } catch (e) { /* lagring blokkert */ }
+}
+function defaultKeys() {
+  const k = {};
+  ACTIONS.forEach(a => { k[a.id] = a.def; });
+  return k;
+}
+function loadPrefs() {
+  const p = { mode: 'area', compact: false, theme: 'system', instant: false, autocopy: true, keys: defaultKeys() };
+  try {
+    const s = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null');
+    if (s && typeof s === 'object') {
+      if (MODES.some(m => m.id === s.mode)) p.mode = s.mode;
+      if (['system', 'light', 'dark'].indexOf(s.theme) !== -1) p.theme = s.theme;
+      if (typeof s.compact === 'boolean') p.compact = s.compact;
+      if (typeof s.instant === 'boolean') p.instant = s.instant;
+      if (typeof s.autocopy === 'boolean') p.autocopy = s.autocopy;
+      if (s.keys && typeof s.keys === 'object') {
+        ACTIONS.forEach(a => {
+          const v = s.keys[a.id];
+          if (typeof v === 'string' || v === null) p.keys[a.id] = v;
+        });
+      }
+    }
+  } catch (e) { /* lagring blokkert eller ugyldig */ }
+  return p;
+}
+function savePrefs() {
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (e) { /* lagring blokkert */ }
+}
+function curMode() { return S.capture ? S.capture.mode : prefs.mode; }
+function keyHint(id) { return prefs.keys[id] ? ' (' + prefs.keys[id] + ')' : ''; }
+
+/* Tastekombinasjon som tekst, samme form som vises i innstillingene */
+function comboOf(e) {
+  let k = e.key;
+  if (['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'OS', 'CapsLock', 'Dead', 'Unidentified'].indexOf(k) !== -1) return null;
+  if (/^Digit\d$/.test(e.code)) k = e.code.slice(5);
+  if (k === ' ') k = 'Space';
+  if (k.length === 1) k = k.toUpperCase();
+  const m = [];
+  if (e.ctrlKey) m.push('Ctrl');
+  if (e.altKey) m.push('Alt');
+  if (e.shiftKey) m.push('Shift');
+  if (e.metaKey) m.push('Super');
+  return m.concat(k).join('+');
+}
+function actionFor(e) {
+  const c = comboOf(e);
+  if (!c) return null;
+  const a = ACTIONS.find(x => x.id !== 'global' && prefs.keys[x.id] === c);
+  return a ? a.id : null;
+}
+
+/* ───────────── Canvas-tegning: tekst og kode ───────────── */
+const T = { fg: '#deddda', dim: '#9a9996', red: '#f66151', grn: '#8ff0a4', yel: '#f8e45c', blu: '#99c1f1', pur: '#dc8add', cyn: '#93ddc2', org: '#ffbe6f', cla: '#d97757' };
+
+function rr(c, x, y, w, h, r) {
+  const t = typeof r === 'number' ? [r, r, r, r] : r;
+  c.beginPath();
+  c.moveTo(x + t[0], y);
+  c.lineTo(x + w - t[1], y); c.arcTo(x + w, y, x + w, y + t[1], t[1]);
+  c.lineTo(x + w, y + h - t[2]); c.arcTo(x + w, y + h, x + w - t[2], y + h, t[2]);
+  c.lineTo(x + t[3], y + h); c.arcTo(x, y + h, x, y + h - t[3], t[3]);
+  c.lineTo(x, y + t[0]); c.arcTo(x, y, x + t[0], y, t[0]);
+  c.closePath();
+}
+function drawSpans(c, spans, x, y, cw) {
+  let cx = x;
+  for (const s of spans) {
+    c.fillStyle = s[0];
+    c.fillText(s[1], cx, y);
+    cx += s[1].length * cw;
+  }
+}
+const HL_RE = /(\/\/.*$)|("(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)|\b(fn|let|mut|pub|use|struct|impl|enum|match|if|else|return|for|in|self|const|type|async|await|function|export|import|from|interface|throw|new|crate)\b|\b(Some|None|Ok|Err|[A-Z][A-Za-z0-9_]*)\b|\b(\d+(?:\.\d+)?)\b|\b([a-z_][a-z0-9_]*)(?=\()/g;
+function hl(line) {
+  const out = []; let last = 0, m;
+  HL_RE.lastIndex = 0;
+  while ((m = HL_RE.exec(line))) {
+    if (m.index > last) out.push([T.fg, line.slice(last, m.index)]);
+    const col = m[1] ? T.dim : m[2] ? T.grn : m[3] ? T.pur : m[4] ? T.blu : m[5] ? T.org : T.yel;
+    out.push([col, m[0]]);
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) out.push([T.fg, line.slice(last)]);
+  return out;
+}
+function withGutter(lines, from, width) {
+  return lines.map((l, i) => [[T.dim, String(from + i).padStart(width || 3) + '  ']].concat(hl(l)));
+}
+
+/* ───────────── Genererte skjermbilder til hylla ───────────── */
+function shotCanvas(w, h, lines, bg) {
+  const cv = mk(w, h), c = cv.getContext('2d');
+  c.fillStyle = bg || '#1d1d20';
+  c.fillRect(0, 0, w, h);
+  c.font = '13px ' + MONO;
+  c.textBaseline = 'alphabetic';
+  const cw = c.measureText('M').width;
+  lines.forEach((l, i) => drawSpans(c, l, 14, 24 + i * 19, cw));
+  return cv;
+}
+const P = t => [[T.fg, t]];
+const Dm = t => [[T.dim, t]];
+
+function seedShots() {
+  const now = Date.now();
+  const min = 60000;
+  const seeds = [
+    { age: 4, cv: shotCanvas(860, 330, [
+      [[T.grn, '$ '], [T.fg, 'cargo build']],
+      [[T.grn, '   Compiling'], [T.fg, ' turplan v0.4.2 (/home/bruker/prosjekter/turplan)']],
+      [[T.red, 'error[E0308]'], [T.fg, ': mismatched types']],
+      [[T.blu, '  --> '], [T.fg, 'src/gpx/parser.rs:64:23']],
+      [[T.blu, '   |']],
+      [[T.blu, '64 | '], [T.fg, '    let ele: f32 = node.child("ele");']],
+      [[T.blu, '   |              ---   '], [T.red, '^^^^^^^^^^^^^^^^^ expected `f32`, found `Option<Node>`']],
+      [[T.blu, '   |              |']],
+      [[T.blu, '   |              expected due to this']],
+      [[T.blu, '   |']],
+      [[T.cyn, 'help'], [T.fg, ': consider using `Option::expect` to unwrap the value']],
+      [[T.blu, '64 | '], [T.fg, '    let ele: f32 = node.child("ele").expect("REASON");']],
+      [[T.blu, '   |                                     '], [T.grn, '+++++++++++++++++']],
+      [[T.red, 'error'], [T.fg, ': could not compile `turplan` (lib) due to 1 previous error']]
+    ]) },
+    { age: 17, cv: shotCanvas(560, 188, withGutter([
+      'export async function hentVarsel(sted: Sted): Promise<Varsel> {',
+      '  const svar = await fetch(`/api/varsel/${sted.id}`);',
+      '  if (!svar.ok) throw new Feil("Fant ikke varsel");',
+      '  const data = await svar.json();',
+      '  return tilVarsel(data);',
+      '}'
+    ], 21, 3), '#1e1e22') },
+    { age: 52, cv: shotCanvas(980, 238, [
+      [[T.fg, 'running 12 tests']],
+      [[T.fg, 'test gpx::parser::leser_spor_med_hoyde ... '], [T.grn, 'ok']],
+      [[T.fg, 'test gpx::parser::leser_flere_segmenter ... '], [T.grn, 'ok']],
+      [[T.fg, 'test gpx::parser::spor_uten_hoyde ... '], [T.red, 'FAILED']],
+      [],
+      [[T.fg, "thread 'gpx::parser::spor_uten_hoyde' panicked at src/gpx/parser.rs:64:41:"]],
+      [[T.org, 'called `Option::unwrap()` on a `None` value']],
+      [],
+      [[T.fg, 'test result: '], [T.red, 'FAILED'], [T.fg, '. 11 passed; 1 failed; 0 ignored; finished in 0.04s']],
+      [[T.red, 'error'], [T.fg, ': test failed, to rerun pass `--lib`']]
+    ]) },
+    { age: 134, cv: shotCanvas(340, 440, [
+      [[T.blu, 'turplan/']],
+      P('├── Cargo.lock'),
+      P('├── Cargo.toml'),
+      P('├── README.md'),
+      [[T.fg, '├── '], [T.blu, 'data/']],
+      P('│   ├── sogn-rundt.gpx'),
+      P('│   └── uten-hoyde.gpx'),
+      [[T.fg, '├── '], [T.blu, 'src/']],
+      P('│   ├── main.rs'),
+      P('│   ├── kart.rs'),
+      [[T.fg, '│   ├── '], [T.blu, 'gpx/']],
+      P('│   │   ├── mod.rs'),
+      [[T.fg, '│   │   ├── '], [T.org, 'parser.rs']],
+      P('│   │   └── spor.rs'),
+      P('│   └── rute.rs'),
+      [[T.fg, '├── '], [T.blu, 'tests/']],
+      P('│   └── import.rs'),
+      [],
+      [],
+      Dm('5 mapper, 12 filer'),
+      [[T.grn, '$ '], [T.fg, '▮']]
+    ], '#17171a') },
+    { age: 1510, cv: shotCanvas(700, 290, [
+      [[T.fg, 'diff --git a/src/rute.rs b/src/rute.rs']],
+      [[T.blu, '@@ -41,9 +41,10 @@'], [T.dim, ' impl Rute {']],
+      Dm('     pub fn lengde_km(&self) -> f64 {'),
+      Dm('         self.punkter'),
+      Dm('             .windows(2)'),
+      [[T.red, '-            .map(|p| avstand(p[0], p[1]))']],
+      [[T.grn, '+            .map(|p| haversine(&p[0], &p[1]))']],
+      [[T.grn, '+            .filter(|d| d.is_finite())']],
+      Dm('             .sum::<f64>()'),
+      Dm('             / 1000.0'),
+      Dm('     }'),
+      Dm(' }'),
+      [],
+      [[T.dim, '2 filer endret, 7 tillegg, 3 fjerninger']]
+    ], '#1b1b1f') }
+  ];
+  return seeds.map(s => makeShot(s.cv, now - s.age * min));
+}
+
+/* ───────────── Skjermbilde-objektet ───────────── */
+function fmtStamp(ts) {
+  const d = new Date(ts);
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+    '_' + pad2(d.getHours()) + '-' + pad2(d.getMinutes()) + '-' + pad2(d.getSeconds());
+}
+function fmtTime(ts) {
+  const d = new Date(ts), n = new Date();
+  const hm = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  if (d.toDateString() === n.toDateString()) return hm;
+  const y = new Date(n); y.setDate(n.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'i går ' + hm;
+  return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '. ' + hm;
+}
+function makeThumb(src) {
+  const f = Math.min(1, 560 / src.width, 560 / src.height);
+  const t = mk(Math.max(1, Math.round(src.width * f)), Math.max(1, Math.round(src.height * f)));
+  const c = t.getContext('2d');
+  c.imageSmoothingQuality = 'high';
+  c.drawImage(src, 0, 0, t.width, t.height);
+  return t;
+}
+function makeShot(canvas, ts, alpha) {
+  let name = 'klipp-' + fmtStamp(ts), n = 1;
+  const used = new Set(S.shots.map(s => s.name));
+  let file = name + '.png';
+  while (used.has(file)) { n += 1; file = name + '-' + n + '.png'; }
+  return {
+    id: ++uid, canvas: canvas, w: canvas.width, h: canvas.height, ts: ts,
+    name: file, path: '~/Bilder/Klipp/' + file, thumb: makeThumb(canvas), blob: null, alpha: !!alpha
+  };
+}
+function shotBlob(shot) {
+  if (!shot.blob) shot.blob = new Promise(res => shot.canvas.toBlob(res, 'image/png'));
+  return shot.blob;
+}
+
+/* ───────────── Skrivebord ───────────── */
+function computeLayout() {
+  const r = screenEl.getBoundingClientRect();
+  G.W = r.width; G.H = r.height;
+  const work = G.H - TOP - DOCK;
+  const tw = clamp(Math.round(G.W * 0.54), 460, 720);
+  const th = Math.min(780, work - 36);
+  G.term = { x: 24, y: TOP + 20, w: tw, h: th };
+  const ew = Math.min(680, Math.round(G.W * 0.5));
+  const eh = Math.min(560, work - 72);
+  G.edit = { x: Math.min(G.W - ew - 30, tw - 76), y: TOP + 52, w: ew, h: eh };
+}
+
+function paintWallpaper(c) {
+  const W = G.W, H = G.H;
+  const g = c.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#2b1a3f');
+  g.addColorStop(.55, '#5a2a5e');
+  g.addColorStop(1, '#b0525f');
+  c.fillStyle = g;
+  c.fillRect(0, 0, W, H);
+  const rad = Math.max(W, H);
+  [[.82, 1.05, .78], [.95, .2, .46], [.1, 1.1, .6], [.5, -.25, .55]].forEach((a, i) => {
+    c.beginPath();
+    c.arc(W * a[0], H * a[1], rad * a[2], 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255,255,255,' + (0.022 + i * 0.006) + ')';
+    c.fill();
+  });
+}
+
+function paintTopbar(c) {
+  const W = G.W;
+  c.fillStyle = '#000';
+  c.fillRect(0, 0, W, TOP);
+  /* Arbeidsområder */
+  c.fillStyle = '#fff';
+  rr(c, 12, 12, 26, 8, 4); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.5)';
+  [46, 60, 74].forEach(x => { c.beginPath(); c.arc(x, 16, 3.5, 0, Math.PI * 2); c.fill(); });
+  /* Klokke */
+  const d = new Date();
+  let date = '';
+  try { date = new Intl.DateTimeFormat('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace(',', ''); } catch (e) { date = ''; }
+  c.font = '600 14px ' + SANS;
+  c.fillStyle = '#fff';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillText(date + '  ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()), W / 2, TOP / 2 + 1);
+  c.textAlign = 'start';
+  /* Systemikoner */
+  const ICONS = {
+    tray: 'M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11M8 5.5v5M5.5 8h5',
+    wifi: 'M1.5 6.5a9.5 9.5 0 0 1 13 0M4 9a6 6 0 0 1 8 0M6.5 11.3a2.5 2.5 0 0 1 3 0',
+    vol: 'M2.5 6v4H5l3.5 3V3L5 6zM11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.8a6 6 0 0 1 0 8.4',
+    bat: 'M2.5 5h9a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM14.5 7v2'
+  };
+  const stroke = (d2, x) => {
+    c.save(); c.translate(x, 8);
+    c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.stroke(new Path2D(d2));
+    c.restore();
+  };
+  const right = W - 14;
+  stroke(ICONS.bat, right - 16);
+  stroke(ICONS.vol, right - 40);
+  stroke(ICONS.wifi, right - 64);
+  const tx = right - 104;
+  if (S.running) stroke(ICONS.tray, tx);
+  G.tray = { x: tx - 10, w: 36 };
+}
+
+const DOCK_APPS = [
+  { name: 'files', bg: '#c88800', d: 'M2 5a1 1 0 0 1 1-1h3.5l1.5 1.5h5a1 1 0 0 1 1 1V12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z' },
+  { name: 'web', bg: '#1c71d8', d: 'M14 8A6 6 0 1 1 2 8a6 6 0 0 1 12 0zM2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12' },
+  { name: 'terminal', bg: '#3d3846', d: 'M3 4.5L7 8l-4 3.5M8.5 12H13', open: true },
+  { name: 'editor', bg: '#26a269', d: 'M3 13l1-3.5L11 2.5 13.5 5l-7 7zM9.5 4l2.5 2.5', open: true },
+  { name: 'settings', bg: '#77767b', d: 'M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4' },
+  { name: 'klipp', bg: '#3584e4', d: 'M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11M8 5.5v5M5.5 8h5', open: true }
+];
+function paintDock(c) {
+  const y = G.H - DOCK;
+  c.fillStyle = '#1b1b1e';
+  c.fillRect(0, y, G.W, DOCK);
+  c.fillStyle = 'rgba(255,255,255,.09)';
+  c.fillRect(0, y, G.W, 1);
+  const apps = DOCK_APPS.filter(a => a.name !== 'klipp' || S.running);
+  const size = 38, gap = 12;
+  let x = Math.round((G.W - (apps.length * size + (apps.length - 1) * gap)) / 2);
+  const iy = y + 7;
+  apps.forEach(a => {
+    rr(c, x, iy, size, size, 10);
+    c.fillStyle = a.bg;
+    c.fill();
+    c.save();
+    c.translate(x + 7, iy + 7);
+    c.scale(1.5, 1.5);
+    c.strokeStyle = '#fff';
+    c.lineWidth = 1.2;
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    c.stroke(new Path2D(a.d));
+    c.restore();
+    if (a.open) {
+      c.fillStyle = '#e8590c';
+      c.beginPath();
+      c.arc(x + size / 2, y + DOCK - 5, 2, 0, Math.PI * 2);
+      c.fill();
+    }
+    x += size + gap;
+  });
+}
+
+function paintWindowFrame(c, r, title, sub) {
+  c.save();
+  c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 26; c.shadowOffsetY = 8;
+  rr(c, r.x, r.y, r.w, r.h, 15);
+  c.fillStyle = '#1d1d20';
+  c.fill();
+  c.restore();
+  c.save();
+  rr(c, r.x, r.y, r.w, r.h, 15);
+  c.clip();
+  c.fillStyle = '#28282c';
+  c.fillRect(r.x, r.y, r.w, 46);
+  c.fillStyle = 'rgba(0,0,0,.4)';
+  c.fillRect(r.x, r.y + 46, r.w, 1);
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillStyle = 'rgba(255,255,255,.82)';
+  c.font = '600 14.5px ' + SANS;
+  c.fillText(title, r.x + r.w / 2, r.y + (sub ? 16 : 23));
+  if (sub) {
+    c.fillStyle = 'rgba(255,255,255,.5)';
+    c.font = '12px ' + SANS;
+    c.fillText(sub, r.x + r.w / 2, r.y + 32);
+  }
+  c.textAlign = 'start';
+  /* Lukkeknapp */
+  c.fillStyle = 'rgba(255,255,255,.08)';
+  c.beginPath(); c.arc(r.x + r.w - 23, r.y + 23, 12, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1.5; c.lineCap = 'round';
+  c.beginPath();
+  const cx = r.x + r.w - 23, cy = r.y + 23;
+  c.moveTo(cx - 4, cy - 4); c.lineTo(cx + 4, cy + 4);
+  c.moveTo(cx + 4, cy - 4); c.lineTo(cx - 4, cy + 4);
+  c.stroke();
+  c.restore();
+  c.save();
+  rr(c, r.x + .5, r.y + .5, r.w - 1, r.h - 1, 15);
+  c.strokeStyle = 'rgba(255,255,255,.08)';
+  c.lineWidth = 1;
+  c.stroke();
+  c.restore();
+}
+
+const EDITOR_SRC = [
+  'use roxmltree::Node;',
+  '',
+  'use crate::gpx::{Punkt, Spor, SporFeil};',
+  '',
+  '// Leser ett sporpunkt fra en <trkpt>-node.',
+  'pub fn les_punkt(node: Node) -> Result<Punkt, SporFeil> {',
+  '    let lat = attr_f64(node, "lat")?;',
+  '    let lon = attr_f64(node, "lon")?;',
+  '    let ele = node',
+  '        .children()',
+  '        .find(|n| n.has_tag_name("ele"))',
+  '        .and_then(|n| n.text())',
+  '        .and_then(|t| t.parse::<f32>().ok());',
+  '',
+  '    Ok(Punkt { lat, lon, ele })',
+  '}',
+  '',
+  'fn attr_f64(node: Node, navn: &str) -> Result<f64, SporFeil> {',
+  '    node.attribute(navn)',
+  '        .ok_or(SporFeil::ManglerAttributt(navn.into()))?',
+  '        .parse()',
+  '        .map_err(|_| SporFeil::UgyldigTall(navn.into()))',
+  '}',
+  '',
+  'pub fn les_spor(tekst: &str) -> Result<Spor, SporFeil> {',
+  '    let dok = roxmltree::Document::parse(tekst)?;',
+  '    let punkter = dok',
+  '        .descendants()',
+  '        .filter(|n| n.has_tag_name("trkpt"))',
+  '        .map(les_punkt)',
+  '        .collect::<Result<Vec<_>, _>>()?;',
+  '    Ok(Spor::ny(punkter))',
+  '}'
+];
+
+function paintEditor(c) {
+  const r = G.edit;
+  paintWindowFrame(c, r, 'parser.rs', '~/prosjekter/turplan/src/gpx');
+  c.save();
+  rr(c, r.x, r.y, r.w, r.h, 15); c.clip();
+  c.beginPath(); c.rect(r.x, r.y + 47, r.w, r.h - 47); c.clip();
+  c.font = '13px ' + MONO;
+  c.textBaseline = 'alphabetic';
+  const cw = c.measureText('M').width;
+  /* Aktiv linje */
+  c.fillStyle = 'rgba(255,255,255,.05)';
+  c.fillRect(r.x, r.y + 47 + 12 + 8 * 20 + 5, r.w, 20);
+  withGutter(EDITOR_SRC, 57, 4).forEach((l, i) => drawSpans(c, l, r.x + 10, r.y + 47 + 26 + i * 20 - 6, cw));
+  c.restore();
+}
+
+const TRANSCRIPT = [
+  [[T.cla, '✻ '], [T.fg, 'Claude Code'], [T.dim, '  ~/prosjekter/turplan']],
+  [],
+  [[T.dim, '> '], [T.fg, 'Hva gjør `Rute::lengde_km` med tomme spor?']],
+  [],
+  [[T.cla, '● '], [T.fg, 'Den returnerer 0.0. `windows(2)` gir ingen par når sporet har']],
+  [[T.fg, '  færre enn to punkter, så summen blir tom.']],
+  [],
+  [[T.dim, '> '], [T.fg, 'Bra. Legg til en test for det.']],
+  [],
+  [[T.grn, '● '], [T.fg, 'Update'], [T.dim, '(tests/import.rs)']],
+  [[T.dim, '  └ 9 tillegg']],
+  [],
+  [[T.dim, '> '], [T.fg, 'Importen krasjer på GPX-filer uten høydedata. Kan du se på parseren?']],
+  [],
+  [[T.cla, '● '], [T.fg, 'Jeg leser parseren og testene først.']],
+  [],
+  [[T.grn, '● '], [T.fg, 'Read'], [T.dim, '(src/gpx/parser.rs)']],
+  [[T.dim, '  └ Leste 128 linjer']],
+  [],
+  [[T.cla, '● '], [T.fg, 'Feilen er på linje 64: `ele` antas å alltid finnes.']],
+  [],
+  [[T.grn, '● '], [T.fg, 'Update'], [T.dim, '(src/gpx/parser.rs)']],
+  [[T.dim, '  └ 6 tillegg, 2 fjerninger']],
+  [[T.dim, '    64 '], [T.red, '-  let ele = node.child("ele").unwrap();']],
+  [[T.dim, '    64 '], [T.grn, '+  let ele = node.child("ele").and_then(tall);']],
+  [],
+  [[T.grn, '● '], [T.fg, 'Bash'], [T.dim, '(cargo test gpx)']],
+  [[T.dim, '  └ '], [T.grn, 'test result: ok.'], [T.dim, ' 12 passed; 0 failed; finished in 0.04s']],
+  [],
+  [[T.cla, '● '], [T.fg, 'Fikset. Spor uten høydedata importeres nå med `ele: None`.']],
+  [[T.fg, '  Hvordan ser kartvisningen ut hos deg nå?']],
+  []
+];
+
+function wrapPaste(cols) {
+  const lines = [''];
+  for (const p of S.pasted) {
+    let tok = p + ' ';
+    while (tok.length) {
+      const cur = lines[lines.length - 1];
+      const room = cols - cur.length;
+      if (tok.length <= room) { lines[lines.length - 1] = cur + tok; tok = ''; }
+      else if (cur.length) { lines.push(''); }
+      else { lines[lines.length - 1] = tok.slice(0, cols); tok = tok.slice(cols); lines.push(''); }
+    }
+  }
+  if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
+  return lines;
+}
+
+function paintTerminal(c) {
+  const r = G.term;
+  paintWindowFrame(c, r, 'turplan', 'claude');
+  c.save();
+  rr(c, r.x, r.y, r.w, r.h, 15); c.clip();
+  c.beginPath(); c.rect(r.x, r.y + 47, r.w, r.h - 47); c.clip();
+  c.font = '13px ' + MONO;
+  c.textBaseline = 'alphabetic';
+  const cw = c.measureText('M').width, lh = 18;
+  const px = r.x + 14, bw = r.w - 28;
+  const cols = Math.max(10, Math.floor((bw - 20 - cw * 2) / cw));
+  const pasted = wrapPaste(cols).slice(-4);
+  const footerY = r.y + r.h - 12;
+  const boxH = pasted.length * lh + 12;
+  const boxY = footerY - lh - boxH + 2;
+
+  /* Innhold over prompten, bunnjustert slik at siste linje står rett over boksen */
+  TRANSCRIPT.forEach((l, i) => {
+    const y = boxY - 6 - (TRANSCRIPT.length - 1 - i) * lh;
+    if (y > r.y + 47) drawSpans(c, l, px, y, cw);
+  });
+
+  /* Prompt-boks */
+  rr(c, px + .5, boxY + .5, bw - 1, boxH - 1, 6);
+  c.strokeStyle = S.pasted.length ? T.cla : 'rgba(255,255,255,.28)';
+  c.lineWidth = 1;
+  c.stroke();
+  pasted.forEach((line, i) => {
+    const y = boxY + 6 + (i + 1) * lh - 5;
+    if (i === 0) { c.fillStyle = T.dim; c.fillText('> ', px + 10, y); }
+    c.fillStyle = T.blu;
+    c.fillText(line, px + 10 + cw * 2, y);
+  });
+  const last = pasted[pasted.length - 1];
+  c.fillStyle = T.fg;
+  c.fillRect(px + 10 + cw * (2 + last.length), boxY + 6 + (pasted.length - 1) * lh + 2, cw, lh - 4);
+  c.fillStyle = T.dim;
+  c.fillText(S.pasted.length ? '  Enter for å sende' : '  ? for snarveier', px, footerY);
+  c.restore();
+}
+
+let lastMinute = '';
+function renderDesktop() {
+  computeLayout();
+  const dpr = window.devicePixelRatio || 1;
+  const cw = Math.max(1, Math.round(G.W * dpr)), ch = Math.max(1, Math.round(G.H * dpr));
+  if (desktop.width !== cw) desktop.width = cw;
+  if (desktop.height !== ch) desktop.height = ch;
+  dctx.setTransform(cw / G.W, 0, 0, ch / G.H, 0, 0);
+  paintWallpaper(dctx);
+  paintEditor(dctx);
+  paintTerminal(dctx);
+  paintDock(dctx);
+  paintTopbar(dctx);
+
+  const t = G.term;
+  dropZone.style.cssText = 'left:' + t.x + 'px;top:' + t.y + 'px;width:' + t.w + 'px;height:' + t.h + 'px';
+  trayBtn.style.left = G.tray.x + 'px';
+  trayBtn.style.width = G.tray.w + 'px';
+  trayBtn.hidden = !S.running;
+  trayMenu.style.right = Math.max(6, G.W - G.tray.x - G.tray.w) + 'px';
+  const d = new Date();
+  lastMinute = d.getHours() + ':' + d.getMinutes();
+}
+
+/* ───────────── Vinduer ───────────── */
+function mainKey() { return prefs.compact ? 'K' : S.variant; }
+function placeMain() {
+  const v = VARIANTS[S.variant], compact = prefs.compact;
+  const w = compact ? COMPACT_W : v.w;
+  const h = compact ? HEADER_H + (S.revealed ? REVEAL_H : 0) : Math.min(v.h, G.H - TOP - DOCK - 24);
+  mainWin.style.width = w + 'px';
+  mainWin.style.height = h + 'px';
+  const pos = S.winPos[mainKey()];
+  let x, y;
+  if (pos) { x = pos.x; y = pos.y; }
+  else if (S.variant === 'C' && !compact) { x = Math.min(G.term.x + G.term.w + 12, G.W - w - 12); y = TOP + 12; }
+  else { x = G.W - w - 20; y = TOP + 22; }
+  x = clamp(x, 96 - w, G.W - 96);
+  y = clamp(y, TOP, G.H - DOCK - HEADER_H);
+  mainWin.style.left = x + 'px';
+  mainWin.style.top = y + 'px';
+}
+function syncWindows() {
+  const cap = !!S.capture;
+  const blocked = A.open || S.settingsOpen;
+  mainWin.hidden = !S.running || !S.mainShown || cap;
+  annWin.hidden = !A.open || cap;
+  setWin.hidden = !S.settingsOpen || cap;
+  mainWin.inert = blocked;
+  mainWin.classList.toggle('backdrop', blocked);
+  $('#tmToggleLabel').textContent = S.mainShown ? 'Skjul Klipp' : 'Vis Klipp';
+}
+function syncChrome() {
+  mainWin.classList.toggle('compact', prefs.compact);
+  mainWin.classList.toggle('narrow', !prefs.compact && S.variant === 'C');
+  const b = $('#btnCompact');
+  const label = prefs.compact ? 'Vis hylla' : 'Skjul hylla';
+  b.dataset.tip = label + keyHint('shelf');
+  b.setAttribute('aria-label', label);
+  b.setAttribute('aria-expanded', String(!prefs.compact));
+}
+function syncKeyLabels() {
+  syncModes();
+  syncChrome();
+  $('#tmAccel').textContent = prefs.keys.global || '';
+  renderShelf();
+}
+function setCompact(on) {
+  if (prefs.compact === on) return;
+  hideReveal();
+  closePopover();
+  clearToast(mainWin);
+  prefs.compact = on;
+  savePrefs();
+  syncChrome();
+  placeMain();
+  renderShelf();
+}
+function layoutAll() {
+  renderDesktop();
+  placeMain();
+  if (S.settingsOpen) placeSettings();
+  if (A.open) { commitText(); fitAnnotate(); }
+}
+function makeWindowDraggable(win, onMove) {
+  const bar = $('.headerbar', win);
+  let st = null;
+  bar.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    st = { sx: e.clientX, sy: e.clientY, x: win.offsetLeft, y: win.offsetTop, w: win.offsetWidth };
+    bar.setPointerCapture(e.pointerId);
+  });
+  bar.addEventListener('pointermove', e => {
+    if (!st) return;
+    const x = clamp(st.x + e.clientX - st.sx, 96 - st.w, G.W - 96);
+    const y = clamp(st.y + e.clientY - st.sy, TOP, G.H - DOCK - HEADER_H);
+    win.style.left = x + 'px';
+    win.style.top = y + 'px';
+    if (onMove) onMove(x, y);
+  });
+  const end = () => { st = null; };
+  bar.addEventListener('pointerup', end);
+  bar.addEventListener('pointercancel', end);
+}
+
+/* ───────────── Toast (AdwToast) ───────────── */
+const toastTimers = new WeakMap();
+function clearToast(win) {
+  const ov = $('.toast-overlay', win);
+  clearTimeout(toastTimers.get(win));
+  ov.textContent = '';
+}
+function toast(win, title, opts) {
+  opts = opts || {};
+  clearToast(win);
+  const ov = $('.toast-overlay', win);
+  const t = el('div', 'toast');
+  t.setAttribute('role', 'status');
+  t.append(el('span', 'toast-title', title));
+  if (opts.action) {
+    const b = el('button', 'btn', opts.action);
+    b.addEventListener('click', () => { clearToast(win); opts.onAction(); });
+    t.append(b);
+  }
+  const x = el('button', 'win-close');
+  x.setAttribute('aria-label', 'Lukk meldingen');
+  x.innerHTML = icon('close');
+  x.addEventListener('click', () => clearToast(win));
+  t.append(x);
+  ov.append(t);
+  void t.offsetWidth;
+  t.classList.add('in');
+  toastTimers.set(win, setTimeout(() => clearToast(win), opts.timeout || 2200));
+}
+
+/* ───────────── Utklippstavle ───────────── */
+let statusMsg = '';
+function setStatus(msg) { statusMsg = msg || ''; syncStatus(); }
+function syncStatus() {
+  $('#pStatus').textContent = statusMsg || (S.running && curMode() === 'window' ? WINDOW_NOTE : '');
+}
+const CLIP_FAIL = 'Nettleseren blokkerte utklippstavlen, så ingenting ble kopiert.';
+
+async function clipImage(blobPromise) {
+  try {
+    if (!navigator.clipboard || !window.ClipboardItem) throw new Error('clipboard');
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+    setStatus('');
+  } catch (e) { setStatus(CLIP_FAIL); }
+}
+async function clipText(text) {
+  try {
+    if (!navigator.clipboard) throw new Error('clipboard');
+    await navigator.clipboard.writeText(text);
+    setStatus('');
+  } catch (e) { setStatus(CLIP_FAIL); }
+}
+function copyShot(shot) {
+  toast(mainWin, 'Kopiert!');
+  clipImage(shotBlob(shot));
+}
+function copyPath(shot) {
+  toast(mainWin, 'Filsti kopiert');
+  clipText(shot.path);
+}
+
+/* ───────────── Hylla ───────────── */
+function emptyState() {
+  const p = el('div', 'status-page');
+  p.innerHTML = icon('shelf') + '<h2>Hylla er tom</h2><p></p>';
+  const text = $('p', p), key = prefs.keys.global;
+  if (key) text.append('Trykk ', el('kbd', '', key), el('br'), 'for å ta et skjermbilde');
+  else text.textContent = 'Trykk Ny for å ta et skjermbilde';
+  return p;
+}
+
+function makeTile(shot) {
+  const v = S.variant;
+  const dims = shot.w + ' × ' + shot.h + ' px';
+  const time = fmtTime(shot.ts);
+  const t = el('div', 'tile' + (v === 'A' ? ' row' : ''));
+  t.tabIndex = 0;
+  t.draggable = true;
+  t.dataset.id = shot.id;
+  t.setAttribute('role', 'button');
+  t.setAttribute('aria-label', 'Skjermbilde ' + dims + ', ' + time + ', ' + shot.name +
+    '. Enter kopierer bildet, Shift+Enter kopierer filstien, Ctrl+Enter annoterer.');
+  if (v === 'A') {
+    const th = el('div', 'thumb' + (shot.alpha ? ' alpha' : ''));
+    th.append(shot.thumb);
+    const tx = el('div', 'row-text');
+    tx.append(el('div', 'row-title', dims), el('div', 'row-sub', time + ' · ' + shot.name));
+    t.append(th, tx);
+  } else {
+    if (shot.alpha) t.classList.add('alpha');
+    t.append(shot.thumb);
+    const o = el('div', 'tile-osd');
+    o.append(el('span', '', dims + ' · ' + time));
+    if (v === 'B') o.append(el('span', '', shot.name));
+    t.append(o);
+    if (v === 'C') t.dataset.tip = TILE_TIP;
+  }
+
+  t.addEventListener('click', e => {
+    if (e.detail > 1) return;
+    if (e.shiftKey) copyPath(shot); else copyShot(shot);
+  });
+  t.addEventListener('dblclick', e => {
+    if (!e.shiftKey) openAnnotate(shot);
+  });
+  t.addEventListener('keydown', e => onTileKey(e, shot, t));
+  t.addEventListener('dragstart', e => onDragStart(e, shot, t));
+  t.addEventListener('dragend', () => {
+    t.classList.remove('dragging');
+    dropZone.classList.remove('over');
+  });
+  return t;
+}
+
+function onTileKey(e, shot, t) {
+  const cols = VARIANTS[S.variant].cols;
+  const tiles = Array.from(shelfEl.querySelectorAll('.tile'));
+  const i = tiles.indexOf(t);
+  const go = n => { const x = tiles[clamp(n, 0, tiles.length - 1)]; if (x) x.focus(); };
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    if (e.ctrlKey) openAnnotate(shot);
+    else if (e.shiftKey) copyPath(shot);
+    else copyShot(shot);
+  } else if (e.key === 'ArrowDown') { e.preventDefault(); go(i + cols); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); go(i - cols); }
+  else if (e.key === 'ArrowRight' && cols > 1) { e.preventDefault(); go(i + 1); }
+  else if (e.key === 'ArrowLeft' && cols > 1) { e.preventDefault(); go(i - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(tiles.length - 1); }
+}
+
+function renderShelf() {
+  const active = document.activeElement;
+  const focusId = active && active.dataset ? active.dataset.id : null;
+  const scroll = shelfEl.scrollTop;
+  const v = S.variant;
+  mainWin.classList.remove('v-a', 'v-b', 'v-c');
+  mainWin.classList.add('v-' + v.toLowerCase());
+  shelfEl.textContent = '';
+  const empty = !S.shots.length;
+  $('#bottomBar').hidden = empty;
+  const hint = $('#hintLine');
+  hint.textContent = VARIANTS[v].hint;
+  if (empty) { shelfEl.append(emptyState()); return; }
+  const box = el('div', v === 'A' ? 'boxed-list' : v === 'B' ? 'grid' : 'strip');
+  S.shots.forEach(s => box.append(makeTile(s)));
+  shelfEl.append(box);
+  shelfEl.scrollTop = scroll;
+  if (focusId) {
+    const t = shelfEl.querySelector('[data-id="' + focusId + '"]');
+    if (t) t.focus();
+  }
+}
+function flashTile(id) {
+  const t = shelfEl.querySelector('[data-id="' + id + '"]');
+  if (!t) return;
+  t.classList.add('fresh');
+  setTimeout(() => t.classList.remove('fresh'), 1300);
+}
+
+function clearShelf() {
+  if (!S.shots.length) return;
+  const saved = S.shots;
+  S.shots = [];
+  renderShelf();
+  toast(mainWin, S.variant === 'C' ? 'Tømt. Filene er beholdt.' : 'Hylla er tømt. Filene ligger fortsatt i ~/Bilder/Klipp/', {
+    action: 'Angre',
+    timeout: 6000,
+    onAction: () => {
+      S.shots = S.shots.concat(saved).sort((a, b) => b.ts - a.ts);
+      renderShelf();
+    }
+  });
+}
+
+/* ───────────── Dra ut ───────────── */
+function onDragStart(e, shot, tile) {
+  hideTip();
+  const ghost = $('#dragGhost');
+  ghost.textContent = '';
+  const f = Math.min(1, 280 / shot.thumb.width);
+  const small = mk(Math.max(1, Math.round(shot.thumb.width * f)), Math.max(1, Math.round(shot.thumb.height * f)));
+  small.getContext('2d').drawImage(shot.thumb, 0, 0, small.width, small.height);
+  ghost.append(small);
+  e.dataTransfer.effectAllowed = 'copy';
+  e.dataTransfer.setData('text/plain', shot.path);
+  e.dataTransfer.setData(DRAG_MIME, String(shot.id));
+  e.dataTransfer.setDragImage(ghost, 24, 24);
+  tile.classList.add('dragging');
+}
+function isOurDrag(e) {
+  return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).indexOf(DRAG_MIME) !== -1;
+}
+dropZone.addEventListener('dragenter', e => {
+  if (!isOurDrag(e)) return;
+  e.preventDefault();
+  dropZone.classList.add('over');
+});
+dropZone.addEventListener('dragover', e => {
+  if (!isOurDrag(e)) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  dropZone.classList.add('over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  if (!isOurDrag(e)) return;
+  e.preventDefault();
+  dropZone.classList.remove('over');
+  const path = e.dataTransfer.getData('text/plain');
+  if (path) { S.pasted.push(path); renderDesktop(); }
+});
+document.addEventListener('drop', e => { e.preventDefault(); });
+
+/* ───────────── Modus ───────────── */
+function buildModeControls() {
+  MODES.forEach(m => {
+    [['#modeInline', setMode], ['#ovModes', ovSetMode]].forEach(pair => {
+      const b = el('button', 'toggle');
+      b.innerHTML = icon(m.icon);
+      b.dataset.mode = m.id;
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-label', m.label);
+      b.addEventListener('click', () => pair[1](m.id));
+      $(pair[0]).append(b);
+    });
+    const row = el('button');
+    row.innerHTML = icon(m.icon);
+    row.append(el('span', '', m.label), el('span', 'accel'));
+    row.dataset.mode = m.id;
+    row.setAttribute('role', 'menuitemradio');
+    row.addEventListener('click', () => { setMode(m.id); closePopover(true); });
+    modePopover.append(row);
+  });
+}
+function syncModes() {
+  const cur = curMode();
+  document.querySelectorAll('[data-mode]').forEach(b => {
+    const m = MODES.find(x => x.id === b.dataset.mode);
+    b.setAttribute('aria-checked', String(m.id === cur));
+    if (b.classList.contains('toggle')) b.dataset.tip = m.label + keyHint(m.id);
+    const acc = $('.accel', b);
+    if (acc) acc.textContent = prefs.keys[m.id] || '';
+  });
+  const name = MODES.find(m => m.id === prefs.mode).label;
+  const ny = $('#btnCapture');
+  ny.dataset.tip = 'Ta skjermbilde: ' + name;
+  ny.setAttribute('aria-label', 'Ta skjermbilde: ' + name);
+  syncStatus();
+}
+function setMode(id) {
+  prefs.mode = id;
+  savePrefs();
+  syncModes();
+}
+function openPopover() {
+  hideTip();
+  const a = $('#btnModeMenu').getBoundingClientRect(), s = screenEl.getBoundingClientRect();
+  modePopover.hidden = false;
+  modePopover.style.left = clamp(a.left - s.left, 6, G.W - modePopover.offsetWidth - 6) + 'px';
+  modePopover.style.top = (a.bottom - s.top + 6) + 'px';
+  $('#btnModeMenu').setAttribute('aria-expanded', 'true');
+  $('[aria-checked="true"]', modePopover).focus();
+}
+function closePopover(refocus) {
+  if (modePopover.hidden) return;
+  modePopover.hidden = true;
+  $('#btnModeMenu').setAttribute('aria-expanded', 'false');
+  if (refocus) $('#btnModeMenu').focus();
+}
+
+/* ───────────── Capture ───────────── */
+/* Faser: idle (ingenting valgt), drag (tegner) og selected (venter på bekreftelse).
+   Utvalget ligger alltid i ekte canvas-piksler. */
+let ovRaf = 0;
+const HANDLE_R = 5;           /* håndtakets radius i CSS-piksler */
+const CURSORS = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', move: 'move' };
+
+function startCapture() {
+  if (S.capture) return;
+  if (!S.running) { setStatus('Klipp er avsluttet. Start appen først.'); return; }
+  closeTray();
+  closePopover();
+  cancelListen();
+  hideTip();
+  hideBanner();
+  hideReveal();
+  commitText();
+  renderDesktop();
+  const frozen = mk(desktop.width, desktop.height);
+  frozen.getContext('2d').drawImage(desktop, 0, 0);
+  ovCanvas.width = frozen.width;
+  ovCanvas.height = frozen.height;
+  S.capture = {
+    frozen: frozen, mode: prefs.mode, phase: 'idle', sel: null, pts: null, hover: null,
+    start: null, act: null, warn: false, pressed: false, prev: document.activeElement
+  };
+  if (prefs.instant && prefs.mode === 'full') {
+    S.capture.sel = { x: 0, y: 0, w: frozen.width, h: frozen.height };
+    takeShot();
+    return;
+  }
+  syncWindows();
+  overlay.hidden = false;
+  overlay.focus();
+  resetSelection();
+}
+/* CSS-piksler per canvas-piksel */
+function ovF() { return ovCanvas.getBoundingClientRect().width / ovCanvas.width; }
+/* Klientkoordinater til ekte canvas-piksler, uansett devicePixelRatio */
+function ovPoint(e) {
+  const r = ovCanvas.getBoundingClientRect();
+  return {
+    x: clamp(Math.round((e.clientX - r.left) * ovCanvas.width / r.width), 0, ovCanvas.width),
+    y: clamp(Math.round((e.clientY - r.top) * ovCanvas.height / r.height), 0, ovCanvas.height)
+  };
+}
+function resetSelection() {
+  const st = S.capture;
+  st.sel = null; st.pts = null; st.hover = null; st.start = null; st.act = null;
+  st.phase = 'idle';
+  st.warn = false;
+  if (st.mode === 'full') {
+    st.sel = { x: 0, y: 0, w: ovCanvas.width, h: ovCanvas.height };
+    st.phase = 'selected';
+  }
+  syncOverlayUi();
+  paintOverlay();
+}
+function ovSetMode(id) {
+  const st = S.capture;
+  if (!st) return;
+  st.mode = id;
+  prefs.mode = id;
+  savePrefs();
+  resetSelection();
+  overlay.focus();
+}
+/* Angre: Hele skjermen har ikke noe å dra, så den faller tilbake til Område */
+function clearSelection() {
+  const st = S.capture;
+  if (st.mode === 'full') st.mode = 'area';
+  resetSelection();
+  overlay.focus();
+}
+
+function polyPath(c, pts) {
+  c.beginPath();
+  pts.forEach((p, i) => { if (i) c.lineTo(p.x, p.y); else c.moveTo(p.x, p.y); });
+  c.closePath();
+}
+function bboxOf(pts) {
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
+  return { x: x, y: y, w: Math.max.apply(null, xs) - x, h: Math.max.apply(null, ys) - y };
+}
+/* Aksentlinje med lys kontrastkant. Klemmes inn så den også synes i skjermkantene. */
+function ringRect(c, s, W, H, lw) {
+  const band = (width, color) => {
+    const h = width / 2;
+    const x0 = clamp(s.x - lw, h, W - h), y0 = clamp(s.y - lw, h, H - h);
+    const x1 = clamp(s.x + s.w + lw, h, W - h), y1 = clamp(s.y + s.h + lw, h, H - h);
+    c.strokeStyle = color;
+    c.lineWidth = width;
+    c.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  };
+  band(lw * 4, 'rgba(255,255,255,.9)');
+  band(lw * 2, '#3584e4');
+}
+function handlePoints(s) {
+  const W = ovCanvas.width, H = ovCanvas.height, half = HANDLE_R / ovF();
+  const pt = (id, x, y) => ({ id: id, x: clamp(x, half, W - half), y: clamp(y, half, H - half) });
+  const x0 = s.x, xm = s.x + s.w / 2, x1 = s.x + s.w;
+  const y0 = s.y, ym = s.y + s.h / 2, y1 = s.y + s.h;
+  return [pt('nw', x0, y0), pt('ne', x1, y0), pt('se', x1, y1), pt('sw', x0, y1),
+    pt('n', xm, y0), pt('e', x1, ym), pt('s', xm, y1), pt('w', x0, ym)];
+}
+function paintOverlay() {
+  const st = S.capture;
+  if (!st) return;
+  const c = ovCtx, W = ovCanvas.width, H = ovCanvas.height;
+  const lw = Math.max(1, Math.round(1 / ovF()));
+  c.drawImage(st.frozen, 0, 0);
+  c.fillStyle = 'rgba(0,0,0,.55)';
+  c.fillRect(0, 0, W, H);
+  if (st.mode === 'free' && st.pts && st.pts.length > 1) {
+    c.save();
+    polyPath(c, st.pts);
+    c.clip();
+    c.drawImage(st.frozen, 0, 0);
+    c.restore();
+    c.lineJoin = 'round';
+    polyPath(c, st.pts);
+    c.strokeStyle = 'rgba(255,255,255,.9)';
+    c.lineWidth = lw * 4;
+    c.stroke();
+    c.strokeStyle = '#3584e4';
+    c.lineWidth = lw * 2;
+    c.stroke();
+    return;
+  }
+  const s = st.sel || st.hover;
+  if (!s || !s.w || !s.h) return;
+  c.drawImage(st.frozen, s.x, s.y, s.w, s.h, s.x, s.y, s.w, s.h);
+  ringRect(c, s, W, H, lw);
+  if (st.mode === 'area' && st.phase === 'selected') {
+    const r = HANDLE_R / ovF();
+    handlePoints(s).forEach(p => {
+      c.beginPath();
+      c.arc(p.x, p.y, r, 0, Math.PI * 2);
+      c.fillStyle = '#fff';
+      c.fill();
+      c.strokeStyle = '#3584e4';
+      c.lineWidth = lw * 1.5;
+      c.stroke();
+    });
+  }
+}
+function schedOverlay() {
+  if (ovRaf) return;
+  ovRaf = requestAnimationFrame(() => { ovRaf = 0; paintOverlay(); });
+}
+
+function updateSizeLabel(sel) {
+  const r = ovCanvas.getBoundingClientRect();
+  const f = r.width / ovCanvas.width;
+  ovSize.hidden = false;
+  ovSize.textContent = sel.w + ' × ' + sel.h + ' px';
+  ovSize.classList.toggle('warn', sel.w < MIN_SIZE || sel.h < MIN_SIZE);
+  const lw = ovSize.offsetWidth, lh = ovSize.offsetHeight;
+  const right = (sel.x + sel.w) * f, bottom = (sel.y + sel.h) * f;
+  let x = right - lw, y = bottom + 8;
+  if (y + lh > r.height - 4) y = bottom - lh - 8;
+  x = clamp(x, 4, r.width - lw - 4);
+  y = clamp(y, 4, r.height - lh - 4);
+  ovSize.style.left = x + 'px';
+  ovSize.style.top = y + 'px';
+}
+/* Handlingslinja: utenfor utvalget om det går, ellers inni, alltid på skjermen */
+function placeActions() {
+  const st = S.capture;
+  const r = ovCanvas.getBoundingClientRect(), f = r.width / ovCanvas.width;
+  const W = r.width, H = r.height, m = 8, g = 10;
+  const x0 = st.sel.x * f, y0 = st.sel.y * f, x1 = (st.sel.x + st.sel.w) * f, y1 = (st.sel.y + st.sel.h) * f;
+  const bw = ovActions.offsetWidth, bh = ovActions.offsetHeight;
+  const b = ovBar.getBoundingClientRect();
+  const bar = { l: b.left - r.left, r: b.right - r.left, b: b.bottom - r.top };
+  const onBar = (x, y) => x < bar.r + m && x + bw > bar.l - m && y < bar.b + m;
+  const fits = (x, y) => x >= m && y >= m && x + bw <= W - m && y + bh <= H - m && !onBar(x, y);
+  const ax = clamp(x1 - bw, m, W - bw - m), ay = clamp(y1 - bh, m, H - bh - m);
+  let p = [[ax, y1 + g], [ax, y0 - bh - g], [x1 + g, ay], [x0 - bw - g, ay]].find(q => fits(q[0], q[1]));
+  if (!p) {
+    const x = clamp(x1 - bw - 12, m, W - bw - m);
+    let y = clamp(y1 - bh - 12, m, H - bh - m);
+    if (onBar(x, y)) y = bar.b + m;
+    p = [x, y];
+  }
+  ovActions.style.left = Math.round(p[0]) + 'px';
+  ovActions.style.top = Math.round(p[1]) + 'px';
+}
+function syncOverlayUi() {
+  const st = S.capture;
+  if (!st) return;
+  syncModes();
+  const hint = MODES.find(m => m.id === st.mode).hint;
+  ovHint.hidden = st.phase !== 'idle' || (!st.warn && !hint);
+  ovHint.classList.toggle('warn', st.warn);
+  ovHint.textContent = st.warn ? 'For lite område. Prøv igjen, eller trykk Esc.' : hint + ' · Esc lukker';
+  if (st.phase !== 'drag' && !st.act) ovSize.hidden = true;
+  const show = st.phase === 'selected' && !st.act;
+  ovActions.hidden = !show;
+  if (show) {
+    $('#ovDims').textContent = st.sel.w + ' × ' + st.sel.h + ' px';
+    placeActions();
+  }
+  ovCanvas.style.cursor = st.phase === 'selected' ? 'default' : st.mode === 'window' ? 'pointer' : 'crosshair';
+}
+function hitTest(p) {
+  const st = S.capture, s = st.sel;
+  if (st.mode !== 'area' || st.phase !== 'selected') return null;
+  const f = ovF(), R = 10 / f, E = 6 / f;
+  const hit = handlePoints(s).slice(0, 4).find(h => Math.abs(p.x - h.x) <= R && Math.abs(p.y - h.y) <= R);
+  if (hit) return hit.id;
+  const inX = p.x >= s.x - E && p.x <= s.x + s.w + E, inY = p.y >= s.y - E && p.y <= s.y + s.h + E;
+  if (inX && Math.abs(p.y - s.y) <= E) return 'n';
+  if (inX && Math.abs(p.y - (s.y + s.h)) <= E) return 's';
+  if (inY && Math.abs(p.x - s.x) <= E) return 'w';
+  if (inY && Math.abs(p.x - (s.x + s.w)) <= E) return 'e';
+  return p.x > s.x && p.x < s.x + s.w && p.y > s.y && p.y < s.y + s.h ? 'move' : null;
+}
+function applyAct(st, p) {
+  const o = st.act.sel, k = st.act.kind, W = ovCanvas.width, H = ovCanvas.height;
+  const dx = p.x - st.act.start.x, dy = p.y - st.act.start.y;
+  if (k === 'move') {
+    st.sel = { x: clamp(o.x + dx, 0, W - o.w), y: clamp(o.y + dy, 0, H - o.h), w: o.w, h: o.h };
+    return;
+  }
+  let x0 = o.x, y0 = o.y, x1 = o.x + o.w, y1 = o.y + o.h;
+  if (k.indexOf('w') !== -1) x0 = clamp(x0 + dx, 0, x1 - MIN_SIZE);
+  if (k.indexOf('e') !== -1) x1 = clamp(x1 + dx, x0 + MIN_SIZE, W);
+  if (k.indexOf('n') !== -1) y0 = clamp(y0 + dy, 0, y1 - MIN_SIZE);
+  if (k.indexOf('s') !== -1) y1 = clamp(y1 + dy, y0 + MIN_SIZE, H);
+  st.sel = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+/* Vindu-modus: de falske vinduene, øverste først */
+function windowAt(p) {
+  const f = ovF();
+  const hit = [G.term, G.edit].find(r => p.x * f >= r.x && p.x * f < r.x + r.w && p.y * f >= r.y && p.y * f < r.y + r.h);
+  if (!hit) return null;
+  const x = Math.round(hit.x / f), y = Math.round(hit.y / f);
+  return { x: x, y: y, w: Math.round((hit.x + hit.w) / f) - x, h: Math.round((hit.y + hit.h) / f) - y };
+}
+function confirmOrTake() {
+  const st = S.capture;
+  st.phase = 'selected';
+  if (prefs.instant) { takeShot(); return; }
+  syncOverlayUi();
+  paintOverlay();
+}
+
+ovCanvas.addEventListener('pointerdown', e => {
+  const st = S.capture;
+  if (!st || e.button !== 0) return;
+  e.preventDefault();
+  const p = ovPoint(e);
+  if (st.phase === 'selected') {
+    const zone = hitTest(p);
+    if (!zone) return;
+    st.act = { kind: zone, start: p, sel: Object.assign({}, st.sel) };
+  } else if (st.phase === 'idle' && st.mode === 'area') {
+    st.phase = 'drag';
+    st.warn = false;
+    st.start = p;
+    st.sel = { x: p.x, y: p.y, w: 0, h: 0 };
+  } else if (st.phase === 'idle' && st.mode === 'free') {
+    st.phase = 'drag';
+    st.warn = false;
+    st.pts = [p];
+  } else {
+    st.pressed = st.phase === 'idle';
+    return;
+  }
+  ovCanvas.setPointerCapture(e.pointerId);
+  syncOverlayUi();
+  schedOverlay();
+});
+ovCanvas.addEventListener('pointermove', e => {
+  const st = S.capture;
+  if (!st) return;
+  const p = ovPoint(e);
+  if (st.act) {
+    applyAct(st, p);
+    updateSizeLabel(st.sel);
+    schedOverlay();
+  } else if (st.phase === 'drag') {
+    if (st.mode === 'free') {
+      const l = st.pts[st.pts.length - 1];
+      if (Math.hypot(p.x - l.x, p.y - l.y) >= 2) st.pts.push(p);
+      st.sel = bboxOf(st.pts);
+    } else {
+      st.sel = {
+        x: Math.min(st.start.x, p.x), y: Math.min(st.start.y, p.y),
+        w: Math.abs(p.x - st.start.x), h: Math.abs(p.y - st.start.y)
+      };
+    }
+    updateSizeLabel(st.sel);
+    schedOverlay();
+  } else if (st.phase === 'idle' && st.mode === 'window') {
+    const w = windowAt(p);
+    if (JSON.stringify(w) !== JSON.stringify(st.hover)) { st.hover = w; schedOverlay(); }
+  } else if (st.phase === 'selected') {
+    ovCanvas.style.cursor = CURSORS[hitTest(p)] || 'default';
+  }
+});
+ovCanvas.addEventListener('pointerup', e => {
+  const st = S.capture;
+  if (!st || e.button !== 0) return;
+  if (st.act) {
+    st.act = null;
+    syncOverlayUi();
+    schedOverlay();
+  } else if (st.phase === 'drag') {
+    const s = st.sel;
+    if (!s || s.w < MIN_SIZE || s.h < MIN_SIZE || (st.mode === 'free' && st.pts.length < 3)) {
+      resetSelection();
+      st.warn = true;
+      syncOverlayUi();
+      return;
+    }
+    confirmOrTake();
+  } else if (st.phase === 'idle' && st.mode === 'window' && st.pressed) {
+    const w = windowAt(ovPoint(e));
+    if (!w) return;
+    st.sel = w;
+    st.hover = null;
+    confirmOrTake();
+  }
+});
+ovCanvas.addEventListener('pointercancel', () => cancelCapture());
+ovCanvas.addEventListener('contextmenu', e => { e.preventDefault(); cancelCapture(); });
+
+function overlayKeys(e) {
+  const st = S.capture;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (st.act) { st.sel = st.act.sel; st.act = null; syncOverlayUi(); paintOverlay(); }
+    else if (st.phase === 'drag') resetSelection();
+    else if (st.phase === 'selected') clearSelection();
+    else cancelCapture();
+    return;
+  }
+  if (e.key === 'Enter') {
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') return;
+    e.preventDefault();
+    if (st.phase === 'selected' && !st.act) takeShot();
+    return;
+  }
+  if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    if (st.phase === 'selected' && !st.act) clearSelection();
+    return;
+  }
+  if (e.repeat) return;
+  const a = actionFor(e);
+  if (a && a !== 'shelf') { e.preventDefault(); ovSetMode(a); }
+}
+
+function endCaptureUi() {
+  const st = S.capture;
+  S.capture = null;
+  overlay.hidden = true;
+  cancelAnimationFrame(ovRaf); ovRaf = 0;
+  if (S.needsLayout) { S.needsLayout = false; layoutAll(); }
+  syncModes();
+  return st;
+}
+function cancelCapture() {
+  if (!S.capture) return;
+  const st = endCaptureUi();
+  syncWindows();
+  if (st.prev && st.prev.isConnected && st.prev !== document.body) st.prev.focus();
+}
+function cropSelection(st) {
+  const s = st.sel, out = mk(s.w, s.h), c = out.getContext('2d');
+  if (st.mode === 'free') {
+    c.translate(-s.x, -s.y);
+    polyPath(c, st.pts);
+    c.clip();
+    c.drawImage(st.frozen, 0, 0);
+  } else {
+    c.drawImage(st.frozen, s.x, s.y, s.w, s.h, 0, 0, s.w, s.h);
+  }
+  return out;
+}
+function takeShot() {
+  const st = S.capture;
+  const shot = makeShot(cropSelection(st), Date.now(), st.mode === 'free');
+  endCaptureUi();
+  S.shots.unshift(shot);
+  S.mainShown = true;
+  shelfEl.scrollTop = 0;
+  syncWindows();
+  renderShelf();
+  flashTile(shot.id);
+  if (prefs.autocopy) clipImage(shotBlob(shot));
+  if (prefs.compact) showReveal(shot);
+  else if (prefs.autocopy) toast(mainWin, 'Kopiert!');
+  if (A.open) { annWin.focus(); return; }
+  if (S.settingsOpen) { setWin.focus(); return; }
+  const t = shelfEl.querySelector('[data-id="' + shot.id + '"]');
+  if (t) t.focus();
+}
+
+/* ───────────── Kompakt: rad etter capture (GtkRevealer) ───────────── */
+let revealTimer = 0, revealShot = null;
+function armReveal() {
+  clearTimeout(revealTimer);
+  revealTimer = setTimeout(hideReveal, 4000);
+}
+function showReveal(shot) {
+  const box = $('#revThumb');
+  const c = mk(shot.thumb.width, shot.thumb.height);
+  c.getContext('2d').drawImage(shot.thumb, 0, 0);
+  box.textContent = '';
+  box.append(c);
+  box.classList.toggle('alpha', shot.alpha);
+  $('#revDims').textContent = shot.w + ' × ' + shot.h + ' px';
+  $('#revStatus').textContent = prefs.autocopy ? 'Kopiert!' : fmtTime(shot.ts);
+  revealShot = shot;
+  S.revealed = true;
+  reveal.classList.add('open');
+  reveal.inert = false;
+  placeMain();
+  armReveal();
+}
+function hideReveal() {
+  clearTimeout(revealTimer);
+  if (!S.revealed) return;
+  S.revealed = false;
+  reveal.classList.remove('open');
+  reveal.inert = true;
+  placeMain();
+}
+reveal.addEventListener('mouseenter', () => clearTimeout(revealTimer));
+reveal.addEventListener('mouseleave', () => { if (S.revealed) armReveal(); });
+$('#revAnnotate').addEventListener('click', () => {
+  const shot = revealShot;
+  hideReveal();
+  if (shot && S.shots.indexOf(shot) !== -1) openAnnotate(shot);
+});
+$('#revShelf').addEventListener('click', () => setCompact(false));
+
+/* ───────────── Innstillinger ───────────── */
+const SET = { listen: null, err: null };
+
+function applyTheme() {
+  const dark = prefs.theme === 'system' ? themeQuery.matches : prefs.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+}
+const themeQuery = matchMedia('(prefers-color-scheme: dark)');
+themeQuery.addEventListener('change', applyTheme);
+
+function placeSettings() {
+  const work = G.H - TOP - DOCK;
+  const w = Math.min(540, G.W - 40), h = Math.min(660, work - 24);
+  setWin.style.width = w + 'px';
+  setWin.style.height = h + 'px';
+  setWin.style.left = Math.round((G.W - w) / 2) + 'px';
+  setWin.style.top = Math.round(TOP + (work - h) / 2) + 'px';
+}
+function renderKeys() {
+  const box = $('#keyList');
+  box.textContent = '';
+  ACTIONS.forEach(a => {
+    const listening = SET.listen === a.id;
+    const key = prefs.keys[a.id];
+    const row = el('button', 'pref-row');
+    row.dataset.action = a.id;
+    const text = el('span', 'pref-text');
+    text.append(el('span', '', a.label));
+    if (listening && SET.err) text.append(el('span', 'pref-sub err', SET.err));
+    else if (listening) text.append(el('span', 'pref-sub', 'Esc avbryter · Backspace fjerner'));
+    else if (a.sub) text.append(el('span', 'pref-sub', a.sub));
+    row.append(text);
+    if (listening) row.append(el('span', 'pref-listen', 'Trykk ny snarvei …'));
+    else if (key) row.append(el('kbd', '', key));
+    else row.append(el('span', 'pref-off', 'Ingen'));
+    row.addEventListener('click', () => {
+      SET.listen = a.id;
+      SET.err = null;
+      renderKeys();
+      $('[data-action="' + a.id + '"]').focus();
+    });
+    box.append(row);
+  });
+  $('#keysReset').disabled = ACTIONS.every(a => prefs.keys[a.id] === a.def);
+}
+function syncSettings() {
+  $('#rowInstant').setAttribute('aria-checked', String(prefs.instant));
+  $('#rowAutocopy').setAttribute('aria-checked', String(prefs.autocopy));
+  document.querySelectorAll('[data-theme-btn]').forEach(b => {
+    b.setAttribute('aria-checked', String(b.dataset.themeBtn === prefs.theme));
+  });
+  renderKeys();
+}
+function openSettings() {
+  closePopover();
+  hideReveal();
+  hideTip();
+  S.settingsOpen = true;
+  placeSettings();
+  syncSettings();
+  syncWindows();
+  $('.prefs').scrollTop = 0;
+  setWin.focus();
+}
+function closeSettings() {
+  cancelListen();
+  S.settingsOpen = false;
+  syncWindows();
+  if (!mainWin.hidden && !prefs.compact) $('#btnSettings').focus();
+}
+function cancelListen() {
+  if (!SET.listen) return;
+  SET.listen = null;
+  SET.err = null;
+  renderKeys();
+}
+function storeKey(id, combo) {
+  prefs.keys[id] = combo;
+  savePrefs();
+  SET.listen = null;
+  SET.err = null;
+  renderKeys();
+  syncKeyLabels();
+  $('[data-action="' + id + '"]').focus();
+}
+function listenKey(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.repeat) return;
+  const id = SET.listen;
+  const plain = !e.ctrlKey && !e.altKey && !e.shiftKey && !e.metaKey;
+  if (plain && e.key === 'Escape') {
+    cancelListen();
+    $('[data-action="' + id + '"]').focus();
+    return;
+  }
+  if (plain && e.key === 'Backspace') { storeKey(id, null); return; }
+  const combo = comboOf(e);
+  if (!combo) return;
+  const other = ACTIONS.find(a => a.id !== id && prefs.keys[a.id] === combo);
+  if (RESERVED.indexOf(combo) !== -1) SET.err = '«' + combo + '» er reservert av Klipp';
+  else if (other) SET.err = '«' + combo + '» brukes allerede av ' + other.label;
+  else { storeKey(id, combo); return; }
+  renderKeys();
+}
+[['system', 'System'], ['light', 'Lys'], ['dark', 'Mørk']].forEach(t => {
+  const b = el('button', 'toggle wide', t[1]);
+  b.dataset.themeBtn = t[0];
+  b.setAttribute('role', 'radio');
+  b.addEventListener('click', () => {
+    prefs.theme = t[0];
+    savePrefs();
+    applyTheme();
+    syncSettings();
+  });
+  $('#themeGroup').append(b);
+});
+[['#rowInstant', 'instant'], ['#rowAutocopy', 'autocopy']].forEach(p => {
+  $(p[0]).addEventListener('click', () => {
+    prefs[p[1]] = !prefs[p[1]];
+    savePrefs();
+    syncSettings();
+  });
+});
+$('#keysReset').addEventListener('click', () => {
+  prefs.keys = defaultKeys();
+  savePrefs();
+  cancelListen();
+  renderKeys();
+  syncKeyLabels();
+});
+
+/* ───────────── Annotering ───────────── */
+const TOOLS = [
+  { id: 'arrow', key: 'p', label: 'Pil', icon: 'arrow' },
+  { id: 'rect', key: 'r', label: 'Rektangel', icon: 'rect' },
+  { id: 'free', key: 'f', label: 'Frihånd', icon: 'free' },
+  { id: 'text', key: 't', label: 'Tekst', icon: 'text' },
+  { id: 'marker', key: 'm', label: 'Nummerert markør', icon: 'marker' },
+  { id: 'redact', key: 's', label: 'Sladd', icon: 'redact' }
+];
+const COLORS = [
+  { v: '#ed333b', n: 'Rød', fg: '#ffffff' },
+  { v: '#ff7800', n: 'Oransje', fg: '#000000' },
+  { v: '#f6d32d', n: 'Gul', fg: '#000000' },
+  { v: '#33d17a', n: 'Grønn', fg: '#000000' },
+  { v: '#62a0ea', n: 'Blå', fg: '#000000' }
+];
+const THICK = [
+  { n: 'Tynn', line: 3, text: 16, r: 11, block: 10, dot: 4 },
+  { n: 'Middels', line: 5, text: 22, r: 14, block: 14, dot: 7 },
+  { n: 'Tykk', line: 8, text: 30, r: 18, block: 20, dot: 11 }
+];
+
+const view = $('#annView');
+const vctx = view.getContext('2d', { willReadFrequently: true });
+const annWrap = $('#annWrap');
+
+const A = {
+  open: false, shot: null, tool: 'arrow', color: 0, thick: 1,
+  ops: [], redo: [], draft: null, s: 1,
+  committed: null, cctx: null, text: null, raf: 0
+};
+
+(function buildToolbar() {
+  const bar = $('#annTools');
+  TOOLS.forEach(t => {
+    const b = el('button', 'btn icon');
+    b.innerHTML = icon(t.icon);
+    b.dataset.tool = t.id;
+    b.dataset.tip = t.label + ' (' + t.key.toUpperCase() + ')';
+    b.setAttribute('aria-label', t.label);
+    b.addEventListener('click', () => setTool(t.id));
+    bar.append(b);
+  });
+  bar.append(el('span', 'tb-sep'));
+  COLORS.forEach((c, i) => {
+    const b = el('button', 'swatch');
+    b.innerHTML = '<i></i>';
+    b.style.setProperty('--c', c.v);
+    b.dataset.color = i;
+    b.dataset.tip = c.n + ' (' + (i + 1) + ')';
+    b.setAttribute('aria-label', 'Farge: ' + c.n);
+    b.addEventListener('click', () => setColor(i));
+    bar.append(b);
+  });
+  bar.append(el('span', 'tb-sep'));
+  THICK.forEach((t, i) => {
+    const b = el('button', 'btn icon thick');
+    const dot = el('i');
+    dot.style.width = dot.style.height = t.dot + 'px';
+    b.append(dot);
+    b.dataset.thick = i;
+    b.dataset.tip = t.n + ' (+ / −)';
+    b.setAttribute('aria-label', 'Tykkelse: ' + t.n);
+    b.addEventListener('click', () => setThick(i));
+    bar.append(b);
+  });
+})();
+
+function syncToolbar() {
+  document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === A.tool)));
+  document.querySelectorAll('[data-color]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.color === A.color)));
+  document.querySelectorAll('[data-thick]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.thick === A.thick)));
+  view.classList.toggle('t-text', A.tool === 'text');
+}
+function syncUndo() {
+  $('#annUndo').disabled = !A.ops.length;
+  $('#annRedo').disabled = !A.redo.length;
+}
+function setTool(id) { A.tool = id; syncToolbar(); }
+function setColor(i) { A.color = i; syncToolbar(); }
+function setThick(i) { A.thick = clamp(i, 0, THICK.length - 1); syncToolbar(); }
+
+function fitAnnotate() {
+  const sh = A.shot, dpr = window.devicePixelRatio || 1;
+  const chrome = 47 + 46, pad = 32;
+  const work = G.H - TOP - DOCK;
+  const maxW = G.W - 40 - pad, maxH = work - 20 - chrome - pad;
+  const fit = Math.min(maxW / sh.w, maxH / sh.h);
+  const zoom = clamp(320 / Math.max(sh.w, sh.h), 1, 3) / dpr;
+  A.s = Math.min(fit, zoom);
+  const cw = Math.max(1, Math.round(sh.w * A.s)), ch = Math.max(1, Math.round(sh.h * A.s));
+  view.style.width = cw + 'px';
+  view.style.height = ch + 'px';
+  view.classList.toggle('zoomed', A.s * dpr > 1);
+  const ww = Math.min(G.W - 40, Math.max(720, cw + pad));
+  const wh = Math.min(work - 20, Math.max(380, ch + pad + chrome));
+  annWin.style.width = ww + 'px';
+  annWin.style.height = wh + 'px';
+  annWin.style.left = Math.round((G.W - ww) / 2) + 'px';
+  annWin.style.top = Math.round(TOP + (work - wh) / 2) + 'px';
+}
+
+function openAnnotate(shot) {
+  if (A.open) return;
+  hideTip();
+  A.open = true;
+  A.shot = shot;
+  A.ops = [];
+  A.redo = [];
+  A.draft = null;
+  view.width = shot.w;
+  view.height = shot.h;
+  annWrap.classList.toggle('alpha', shot.alpha);
+  A.committed = mk(shot.w, shot.h);
+  A.cctx = A.committed.getContext('2d', { willReadFrequently: true });
+  A.cctx.drawImage(shot.canvas, 0, 0);
+  $('#annSub').textContent = shot.name;
+  syncWindows();
+  syncToolbar();
+  syncUndo();
+  fitAnnotate();
+  renderView();
+  annWin.focus();
+}
+function closeAnnotate() {
+  const id = A.shot ? A.shot.id : null;
+  dropText();
+  clearToast(annWin);
+  A.open = false;
+  A.shot = null;
+  A.committed = null;
+  A.cctx = null;
+  A.draft = null;
+  syncWindows();
+  const t = id != null ? shelfEl.querySelector('[data-id="' + id + '"]') : null;
+  if (t) t.focus();
+  return id;
+}
+function annDone() {
+  commitText();
+  const sh = A.shot;
+  if (A.ops.length) {
+    const c = mk(sh.w, sh.h);
+    c.getContext('2d').drawImage(A.committed, 0, 0);
+    sh.canvas = c;
+    sh.blob = null;
+    sh.thumb = makeThumb(c);
+    renderShelf();
+  }
+  const dirty = A.ops.length > 0;
+  const id = closeAnnotate();
+  if (dirty) flashTile(id);
+}
+function annCopy() {
+  commitText();
+  toast(annWin, 'Kopiert!');
+  clipImage(new Promise(res => A.committed.toBlob(res, 'image/png')));
+}
+
+function pixelate(c, x, y, w, h, b) {
+  const cv = c.canvas;
+  const x0 = clamp(Math.floor(x), 0, cv.width), y0 = clamp(Math.floor(y), 0, cv.height);
+  const x1 = clamp(Math.ceil(x + w), 0, cv.width), y1 = clamp(Math.ceil(y + h), 0, cv.height);
+  const iw = x1 - x0, ih = y1 - y0;
+  if (iw < 1 || ih < 1) return;
+  const img = c.getImageData(x0, y0, iw, ih);
+  const d = img.data;
+  const bs = Math.max(2, Math.round(b));
+  /* Rutenettet er forankret i bildet, så blokkene står stille mens området dras */
+  for (let by = y0 - (y0 % bs); by < y1; by += bs) {
+    for (let bx = x0 - (x0 % bs); bx < x1; bx += bs) {
+      const sx = Math.max(bx, x0) - x0, ex = Math.min(bx + bs, x1) - x0;
+      const sy = Math.max(by, y0) - y0, ey = Math.min(by + bs, y1) - y0;
+      /* Vektes med alfa, og alfakanalen beholdes: transparens utenfor frihåndsformen skal bestå */
+      let r = 0, g = 0, bl = 0, n = 0;
+      for (let py = sy; py < ey; py++) {
+        for (let px = sx; px < ex; px++) {
+          const i = (py * iw + px) * 4, a = d[i + 3];
+          r += d[i] * a; g += d[i + 1] * a; bl += d[i + 2] * a; n += a;
+        }
+      }
+      if (!n) continue;
+      r = Math.round(r / n); g = Math.round(g / n); bl = Math.round(bl / n);
+      for (let py = sy; py < ey; py++) {
+        for (let px = sx; px < ex; px++) {
+          const i = (py * iw + px) * 4;
+          d[i] = r; d[i + 1] = g; d[i + 2] = bl;
+        }
+      }
+    }
+  }
+  c.putImageData(img, x0, y0);
+}
+
+function drawOp(c, o) {
+  c.save();
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  switch (o.t) {
+    case 'arrow': {
+      const dx = o.x2 - o.x1, dy = o.y2 - o.y1, len = Math.hypot(dx, dy);
+      if (len < 1) break;
+      const a = Math.atan2(dy, dx);
+      const head = Math.min(Math.max(o.lw * 3.4, o.lw + 8), len * 0.7);
+      const sp = 0.42;
+      c.strokeStyle = o.c;
+      c.lineWidth = o.lw;
+      c.beginPath();
+      c.moveTo(o.x1, o.y1);
+      c.lineTo(o.x2 - Math.cos(a) * head * 0.8, o.y2 - Math.sin(a) * head * 0.8);
+      c.stroke();
+      c.fillStyle = o.c;
+      c.beginPath();
+      c.moveTo(o.x2, o.y2);
+      c.lineTo(o.x2 - head * Math.cos(a - sp), o.y2 - head * Math.sin(a - sp));
+      c.lineTo(o.x2 - head * Math.cos(a + sp), o.y2 - head * Math.sin(a + sp));
+      c.closePath();
+      c.fill();
+      break;
+    }
+    case 'rect': {
+      c.strokeStyle = o.c;
+      c.lineWidth = o.lw;
+      c.strokeRect(Math.min(o.x1, o.x2), Math.min(o.y1, o.y2), Math.abs(o.x2 - o.x1), Math.abs(o.y2 - o.y1));
+      break;
+    }
+    case 'free': {
+      const p = o.pts;
+      c.strokeStyle = o.c;
+      c.fillStyle = o.c;
+      c.lineWidth = o.lw;
+      if (p.length === 1) {
+        c.beginPath(); c.arc(p[0].x, p[0].y, o.lw / 2, 0, Math.PI * 2); c.fill();
+        break;
+      }
+      c.beginPath();
+      c.moveTo(p[0].x, p[0].y);
+      for (let i = 1; i < p.length - 1; i++) {
+        c.quadraticCurveTo(p[i].x, p[i].y, (p[i].x + p[i + 1].x) / 2, (p[i].y + p[i + 1].y) / 2);
+      }
+      c.lineTo(p[p.length - 1].x, p[p.length - 1].y);
+      c.stroke();
+      break;
+    }
+    case 'text': {
+      c.font = '600 ' + o.size + 'px ' + SANS;
+      c.textBaseline = 'top';
+      const lh = o.size * 1.25, pad = (lh - o.size) / 2;
+      c.lineWidth = o.size / 5;
+      c.strokeStyle = 'rgba(0,0,0,.8)';
+      c.fillStyle = o.c;
+      o.text.split('\n').forEach((line, i) => {
+        c.strokeText(line, o.x, o.y + pad + i * lh);
+        c.fillText(line, o.x, o.y + pad + i * lh);
+      });
+      break;
+    }
+    case 'marker': {
+      c.beginPath();
+      c.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      c.fillStyle = o.c;
+      c.fill();
+      c.lineWidth = o.r * 0.16;
+      c.strokeStyle = '#ffffff';
+      c.stroke();
+      c.fillStyle = o.fg;
+      c.font = '700 ' + (o.r * (o.n > 9 ? 1 : 1.2)) + 'px ' + SANS;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(String(o.n), o.x, o.y + o.r * 0.06);
+      break;
+    }
+    case 'redact': {
+      pixelate(c, Math.min(o.x1, o.x2), Math.min(o.y1, o.y2), Math.abs(o.x2 - o.x1), Math.abs(o.y2 - o.y1), o.block);
+      break;
+    }
+  }
+  c.restore();
+}
+
+function redrawCommitted() {
+  A.cctx.clearRect(0, 0, A.committed.width, A.committed.height);
+  A.cctx.drawImage(A.shot.canvas, 0, 0);
+  A.ops.forEach(o => drawOp(A.cctx, o));
+}
+function renderView() {
+  if (!A.committed) return;
+  vctx.clearRect(0, 0, view.width, view.height);
+  vctx.drawImage(A.committed, 0, 0);
+  if (A.draft) drawOp(vctx, A.draft);
+}
+function schedView() {
+  if (A.raf) return;
+  A.raf = requestAnimationFrame(() => { A.raf = 0; renderView(); });
+}
+function pushOp(op) {
+  A.ops.push(op);
+  A.redo = [];
+  drawOp(A.cctx, op);
+  renderView();
+  syncUndo();
+}
+function undo() {
+  if (!A.ops.length || A.draft) return;
+  A.redo.push(A.ops.pop());
+  redrawCommitted();
+  renderView();
+  syncUndo();
+}
+function redo() {
+  if (!A.redo.length || A.draft) return;
+  const op = A.redo.pop();
+  A.ops.push(op);
+  drawOp(A.cctx, op);
+  renderView();
+  syncUndo();
+}
+
+function annPoint(e) {
+  const r = view.getBoundingClientRect();
+  return {
+    x: clamp((e.clientX - r.left) * view.width / r.width, 0, view.width),
+    y: clamp((e.clientY - r.top) * view.height / r.height, 0, view.height)
+  };
+}
+view.addEventListener('mousedown', e => e.preventDefault());
+view.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  if (A.text) { commitText(); return; }
+  const p = annPoint(e);
+  const k = 1 / A.s, th = THICK[A.thick], col = COLORS[A.color];
+  switch (A.tool) {
+    case 'text':
+      startText(p);
+      return;
+    case 'marker':
+      pushOp({ t: 'marker', x: p.x, y: p.y, r: th.r * k, c: col.v, fg: col.fg, n: A.ops.filter(o => o.t === 'marker').length + 1 });
+      return;
+    case 'arrow':
+    case 'rect':
+      A.draft = { t: A.tool, x1: p.x, y1: p.y, x2: p.x, y2: p.y, lw: th.line * k, c: col.v };
+      break;
+    case 'free':
+      A.draft = { t: 'free', pts: [p], lw: th.line * k, c: col.v };
+      break;
+    case 'redact':
+      A.draft = { t: 'redact', x1: p.x, y1: p.y, x2: p.x, y2: p.y, block: Math.max(6, th.block * k) };
+      break;
+  }
+  view.setPointerCapture(e.pointerId);
+});
+view.addEventListener('pointermove', e => {
+  const d = A.draft;
+  if (!d) return;
+  const p = annPoint(e);
+  if (d.t === 'free') {
+    const l = d.pts[d.pts.length - 1];
+    if (Math.hypot(p.x - l.x, p.y - l.y) >= 1) d.pts.push(p);
+  } else { d.x2 = p.x; d.y2 = p.y; }
+  schedView();
+});
+view.addEventListener('pointerup', () => {
+  const d = A.draft;
+  if (!d) return;
+  A.draft = null;
+  const big = d.t === 'free' || Math.max(Math.abs(d.x2 - d.x1), Math.abs(d.y2 - d.y1)) >= 3 / A.s;
+  if (big) pushOp(d); else renderView();
+});
+view.addEventListener('pointercancel', () => { A.draft = null; renderView(); });
+
+function startText(p) {
+  const th = THICK[A.thick];
+  const ta = el('textarea', 'ann-text');
+  const r = view.getBoundingClientRect();
+  const left = clamp(p.x * A.s, 0, Math.max(0, r.width - 60));
+  const top = clamp(p.y * A.s, 0, Math.max(0, r.height - th.text * 1.25));
+  ta.rows = 1;
+  ta.spellcheck = false;
+  ta.wrap = 'off';
+  ta.setAttribute('aria-label', 'Tekst i bildet');
+  ta.style.cssText = 'left:' + left + 'px;top:' + top + 'px;font-size:' + th.text + 'px;color:' + COLORS[A.color].v;
+  A.text = { ta: ta, x: left / A.s, y: top / A.s, size: th.text / A.s, c: COLORS[A.color].v };
+  const fit = () => {
+    const lines = ta.value.split('\n');
+    const longest = lines.reduce((a, b) => (a.length > b.length ? a : b), '');
+    vctx.save();
+    vctx.font = '600 ' + th.text + 'px ' + SANS;
+    const w = vctx.measureText(longest + 'M').width;
+    vctx.restore();
+    ta.style.width = Math.max(40, Math.ceil(w)) + 'px';
+    ta.style.height = Math.ceil(lines.length * th.text * 1.25) + 'px';
+  };
+  ta.addEventListener('input', fit);
+  ta.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitText(); annWin.focus(); }
+    else if (e.key === 'Escape') { e.preventDefault(); dropText(); annWin.focus(); }
+  });
+  ta.addEventListener('blur', () => commitText());
+  annWrap.append(ta);
+  fit();
+  ta.focus();
+}
+function commitText() {
+  const t = A.text;
+  if (!t) return;
+  A.text = null;
+  const value = t.ta.value.replace(/\s+$/, '');
+  t.ta.remove();
+  if (value) pushOp({ t: 'text', x: t.x, y: t.y, size: t.size, c: t.c, text: value });
+}
+function dropText() {
+  const t = A.text;
+  if (!t) return;
+  A.text = null;
+  t.ta.remove();
+}
+
+function annotateKeys(e) {
+  const k = e.key.toLowerCase();
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (A.draft) { A.draft = null; renderView(); } else closeAnnotate();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+    if (k === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+    else if (k === 'y') { e.preventDefault(); redo(); }
+    else if (k === 'c') { e.preventDefault(); annCopy(); }
+    else if (k === 'enter') { e.preventDefault(); annDone(); }
+    return;
+  }
+  if (e.altKey || e.repeat) return;
+  const tool = TOOLS.find(t => t.key === k);
+  if (tool && !e.shiftKey) { e.preventDefault(); setTool(tool.id); return; }
+  if (/^[1-5]$/.test(e.key)) { e.preventDefault(); setColor(+e.key - 1); return; }
+  if (e.key === '+') { e.preventDefault(); setThick(A.thick + 1); return; }
+  if (e.key === '-') { e.preventDefault(); setThick(A.thick - 1); }
+}
+
+/* ───────────── Systemfelt, lukking og avslutning ───────────── */
+function openTray() {
+  hideTip();
+  trayMenu.hidden = false;
+  trayBtn.classList.add('open');
+  trayBtn.setAttribute('aria-expanded', 'true');
+  $('#tmCapture').focus();
+}
+function closeTray(refocus) {
+  if (trayMenu.hidden) return;
+  trayMenu.hidden = true;
+  trayBtn.classList.remove('open');
+  trayBtn.setAttribute('aria-expanded', 'false');
+  if (refocus) trayBtn.focus();
+}
+function menuKeys(e, menu, close) {
+  const items = Array.from(menu.querySelectorAll('button'));
+  const i = items.indexOf(document.activeElement);
+  if (e.key === 'Escape') { e.preventDefault(); close(true); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+}
+let bannerTimer = 0;
+function showBanner() {
+  banner.hidden = false;
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(hideBanner, 4500);
+}
+function hideBanner() { clearTimeout(bannerTimer); banner.hidden = true; }
+
+function hideMain() {
+  S.mainShown = false;
+  syncWindows();
+  if (!S.closeHintShown) { S.closeHintShown = true; showBanner(); }
+}
+function showMain() {
+  S.mainShown = true;
+  hideBanner();
+  syncWindows();
+}
+function quitApp() {
+  closeTray();
+  closePopover();
+  if (S.settingsOpen) closeSettings();
+  if (A.open) closeAnnotate();
+  hideBanner();
+  hideReveal();
+  clearToast(mainWin);
+  S.running = false;
+  syncWindows();
+  syncProto();
+  renderDesktop();
+  setStatus('Klipp er avsluttet.');
+}
+function startApp() {
+  S.running = true;
+  S.mainShown = true;
+  syncWindows();
+  syncProto();
+  renderDesktop();
+  setStatus('');
+}
+
+/* ───────────── Prototype-stripe ───────────── */
+function setVariant(v) {
+  if (S.variant === v) return;
+  S.variant = v;
+  saveVariant(v);
+  closePopover();
+  syncProto();
+  syncChrome();
+  placeMain();
+  renderShelf();
+}
+function syncProto() {
+  document.querySelectorAll('.p-seg button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.v === S.variant)));
+  $('#pStart').hidden = S.running;
+  $('#pCapture').disabled = !S.running;
+}
+function resetDemo() {
+  cancelCapture();
+  if (S.settingsOpen) closeSettings();
+  if (A.open) closeAnnotate();
+  closeTray();
+  closePopover();
+  hideBanner();
+  hideReveal();
+  clearToast(mainWin);
+  S.running = true;
+  S.mainShown = true;
+  S.closeHintShown = false;
+  S.pasted = [];
+  S.winPos = {};
+  S.shots = [];
+  S.shots = seedShots();
+  setStatus('');
+  syncProto();
+  layoutAll();
+  syncWindows();
+  shelfEl.scrollTop = 0;
+  renderShelf();
+}
+
+/* ───────────── Tooltip ───────────── */
+let tipTimer = 0, tipTarget = null;
+function hideTip() {
+  clearTimeout(tipTimer);
+  tipTarget = null;
+  tipEl.hidden = true;
+}
+function showTip(t) {
+  tipEl.textContent = t.dataset.tip;
+  tipEl.hidden = false;
+  const r = t.getBoundingClientRect();
+  const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  let x = r.left + r.width / 2 - w / 2, y = r.bottom + 6;
+  if (y + h > window.innerHeight - 4) y = r.top - h - 6;
+  tipEl.style.left = clamp(x, 4, window.innerWidth - w - 4) + 'px';
+  tipEl.style.top = Math.max(4, y) + 'px';
+}
+document.addEventListener('pointerover', e => {
+  const t = e.target.closest ? e.target.closest('[data-tip]') : null;
+  if (t === tipTarget) return;
+  hideTip();
+  if (!t) return;
+  tipTarget = t;
+  tipTimer = setTimeout(() => { if (t.isConnected) showTip(t); }, 550);
+});
+document.addEventListener('pointerdown', hideTip, true);
+document.addEventListener('focusin', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.tip && t.matches(':focus-visible')) {
+    hideTip();
+    tipTarget = t;
+    tipTimer = setTimeout(() => { if (t.isConnected) showTip(t); }, 550);
+  }
+});
+document.addEventListener('focusout', hideTip);
+
+/* ───────────── Globale hendelser ───────────── */
+function isTyping(t) {
+  return !!t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable);
+}
+function mainKeys(e) {
+  if (!S.running || !S.mainShown || e.repeat) return;
+  const a = actionFor(e);
+  if (!a) return;
+  e.preventDefault();
+  if (a === 'shelf') setCompact(!prefs.compact); else setMode(a);
+}
+/* Ombinding går foran alt annet, ellers ville Esc og snarveiene ha fyrt */
+document.addEventListener('keydown', e => { if (SET.listen) listenKey(e); }, true);
+document.addEventListener('keydown', e => {
+  if (isTyping(e.target)) return;
+  if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyK') {
+    e.preventDefault();
+    if (!e.repeat) startCapture();
+    return;
+  }
+  if (S.capture) { overlayKeys(e); return; }
+  if (!trayMenu.hidden) { menuKeys(e, trayMenu, closeTray); return; }
+  if (!modePopover.hidden) { menuKeys(e, modePopover, closePopover); return; }
+  if (S.settingsOpen) {
+    if (e.key === 'Escape') { e.preventDefault(); closeSettings(); }
+    return;
+  }
+  if (A.open) { annotateKeys(e); return; }
+  mainKeys(e);
+});
+document.addEventListener('pointerdown', e => {
+  if (!trayMenu.hidden && !e.target.closest('#trayMenu') && !e.target.closest('#trayBtn')) closeTray();
+  if (!modePopover.hidden && !e.target.closest('#modePopover') && !e.target.closest('#btnModeMenu')) closePopover();
+  if (!A.open && !S.settingsOpen) {
+    const own = e.target.closest('#mainWin') || e.target.closest('#proto') || e.target.closest('#modePopover');
+    mainWin.classList.toggle('backdrop', !own);
+  }
+});
+document.addEventListener('click', e => {
+  if (SET.listen && !e.target.closest('[data-action="' + SET.listen + '"]')) cancelListen();
+});
+
+$('#btnCapture').addEventListener('click', startCapture);
+$('#btnModeMenu').addEventListener('click', () => { if (modePopover.hidden) openPopover(); else closePopover(true); });
+$('#btnCompact').addEventListener('click', () => setCompact(!prefs.compact));
+$('#btnSettings').addEventListener('click', openSettings);
+$('#setClose').addEventListener('click', closeSettings);
+$('#ovClose').addEventListener('click', cancelCapture);
+$('#ovUndo').addEventListener('click', clearSelection);
+$('#ovTake').addEventListener('click', takeShot);
+$('#btnClear').addEventListener('click', clearShelf);
+$('#btnClose').addEventListener('click', hideMain);
+$('#annCancel').addEventListener('click', () => closeAnnotate());
+$('#annDone').addEventListener('click', annDone);
+$('#annCopy').addEventListener('click', annCopy);
+$('#annUndo').addEventListener('click', undo);
+$('#annRedo').addEventListener('click', redo);
+trayBtn.addEventListener('click', () => { if (trayMenu.hidden) openTray(); else closeTray(true); });
+$('#tmCapture').addEventListener('click', () => { closeTray(); startCapture(); });
+$('#tmToggle').addEventListener('click', () => {
+  closeTray();
+  if (S.mainShown) hideMain(); else showMain();
+});
+$('#tmQuit').addEventListener('click', quitApp);
+$('#bannerClose').addEventListener('click', hideBanner);
+$('#pCapture').addEventListener('click', startCapture);
+$('#pStart').addEventListener('click', startApp);
+$('#pReset').addEventListener('click', resetDemo);
+document.querySelectorAll('.p-seg button').forEach(b => b.addEventListener('click', () => setVariant(b.dataset.v)));
+
+makeWindowDraggable(mainWin, (x, y) => { S.winPos[mainKey()] = { x: x, y: y }; });
+makeWindowDraggable(annWin);
+makeWindowDraggable(setWin);
+
+let resizeRaf = 0;
+window.addEventListener('resize', () => {
+  if (resizeRaf) return;
+  resizeRaf = requestAnimationFrame(() => {
+    resizeRaf = 0;
+    if (S.capture) { S.needsLayout = true; return; }
+    layoutAll();
+  });
+});
+(function watchDpr() {
+  try {
+    const m = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+    m.addEventListener('change', () => {
+      if (S.capture) S.needsLayout = true; else layoutAll();
+      watchDpr();
+    }, { once: true });
+  } catch (e) { /* matchMedia uten resolution-støtte */ }
+})();
+
+setInterval(() => {
+  const d = new Date();
+  if (!S.capture && d.getHours() + ':' + d.getMinutes() !== lastMinute) renderDesktop();
+}, 5000);
+
+/* ───────────── Oppstart ───────────── */
+applyTheme();
+buildModeControls();
+S.shots = seedShots();
+syncProto();
+renderDesktop();
+syncKeyLabels();
+placeMain();
+syncWindows();
+}());
+</script>
+</body>
+</html>

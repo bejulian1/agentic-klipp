@@ -1,0 +1,54 @@
+[workspace]
+members = [".", "crates/klipp-annotate", "crates/klipp-system"]
+resolver = "3"
+
+[workspace.dependencies]
+gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
+adw = { package = "libadwaita", version = "0.9", features = ["v1_9"] }
+ashpd = { version = "0.13", default-features = false, features = ["async-io", "screenshot", "global_shortcuts"] }
+ksni = { version = "0.3", default-features = false, features = ["async-io"] }
+png = "0.18"
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+
+[package]
+name = "agentic-klipp"
+version = "1.1.1"
+edition = "2024"
+rust-version = "1.92"
+description = "Slankt skjermbildeverktøy for Ubuntu/GNOME som gir skjermbilder til AI-kodeagenter"
+license = "MIT"
+build = "build.rs"
+
+[[bin]]
+name = "klipp"
+path = "src/main.rs"
+
+[dependencies]
+gtk.workspace = true
+adw.workspace = true
+ashpd.workspace = true
+png.workspace = true
+libc = "0.2"
+futures-util.workspace = true
+klipp-annotate = { path = "crates/klipp-annotate" }
+klipp-system = { path = "crates/klipp-system" }
+
+[build-dependencies]
+glib-build-tools = "0.22"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# Bildekode må være rask også i debug, ellers blir testene og overlegget tregt.
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.miniz_oxide]
+opt-level = 3
+[profile.dev.package.crc32fast]
+opt-level = 3

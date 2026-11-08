@@ -1,0 +1,14 @@
+[package]
+name = "klipp-system"
+version = "1.1.1"
+edition = "2024"
+rust-version = "1.92"
+license = "MIT"
+
+[dependencies]
+gtk.workspace = true
+adw.workspace = true
+ashpd.workspace = true
+ksni.workspace = true
+futures-util.workspace = true
+futures-channel = { version = "0.3", default-features = false, features = ["std"] }
