@@ -1,5 +1,8 @@
 # Agentic Klipp
 
+[![Versjon](https://img.shields.io/badge/versjon-1.2.0-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.0)
+[Versjonslogg](CHANGELOG.md) · [Last ned](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Bidragsytere](CONTRIBUTORS.md)
+
 Skjermbildeverktøy for Ubuntu og GNOME, laget for å gi skjermbilder til AI-kodeagenter.
 Trykk **Alt+K** i hvilken som helst app. Skjermen blir grå, du drar over det du vil ha,
 og bildet er tatt når du slipper musa, uten blits og uten lukkerlyd. Du blir stående i
@@ -17,6 +20,22 @@ markeringer på det først.
 
 Skrevet i Rust med GTK 4 og libadwaita. Binæren heter `klipp`, og app-ID-en er
 `io.github.AgenticKlipp`. Laget for Ubuntu 26.04 med GNOME 50 på Wayland.
+
+## Skjermbilder
+
+Hovedvinduet med bildehylla:
+
+![Agentic Klipp – hovedvindu og bildehylle](docs/images/hovedvindu.png)
+
+Innstillinger med versjon, byggnummer og knappen til versjonsloggen:
+
+![Agentic Klipp – Innstillinger og Om Klipp](docs/images/innstillinger.png)
+
+Versjonsloggen viser historikken fra eldste til nyeste:
+
+![Agentic Klipp – versjonslogg](docs/images/versjonslogg.png)
+
+Bildene er fra appen med egne demobilder i en isolert profil.
 
 ## Installasjon
 
@@ -43,6 +62,37 @@ Til slutt, én gang: åpne **Innstillinger** i Klipp, trykk **Slå på** på rad
 [Shell-utvidelsen](#shell-utvidelsen).
 
 ### Ferdig bygd versjon
+
+[Nyeste release](https://github.com/bejulian1/agentic-klipp/releases/latest) inneholder:
+
+- `klipp`: selve Linux-binæren.
+- `agentic-klipp-1.2.0-linux-x86_64.tar.gz`: komplett installasjonsarkiv med binær, ikoner og GNOME-utvidelse.
+- `agentic-klipp_1.2.0+20261114.1605_amd64.deb`: Ubuntu-pakke.
+- `SHA256SUMS`: kontrollsummer for de tre filene.
+
+Enklest uten å bygge: pakk ut installasjonsarkivet og kjør dette i den utpakkede mappen:
+
+```sh
+./install.sh --bin ./klipp
+```
+
+Alternativt kan Ubuntu-pakken installeres med:
+
+```sh
+sudo apt install ./agentic-klipp_1.2.0+20261114.1605_amd64.deb
+```
+
+Bruk én installasjonsmåte om gangen. Har du installert under `~/.local` tidligere og
+vil bytte til `.deb`, kjør først `./uninstall.sh` for å fjerne brukerinstallasjonen.
+Debian-pakken legger appen under `/usr/bin` og utvidelsen under `/usr/share`.
+Slå på Klipp-utvidelsen i Innstillinger og logg ut og inn etter første installasjon.
+
+Kontroller nedlastingene i mappen der filene og `SHA256SUMS` ligger:
+
+```sh
+sha256sum --check SHA256SUMS
+```
+
 
 Vil du slippe å bygge, last ned `klipp` fra
 [Releases](https://github.com/bejulian1/agentic-klipp/releases) og pek på den. Da trengs
@@ -325,5 +375,39 @@ cargo clippy --workspace --all-targets
 | `data/` | Ikoner, CSS og GResource |
 | `prototype/` | HTML-prototypen som er fasit for utseendet |
 
-Versjonen står i `Cargo.toml`, og byggnummeret er tidspunktet for bygget. Begge vises
-under Innstillinger > Om Klipp og med `klipp --version`.
+Versjon **1.2.0**, release-bygg **20261114.1605**. Versjonen står i alle tre
+`Cargo.toml`-filene. Byggnummeret er byggetidspunktet i Europe/Oslo, og kan fastsettes
+for en release med `KLIPP_BUILD_NUMBER=YYYYMMDD.HHMM`. Begge vises under
+Innstillinger > Om Klipp og med `klipp --version`.
+
+Klikk **Innstillinger > Om Klipp > Versjonslogg** for å åpne historikken i et eget vindu.
+Loggen følger med appen og virker uten internett. Den hentes fra [CHANGELOG.md](CHANGELOG.md),
+som også er versjonsloggen på GitHub. Rekkefølgen er eldste til nyeste.
+Versjon 1.0.0 er omtalt i kildekoden, men har ingen bevart publiseringsdato.
+
+### Lage release-pakker
+
+```sh
+KLIPP_BUILD_NUMBER=20261114.1605 cargo build --release --locked
+bash scripts/package-release.sh
+```
+
+Pakkene havner i `dist/`, som er ignorert av Git. Release-arkivet inneholder bare
+appen, installasjonsfiler og dokumentasjon. Tester og byggemapper pakkes ikke med.
+Linux-pakkene publiseres i **GitHub Releases**. GitHub Packages har ikke et eget
+Debian/apt-register; `.deb`-filen lastes derfor ned fra Releases. Se
+[GitHubs støttede pakkeformater](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages#supported-clients-and-formats).
+
+## Bidragsytere
+
+**Julian / [bejulian1](https://github.com/bejulian1)** eier prosjektet og står for
+produktvalg og utprøving. **Claude Opus 5.5 / Claude Code** laget den opprinnelige
+implementasjonen. **Codex / OpenAI**, med **GPT-6.1 Sol**, bidro med versjonslogg,
+versjon 1.2.0, dokumentasjon og release-pakking.
+
+Se [CONTRIBUTORS.md](CONTRIBUTORS.md) for kreditering. GitHubs automatiske Contributors-liste
+styres av commitforfattere og koblede GitHub-kontoer.
+
+## Lisens
+
+[MIT](LICENSE).

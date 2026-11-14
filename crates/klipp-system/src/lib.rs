@@ -5,6 +5,7 @@
 
 mod config;
 mod extension;
+mod history;
 pub mod hotkeys;
 mod portal;
 mod settings;

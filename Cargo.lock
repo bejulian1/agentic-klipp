@@ -10,7 +10,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agentic-klipp"
-version = "1.1.1"
+version = "1.2.0"
 dependencies = [
  "ashpd",
  "futures-util",
@@ -771,7 +771,7 @@ dependencies = [
 
 [[package]]
 name = "klipp-annotate"
-version = "1.1.1"
+version = "1.2.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -782,7 +782,7 @@ dependencies = [
 
 [[package]]
 name = "klipp-system"
-version = "1.1.1"
+version = "1.2.0"
 dependencies = [
  "ashpd",
  "futures-channel",

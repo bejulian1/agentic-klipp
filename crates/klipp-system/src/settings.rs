@@ -9,6 +9,7 @@ use std::rc::Rc;
 
 use crate::config::{CaptureMethod, Config, Theme, default_save_dir, pretty_dir};
 use crate::extension::{ExtensionState, enable_extension, extension_state};
+use crate::history;
 use crate::hotkeys::{self, Action, KeyInput, Mods};
 use crate::portal;
 use crate::theme::apply_theme;
@@ -558,6 +559,18 @@ fn about_group(about: About) -> adw::PreferencesGroup {
         row.add_suffix(&label);
         group.add(&row);
     }
+    let history = adw::ActionRow::builder()
+        .title("Versjonslogg")
+        .subtitle("Endringer fra første til nyeste versjon")
+        .activatable(true)
+        .build();
+    history.add_suffix(&gtk::Image::from_icon_name("go-next-symbolic"));
+    history.connect_activated(move |row| {
+        if let Some(window) = row.root().and_downcast::<adw::Window>() {
+            history::open(&window, about);
+        }
+    });
+    group.add(&history);
     group.add(&signature());
     group
 }
