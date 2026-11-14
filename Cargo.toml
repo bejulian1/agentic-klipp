@@ -12,7 +12,7 @@ futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 [package]
 name = "agentic-klipp"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2024"
 rust-version = "1.92"
 description = "Slankt skjermbildeverktøy for Ubuntu/GNOME som gir skjermbilder til AI-kodeagenter"

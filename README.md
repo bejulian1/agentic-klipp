@@ -1,6 +1,6 @@
 # Agentic Klipp
 
-[![Versjon](https://img.shields.io/badge/versjon-1.2.0-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.0)
+[![Versjon](https://img.shields.io/badge/versjon-1.2.1-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.1)
 [Versjonslogg](CHANGELOG.md) · [Last ned](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Bidragsytere](CONTRIBUTORS.md)
 
 Skjermbildeverktøy for Ubuntu og GNOME, laget for å gi skjermbilder til AI-kodeagenter.
@@ -27,13 +27,13 @@ Hovedvinduet med bildehylla:
 
 ![Agentic Klipp – hovedvindu og bildehylle](docs/images/hovedvindu.png)
 
-Innstillinger med versjon, byggnummer og knappen til versjonsloggen:
+Innstillinger med tema og valg for skjermbilder:
 
-![Agentic Klipp – Innstillinger og Om Klipp](docs/images/innstillinger.png)
+![Agentic Klipp – toppen av Innstillinger](docs/images/innstillinger.png)
 
-Versjonsloggen viser historikken fra eldste til nyeste:
+Annoteringsmodus med tegneverktøy, farger og markeringer:
 
-![Agentic Klipp – versjonslogg](docs/images/versjonslogg.png)
+![Agentic Klipp – annoteringsmodus](docs/images/annotering.png)
 
 Bildene er fra appen med egne demobilder i en isolert profil.
 
@@ -66,8 +66,8 @@ Til slutt, én gang: åpne **Innstillinger** i Klipp, trykk **Slå på** på rad
 [Nyeste release](https://github.com/bejulian1/agentic-klipp/releases/latest) inneholder:
 
 - `klipp`: selve Linux-binæren.
-- `agentic-klipp-1.2.0-linux-x86_64.tar.gz`: komplett installasjonsarkiv med binær, ikoner og GNOME-utvidelse.
-- `agentic-klipp_1.2.0+20261114.1605_amd64.deb`: Ubuntu-pakke.
+- `agentic-klipp-1.2.1-linux-x86_64.tar.gz`: komplett installasjonsarkiv med binær, ikoner og GNOME-utvidelse.
+- `agentic-klipp_1.2.1+20261114.1641_amd64.deb`: Ubuntu-pakke.
 - `SHA256SUMS`: kontrollsummer for de tre filene.
 
 Enklest uten å bygge: pakk ut installasjonsarkivet og kjør dette i den utpakkede mappen:
@@ -79,7 +79,7 @@ Enklest uten å bygge: pakk ut installasjonsarkivet og kjør dette i den utpakke
 Alternativt kan Ubuntu-pakken installeres med:
 
 ```sh
-sudo apt install ./agentic-klipp_1.2.0+20261114.1605_amd64.deb
+sudo apt install ./agentic-klipp_1.2.1+20261114.1641_amd64.deb
 ```
 
 Bruk én installasjonsmåte om gangen. Har du installert under `~/.local` tidligere og
@@ -375,20 +375,20 @@ cargo clippy --workspace --all-targets
 | `data/` | Ikoner, CSS og GResource |
 | `prototype/` | HTML-prototypen som er fasit for utseendet |
 
-Versjon **1.2.0**, release-bygg **20261114.1605**. Versjonen står i alle tre
+Versjon **1.2.1**, release-bygg **20261114.1641**. Versjonen står i alle tre
 `Cargo.toml`-filene. Byggnummeret er byggetidspunktet i Europe/Oslo, og kan fastsettes
 for en release med `KLIPP_BUILD_NUMBER=YYYYMMDD.HHMM`. Begge vises under
 Innstillinger > Om Klipp og med `klipp --version`.
 
 Klikk **Innstillinger > Om Klipp > Versjonslogg** for å åpne historikken i et eget vindu.
 Loggen følger med appen og virker uten internett. Den hentes fra [CHANGELOG.md](CHANGELOG.md),
-som også er versjonsloggen på GitHub. Rekkefølgen er eldste til nyeste.
+som også er versjonsloggen på GitHub. Nyeste versjon vises øverst, eldste nederst.
 Versjon 1.0.0 er omtalt i kildekoden, men har ingen bevart publiseringsdato.
 
 ### Lage release-pakker
 
 ```sh
-KLIPP_BUILD_NUMBER=20261114.1605 cargo build --release --locked
+KLIPP_BUILD_NUMBER=20261114.1641 cargo build --release --locked
 bash scripts/package-release.sh
 ```
 
@@ -403,7 +403,7 @@ Debian/apt-register; `.deb`-filen lastes derfor ned fra Releases. Se
 **Julian / [bejulian1](https://github.com/bejulian1)** eier prosjektet og står for
 produktvalg og utprøving. **Claude Opus 5.5 / Claude Code** laget den opprinnelige
 implementasjonen. **Codex / OpenAI**, med **GPT-6.1 Sol**, bidro med versjonslogg,
-versjon 1.2.0, dokumentasjon og release-pakking.
+versjon 1.2.1, dokumentasjon og release-pakking.
 
 Se [CONTRIBUTORS.md](CONTRIBUTORS.md) for kreditering. GitHubs automatiske Contributors-liste
 styres av commitforfattere og koblede GitHub-kontoer.

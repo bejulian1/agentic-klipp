@@ -1,14 +1,22 @@
 # Versjonslogg
 
-Historikken vises fra eldste til nyeste, både her og under Innstillinger → Om Klipp → Versjonslogg.
-Bare versjoner som kan bekreftes i kildekoden, Git-historikken eller GitHub Releases er tatt med.
+## 1.2.1 — 2026-11-14
 
-## 1.0.0 — Tidlig lokal versjon
+- Teksten i versjonsloggen kan ikke markeres eller få tekstfokus.
+- Fjernet den blå tekstmarkeringen som kom automatisk øverst ved åpning.
+- Fjernet innledningsteksten over versjonene.
+- Nyeste versjon vises øverst, eldste nederst.
+- README viser hovedvinduet, toppen av Innstillinger og annoteringsmodus.
 
-Første lokale versjon, omtalt i konfigurasjonsmigreringen. Nøyaktig dato og full endringsliste er ikke bevart i Git-historikken.
+## 1.2.0 — 2026-11-14
 
-- Den globale hurtigtasten var Super+Shift+K.
-- Hylla var bred som standard, og opptak hadde et eget bekreftelsessteg.
+- Ny klikkbar Versjonslogg under Innstillinger → Om Klipp.
+- Eget rullbart vindu med versjonene fra eldste til nyeste og gjeldende versjon og byggnummer.
+- Samme innebygde versjonslogg i appen og på GitHub, også tilgjengelig uten internett.
+- Felles versjon 1.2.0 for appen og de interne bibliotekene.
+- Byggnummer kan fastsettes ved release; lokale bygg bruker tidspunktet i Europe/Oslo.
+- Oppdatert README med tre skjermbilder og kreditering av Claude og Codex.
+- Release-pakker med Linux-binær, installasjonsarkiv, Debian-pakke og SHA-256-kontrollsummer.
 
 ## 1.1.1 — 2026-11-08
 
@@ -22,12 +30,9 @@ Første taggede og publiserte GitHub-versjon. Oppsummerer også utviklingen i 1.
 - Minimer-knapp og signaturen Code Pro under Om Klipp.
 - Installasjonsskript som sjekker avhengigheter, bygger, installerer og starter appen.
 
-## 1.2.0 — 2026-11-14
+## 1.0.0 — Tidlig lokal versjon
 
-- Ny klikkbar Versjonslogg under Innstillinger → Om Klipp.
-- Eget rullbart vindu med versjonene fra eldste til nyeste og gjeldende versjon og byggnummer.
-- Samme innebygde versjonslogg i appen og på GitHub, også tilgjengelig uten internett.
-- Felles versjon 1.2.0 for appen og de interne bibliotekene.
-- Byggnummer kan fastsettes ved release; lokale bygg bruker tidspunktet i Europe/Oslo.
-- Oppdatert README med tre skjermbilder og kreditering av Claude og Codex.
-- Release-pakker med Linux-binær, installasjonsarkiv, Debian-pakke og SHA-256-kontrollsummer.
+Første lokale versjon, omtalt i konfigurasjonsmigreringen. Nøyaktig dato og full endringsliste er ikke bevart i Git-historikken.
+
+- Den globale hurtigtasten var Super+Shift+K.
+- Hylla var bred som standard, og opptak hadde et eget bekreftelsessteg.

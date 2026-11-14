@@ -1,4 +1,4 @@
-//! Den samme versjonsloggen som følger kildekoden, vist fra eldst til nyest.
+//! Den samme versjonsloggen som følger kildekoden, vist fra nyest til eldst.
 
 use adw::prelude::*;
 use gtk::{gdk, glib};
@@ -85,7 +85,7 @@ fn parse(source: &str) -> (Vec<Block>, Vec<Release>) {
             continuation = true;
         }
     }
-    releases.sort_by_key(|release| version_key(&release.heading));
+    releases.sort_by_key(|release| std::cmp::Reverse(version_key(&release.heading)));
     (intro, releases)
 }
 
@@ -93,7 +93,7 @@ fn label(text: &str) -> gtk::Label {
     gtk::Label::builder()
         .label(text)
         .use_markup(false)
-        .selectable(true)
+        .selectable(false)
         .xalign(0.0)
         .wrap(true)
         .wrap_mode(gtk::pango::WrapMode::WordChar)
@@ -227,13 +227,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn release_order_uses_version_numbers_and_preserves_intro() {
+    fn release_order_is_newest_first_and_preserves_intro() {
         let (intro, releases) = parse(
-            "# Versjonslogg\n\nFra eldst til nyest.\n\n## 1.10.0 — 2026-11-14\n- Nytt\n\n## 1.2.0 — Tidlig lokal versjon\n- Først\n",
+            "# Versjonslogg\n\nFra nyest til eldst.\n\n## 1.2.0 — Tidlig lokal versjon\n- Først\n\n## 1.10.0 — 2026-11-14\n- Nytt\n",
         );
-        assert_eq!(intro, vec![Block::Paragraph("Fra eldst til nyest.".into())]);
-        assert_eq!(releases[0].heading, "1.2.0 — Tidlig lokal versjon");
-        assert_eq!(releases[1].heading, "1.10.0 — 2026-11-14");
+        assert_eq!(intro, vec![Block::Paragraph("Fra nyest til eldst.".into())]);
+        assert_eq!(releases[0].heading, "1.10.0 — 2026-11-14");
+        assert_eq!(releases[1].heading, "1.2.0 — Tidlig lokal versjon");
     }
 
     #[test]
