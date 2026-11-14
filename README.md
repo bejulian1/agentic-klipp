@@ -1,7 +1,7 @@
 # Agentic Klipp
 
 [![Versjon](https://img.shields.io/badge/versjon-1.2.1-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.1)
-[Versjonslogg](CHANGELOG.md) · [Last ned](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Bidragsytere](CONTRIBUTORS.md)
+[Versjonslogg](#versjonslogg) · [Last ned](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Bidragsytere](#bidragsytere)
 
 Skjermbildeverktøy for Ubuntu og GNOME, laget for å gi skjermbilder til AI-kodeagenter.
 Trykk **Alt+K** i hvilken som helst app. Skjermen blir grå, du drar over det du vil ha,
@@ -36,6 +36,56 @@ Annoteringsmodus med tegneverktøy, farger og markeringer:
 ![Agentic Klipp – annoteringsmodus](docs/images/annotering.png)
 
 Bildene er fra appen med egne demobilder i en isolert profil.
+
+## Versjonslogg
+
+<details>
+<summary>Vis alle versjoner – nyeste øverst</summary>
+
+<!-- BEGIN VERSION HISTORY -->
+
+### 1.2.1 — 2026-11-14
+
+- Teksten i versjonsloggen kan ikke markeres eller få tekstfokus.
+- Fjernet den blå tekstmarkeringen som kom automatisk øverst ved åpning.
+- Fjernet innledningsteksten over versjonene.
+- Nyeste versjon vises øverst, eldste nederst.
+- README viser hovedvinduet, toppen av Innstillinger og annoteringsmodus.
+
+### 1.2.0 — 2026-11-14
+
+- Ny klikkbar Versjonslogg under Innstillinger → Om Klipp.
+- Eget rullbart vindu med versjonene fra eldste til nyeste og gjeldende versjon og byggnummer.
+- Samme innebygde versjonslogg i appen og på GitHub, også tilgjengelig uten internett.
+- Felles versjon 1.2.0 for appen og de interne bibliotekene.
+- Byggnummer kan fastsettes ved release; lokale bygg bruker tidspunktet i Europe/Oslo.
+- Oppdatert README med tre skjermbilder og kreditering av Claude og Codex.
+- Release-pakker med Linux-binær, installasjonsarkiv, Debian-pakke og SHA-256-kontrollsummer.
+
+### 1.1.1 — 2026-11-08
+
+Første taggede og publiserte GitHub-versjon. Oppsummerer også utviklingen i 1.1-serien før publisering.
+
+- Skjermbilder av område, frihånd, vindu og hele skjermen, med Alt+K som standard.
+- GNOME Shell-utvidelse for stille opptak og global hurtigtast.
+- Hylle med flervalg, samlet kopiering og papirkurv.
+- Tegneverktøy med blant annet pil, linje, ellipse, merkepenn, tekst, sladd og viskelær.
+- Åtte farger, egen farge og fem størrelser i tegnevinduet.
+- Minimer-knapp og signaturen Code Pro under Om Klipp.
+- Installasjonsskript som sjekker avhengigheter, bygger, installerer og starter appen.
+
+### 1.0.0 — Tidlig lokal versjon
+
+Første lokale versjon, omtalt i konfigurasjonsmigreringen. Nøyaktig dato og full endringsliste er ikke bevart i Git-historikken.
+
+- Den globale hurtigtasten var Super+Shift+K.
+- Hylla var bred som standard, og opptak hadde et eget bekreftelsessteg.
+
+<!-- END VERSION HISTORY -->
+
+</details>
+
+[Åpne versjonsloggen som egen fil](CHANGELOG.md) · [Alle releases og nedlastinger](https://github.com/bejulian1/agentic-klipp/releases)
 
 ## Installasjon
 
@@ -388,6 +438,7 @@ Versjon 1.0.0 er omtalt i kildekoden, men har ingen bevart publiseringsdato.
 ### Lage release-pakker
 
 ```sh
+python3 scripts/update-readme-history.py
 KLIPP_BUILD_NUMBER=20261114.1641 cargo build --release --locked
 bash scripts/package-release.sh
 ```
@@ -400,13 +451,14 @@ Debian/apt-register; `.deb`-filen lastes derfor ned fra Releases. Se
 
 ## Bidragsytere
 
-**Julian / [bejulian1](https://github.com/bejulian1)** eier prosjektet og står for
-produktvalg og utprøving. **Claude Opus 5.5 / Claude Code** laget den opprinnelige
-implementasjonen. **Codex / OpenAI**, med **GPT-6.1 Sol**, bidro med versjonslogg,
-versjon 1.2.1, dokumentasjon og release-pakking.
+| Bidragsyter / modell | Verktøy | Bidrag |
+| --- | --- | --- |
+| **Julian / [bejulian1](https://github.com/bejulian1)** | | Prosjekteier, produktvalg og utprøving |
+| **Anthropic Claude Opus 5.5** | Claude Code | Opprinnelig implementasjon og utvikling til og med 1.1.1 |
+| **OpenAI GPT 6.1 Sol** | Codex | Versjonslogg, 1.2-serien, dokumentasjon og release-pakking |
 
 Se [CONTRIBUTORS.md](CONTRIBUTORS.md) for kreditering. GitHubs automatiske Contributors-liste
-styres av commitforfattere og koblede GitHub-kontoer.
+styres av commitforfattere og koblede GitHub-kontoer, se [GitHubs forklaring](https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-a-projects-contributors).
 
 ## Lisens
 
