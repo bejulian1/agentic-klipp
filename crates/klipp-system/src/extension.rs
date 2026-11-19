@@ -2,6 +2,7 @@
 //! utvidelser bare ved innlogging, så en utvidelse kan være slått på uten å kjøre.
 
 use gtk::{gio, gio::prelude::*, glib};
+use std::path::PathBuf;
 
 const UUID: &str = "agentic-klipp@klipp.local";
 const SCHEMA: &str = "org.gnome.shell";
@@ -41,12 +42,16 @@ fn shell_settings() -> Option<gio::Settings> {
     Some(gio::Settings::new(SCHEMA))
 }
 
+fn extension_installed(data_dirs: impl IntoIterator<Item = PathBuf>) -> bool {
+    data_dirs
+        .into_iter()
+        .any(|dir| dir.join("gnome-shell/extensions").join(UUID).is_dir())
+}
+
 /// `active` er om utvidelsen svarer på bussen akkurat nå.
 pub(crate) fn extension_state(active: bool) -> ExtensionState {
-    let installed = glib::user_data_dir()
-        .join("gnome-shell/extensions")
-        .join(UUID)
-        .is_dir();
+    let data_dirs = std::iter::once(glib::user_data_dir()).chain(glib::system_data_dirs());
+    let installed = extension_installed(data_dirs);
     let enabled = shell_settings().is_some_and(|s| s.strv(ENABLED).iter().any(|u| u == UUID));
     ExtensionState::of(active, installed, enabled)
 }
@@ -86,6 +91,23 @@ pub(crate) fn enable_extension() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn finds_extension_in_user_and_system_data_dirs() {
+        let root =
+            std::env::temp_dir().join(format!("klipp-extension-test-{}", std::process::id()));
+        let user = root.join("user/share");
+        let system = root.join("usr/share");
+        let dirs = || [user.clone(), system.clone()];
+        assert!(!extension_installed(dirs()));
+        for dir in dirs() {
+            let extension = dir.join("gnome-shell/extensions").join(UUID);
+            std::fs::create_dir_all(&extension).unwrap();
+            assert!(extension_installed(dirs()));
+            std::fs::remove_dir(&extension).unwrap();
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn state_follows_what_gnome_has_loaded() {
