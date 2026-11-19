@@ -133,13 +133,16 @@ pub fn clip_rect(r: Rect, w: i32, h: i32) -> Rect {
     Rect::new(x0, y0, x1 - x0, y1 - y0)
 }
 
-/// Beskjær til polygonet, med myk kant og full alfa utenfor formen.
+/// Beskjær til polygonet, med myk kant og gjennomsiktige piksler utenfor formen.
 /// `pts` er i kildebildets koordinater og `r` er formens omsluttende rektangel.
 pub fn crop_polygon_raw(data: &[u8], w: u32, h: u32, r: Rect, pts: &[Pt]) -> Image {
     let mut out = crop_raw(data, w, h, r);
     let mask = polygon_mask(out.w as usize, out.h as usize, r, pts);
     for (px, m) in out.data.chunks_exact_mut(4).zip(mask.iter()) {
         px[3] = ((u32::from(px[3]) * u32::from(*m) + 127) / 255) as u8;
+        if px[3] == 0 {
+            px.fill(0);
+        }
     }
     out
 }
@@ -303,13 +306,16 @@ mod tests {
     }
 
     #[test]
-    fn polygon_makes_outside_transparent_and_inside_opaque() {
+    fn polygon_png_keeps_only_pixels_from_the_selection() {
         let img = gradient(20, 20);
         let tri = [Pt { x: 0, y: 0 }, Pt { x: 20, y: 0 }, Pt { x: 0, y: 20 }];
-        let c = crop_polygon_raw(&img.data, img.w, img.h, Rect::new(0, 0, 20, 20), &tri);
-        let alpha = |x: usize, y: usize| c.data[(y * 20 + x) * 4 + 3];
-        assert_eq!(alpha(2, 2), 255);
-        assert_eq!(alpha(18, 18), 0);
+        let crop = crop_polygon_raw(&img.data, img.w, img.h, Rect::new(0, 0, 20, 20), &tri);
+        let png = encode_png_bytes(&crop, true).unwrap();
+        let c = decode_png_bytes(&png).unwrap();
+        let pixel = |x: usize, y: usize| &c.data[(y * 20 + x) * 4..][..4];
+        assert_eq!(pixel(2, 2), [2, 2, 7, 255]);
+        assert_eq!(pixel(18, 18), [0, 0, 0, 0]);
+        let alpha = |x, y| pixel(x, y)[3];
         assert!(
             alpha(10, 9) > 0 && alpha(10, 9) < 255,
             "kanten skal være myk"

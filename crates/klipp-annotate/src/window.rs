@@ -2,6 +2,7 @@
 
 use crate::AnnotateEvent;
 use crate::canvas::Canvas;
+use crate::clipboard::PngProvider;
 use crate::file::{self, Loaded};
 use crate::keys::{self, KeyAction, KeyPress};
 use crate::ops::{COLORS, Color, DEFAULT_THICK, THICK, Tool};
@@ -74,7 +75,6 @@ mod imp {
         pub last_color: Cell<usize>,
         pub on_event: RefCell<Option<Callback>>,
         pub saving: Cell<bool>,
-        pub copying: Cell<bool>,
         pub held: Cell<Option<gdk::Key>>,
     }
 
@@ -605,52 +605,25 @@ mod imp {
         fn copy(&self) {
             let canvas = self.canvas();
             canvas.commit_text();
-            if self.copying.get() || self.saving.get() {
+            if self.saving.get() {
                 return;
             }
             let Some(flat) = canvas.flat() else {
                 return;
             };
-            self.copying.set(true);
-            let window = self.obj().downgrade();
-            glib::spawn_future_local(async move {
-                let png = gio::spawn_blocking(move || {
-                    file::encode_bytes(&flat.bytes, flat.width, flat.height, flat.alpha)
-                })
-                .await;
-                let Some(window) = window.upgrade() else {
-                    return;
-                };
-                let imp = window.imp();
-                imp.copying.set(false);
-                let copied = match png {
-                    Ok(Ok(png)) => imp.offer_png(png),
-                    _ => false,
-                };
-                imp.toast(if copied {
-                    "Kopiert!"
-                } else {
-                    "Kunne ikke kopiere bildet"
-                });
-            });
-        }
-
-        /// Legger PNG-en på utklippstavla. Compositoren kan nekte et vindu uten fokus, og det
-        /// får vi bare vite ved at den sier opp tilbudet vårt. Derfor sjekkes det etter en
-        /// rundtur at tavla fortsatt er vår.
-        fn offer_png(&self, png: Vec<u8>) -> bool {
             let obj = self.obj();
-            if !obj.is_active() {
-                return false;
-            }
             let clipboard = obj.clipboard();
-            let bytes = glib::Bytes::from_owned(png);
-            let provider = gdk::ContentProvider::for_bytes("image/png", &bytes);
-            if clipboard.set_content(Some(&provider)).is_err() {
-                return false;
-            }
-            clipboard.display().sync();
-            clipboard.is_local()
+            let provider = PngProvider::new(flat);
+            // Ta eierskap mens vinduet har fokus. PNG-en kodes i bakgrunnen.
+            let copied = obj.is_active() && clipboard.set_content(Some(&provider)).is_ok() && {
+                clipboard.display().sync();
+                clipboard.is_local()
+            };
+            self.toast(if copied {
+                "Kopiert!"
+            } else {
+                "Kunne ikke kopiere bildet"
+            });
         }
     }
 

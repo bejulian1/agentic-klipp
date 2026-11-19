@@ -773,6 +773,7 @@ dependencies = [
 name = "klipp-annotate"
 version = "1.2.1"
 dependencies = [
+ "futures-util",
  "gtk4",
  "libadwaita",
  "libc",
