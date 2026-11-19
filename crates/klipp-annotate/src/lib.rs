@@ -4,6 +4,7 @@
 //! bakgrunnstråder og lever bare så lenge vinduet er åpent.
 
 mod canvas;
+mod clipboard;
 mod file;
 mod keys;
 mod ops;

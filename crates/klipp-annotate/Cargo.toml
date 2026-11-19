@@ -8,6 +8,7 @@ license = "MIT"
 [dependencies]
 gtk.workspace = true
 adw.workspace = true
+futures-util.workspace = true
 png.workspace = true
 pangocairo = "0.22"
 libc = "0.2"
