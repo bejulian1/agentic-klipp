@@ -72,8 +72,8 @@ if [ -z "$bin_src" ]; then
     (cd "$here" && CARGO_TARGET_DIR=$target_dir cargo build --release --locked)
     bin_src=$target_dir/release/klipp
 fi
-if [ ! -x "$bin_src" ]; then
-    echo "Fant ikke en kjørbar binær: $bin_src" >&2
+if [ ! -f "$bin_src" ] || [ ! -r "$bin_src" ]; then
+    echo "Fant ikke en lesbar binær: $bin_src" >&2
     exit 1
 fi
 

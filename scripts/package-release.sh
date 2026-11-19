@@ -47,11 +47,15 @@ Categories=Utility;
 Keywords=skjermbilde;screenshot;klipp;agent;
 StartupNotify=true
 StartupWMClass=io.github.AgenticKlipp
-Actions=capture;
+Actions=capture;area;
 
 [Desktop Action capture]
 Name=Ta skjermbilde
 Exec=/usr/bin/klipp --capture
+
+[Desktop Action area]
+Name=Ta bilde av område
+Exec=/usr/bin/klipp --capture --mode omrade
 DESKTOP
 cat > "$deb/DEBIAN/control" <<CONTROL
 Package: agentic-klipp
