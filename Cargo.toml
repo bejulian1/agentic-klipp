@@ -15,8 +15,9 @@ name = "agentic-klipp"
 version = "1.2.1"
 edition = "2024"
 rust-version = "1.92"
-description = "Slankt skjermbildeverktøy for Ubuntu/GNOME som gir skjermbilder til AI-kodeagenter"
+description = "Screenshot tool for Ubuntu/GNOME built for AI coding agents"
 license = "MIT"
+repository = "https://github.com/bejulian1/agentic-klipp"
 build = "build.rs"
 
 [[bin]]

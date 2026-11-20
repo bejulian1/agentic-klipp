@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement or new feature for Agentic Klipp
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem does this solve, or what workflow would it improve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe how you would like this to work.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Alternatives or additional context
+      description: Any workarounds, mockups, or other context.
