@@ -66,9 +66,9 @@ Architecture: amd64
 Maintainer: bejulian1 <350748356+bejulian1@users.noreply.github.com>
 Depends: libgtk-4-1 (>= 4.22), libadwaita-1-0 (>= 1.9), libglib2.0-0t64 (>= 2.80), libc6 (>= 2.39), libgcc-s1, libpango-1.0-0, libpangocairo-1.0-0, libcairo2, libgdk-pixbuf-2.0-0
 Homepage: https://github.com/bejulian1/agentic-klipp
-Description: Skjermbildeverktøy for Ubuntu og GNOME
- Skjermbilder, hylle og tegneverktøy for AI-kodeagenter.
- Bygd for Ubuntu 26.04, GNOME 50 og Wayland.
+Description: Screenshot tool for Ubuntu and GNOME
+ Screenshots, shelf, and annotation tools for AI coding agents.
+ Built for Ubuntu 26.04, GNOME 50, and Wayland.
 CONTROL
 dpkg-deb --root-owner-group --build "$deb" "$output/agentic-klipp_${version}+${build}_amd64.deb"
 (cd -- "$output" && sha256sum klipp "$name.tar.gz" "agentic-klipp_${version}+${build}_amd64.deb" > SHA256SUMS)

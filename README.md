@@ -1,46 +1,50 @@
 # Agentic Klipp
 
-[![Versjon](https://img.shields.io/badge/versjon-1.2.1-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.1)
-[Versjonslogg](#versjonslogg) · [Last ned](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Bidragsytere](#bidragsytere)
+[![Version](https://img.shields.io/badge/version-1.2.1-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.1)
+[Version history](#version-history) · [Download](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Contributors](#contributors)
 
-Skjermbildeverktøy for Ubuntu og GNOME, laget for å gi skjermbilder til AI-kodeagenter.
-Trykk **Alt+K** i hvilken som helst app. Skjermen blir grå, du drar over det du vil ha,
-og bildet er tatt når du slipper musa, uten blits og uten lukkerlyd. Du blir stående i
-appen du jobbet i.
+A screenshot tool for Ubuntu and GNOME, built for handing screenshots to AI coding agents.
+Press **Alt+K** in any app. The screen dims, you drag over what you want, and the screenshot
+is captured as soon as you release the mouse — with no flash and no shutter sound. You stay
+right in the app you were working in.
 
-Bildet havner i hylla, på utklippstavlen og som fil under `~/Bilder/Klipp/`. Derfra kan
-du dra det rett inn i terminalen, lime det inn i Claude Code eller tegne piler og
-markeringer på det først.
+> **Note:** The app's UI is currently in Norwegian (bokmål) only. Translations and i18n
+> contributions are welcome — see [Contributing](#contributing).
 
-- Område, frihånd, vindu eller hele skjermen
-- Hylle med flervalg, bulk-kopi som filer og papirkurv
-- Tegning med pil, linje, rektangel, ellipse, frihånd, merkepenn, tekst, nummererte
-  markører, sladd og viskelær, i 8 farger pluss egen farge og 5 størrelser
-- Egen GNOME Shell-utvidelse for stille opptak og Alt+K i alle apper
+The image lands on the shelf, on your clipboard, and as a file in `Klipp/` inside your
+Pictures folder (`~/Pictures/Klipp/`, or `~/Bilder/Klipp/` on a Norwegian system). From
+there you can drag it straight into your terminal, paste it into Claude Code, or draw
+arrows and callouts on it first.
 
-Skrevet i Rust med GTK 4 og libadwaita. Binæren heter `klipp`, og app-ID-en er
-`io.github.AgenticKlipp`. Laget for Ubuntu 26.04 med GNOME 50 på Wayland.
+- Area, freehand, window, or full-screen capture
+- Shelf with multi-select, bulk copy as files, and trash
+- Annotation with arrow, line, rectangle, ellipse, freehand, highlighter, text, numbered
+  markers, redaction, and eraser, in 8 colors plus a custom color and 5 sizes
+- Dedicated GNOME Shell extension for silent capture and global Alt+K in all apps
 
-## Skjermbilder
+Written in Rust with GTK 4 and libadwaita. The binary is named `klipp`, and the app ID is
+`io.github.AgenticKlipp`. Built for Ubuntu 26.04 with GNOME 50 on Wayland.
 
-Hovedvinduet med bildehylla:
+## Screenshots
 
-![Agentic Klipp – hovedvindu og bildehylle](docs/images/hovedvindu.png)
+Main window with the screenshot shelf:
 
-Innstillinger med tema og valg for skjermbilder:
+![Agentic Klipp – main window and screenshot shelf](docs/images/hovedvindu.png)
 
-![Agentic Klipp – toppen av Innstillinger](docs/images/innstillinger.png)
+Settings with theme and screenshot options:
 
-Annoteringsmodus med tegneverktøy, farger og markeringer:
+![Agentic Klipp – top of Settings](docs/images/innstillinger.png)
 
-![Agentic Klipp – annoteringsmodus](docs/images/annotering.png)
+Annotation mode with drawing tools, colors, and callouts:
 
-Bildene er fra appen med egne demobilder i en isolert profil.
+![Agentic Klipp – annotation mode](docs/images/annotering.png)
 
-## Versjonslogg
+The screenshots are taken from the app with demo images in an isolated profile.
+
+## Version history
 
 <details>
-<summary>Vis alle versjoner – nyeste øverst</summary>
+<summary>Show all versions (in Norwegian, same text as in the app) – newest first</summary>
 
 <!-- BEGIN VERSION HISTORY -->
 
@@ -85,9 +89,9 @@ Første lokale versjon, omtalt i konfigurasjonsmigreringen. Nøyaktig dato og fu
 
 </details>
 
-[Åpne versjonsloggen som egen fil](CHANGELOG.md) · [Alle releases og nedlastinger](https://github.com/bejulian1/agentic-klipp/releases)
+[Open version history as a separate file](CHANGELOG.md) · [All releases and downloads](https://github.com/bejulian1/agentic-klipp/releases)
 
-## Installasjon
+## Installation
 
 ```sh
 git clone https://github.com/bejulian1/agentic-klipp.git
@@ -95,78 +99,79 @@ cd agentic-klipp
 ./install.sh
 ```
 
-`install.sh` sjekker at alt som trengs for å bygge er på plass. Mangler noe, skriver den
-ut én `sudo apt install …`-kommando du kan kjøre før du prøver igjen. På en ny maskin
-er det disse:
+`install.sh` checks that everything needed to build is installed. If anything is missing, it
+prints a single `sudo apt install …` command you can run before trying again. On a fresh
+machine, those packages are:
 
 ```sh
 sudo apt install cargo rustc mold pkgconf libgtk-4-dev libadwaita-1-dev
 ```
 
-Deretter bygger skriptet Klipp, legger den inn under `~/.local` og starter appen. Første
-bygg tar noen minutter fordi release-profilen bruker LTO. Er maskinen trang på minne,
-kjør `CARGO_BUILD_JOBS=2 ./install.sh`.
+The script then builds Klipp, installs it under `~/.local`, and launches the app. The first
+build takes a few minutes because the release profile uses LTO. If your machine is low on
+memory, run `CARGO_BUILD_JOBS=2 ./install.sh`.
 
-Til slutt, én gang: åpne **Innstillinger** i Klipp, trykk **Slå på** på raden
-«Klipp-utvidelsen», og logg ut og inn. Da er blitsen borte og Alt+K virker overalt. Se
-[Shell-utvidelsen](#shell-utvidelsen).
+Finally, once: open **Innstillinger** (Settings) in Klipp, click **Slå på** (Enable) on the
+"Klipp-utvidelsen" (Klipp extension) row, and log out and back in. After that, the flash is
+gone and Alt+K works everywhere. See [Shell extension](#shell-extension).
 
-### Ferdig bygd versjon
+### Prebuilt release
 
-[Nyeste release](https://github.com/bejulian1/agentic-klipp/releases/latest) inneholder:
+The [latest release](https://github.com/bejulian1/agentic-klipp/releases/latest) includes:
 
-- `klipp`: selve Linux-binæren.
-- `agentic-klipp-1.2.1-linux-x86_64.tar.gz`: komplett installasjonsarkiv med binær, ikoner og GNOME-utvidelse.
-- `agentic-klipp_1.2.1+20261114.1641_amd64.deb`: Ubuntu-pakke.
-- `SHA256SUMS`: kontrollsummer for de tre filene.
+- `klipp`: the standalone Linux binary.
+- `agentic-klipp-1.2.1-linux-x86_64.tar.gz`: complete installation archive with binary, icons, and GNOME extension.
+- `agentic-klipp_1.2.1+20261114.1641_amd64.deb`: Ubuntu package.
+- `SHA256SUMS`: checksums for the three files.
 
-Enklest uten å bygge: pakk ut installasjonsarkivet og kjør dette i den utpakkede mappen:
+Easiest way without building: extract the installation archive and run this inside the
+extracted folder:
 
 ```sh
 ./install.sh --bin ./klipp
 ```
 
-Alternativt kan Ubuntu-pakken installeres med:
+Alternatively, install the Ubuntu package with:
 
 ```sh
 sudo apt install ./agentic-klipp_1.2.1+20261114.1641_amd64.deb
 ```
 
-Bruk én installasjonsmåte om gangen. Har du installert under `~/.local` tidligere og
-vil bytte til `.deb`, kjør først `./uninstall.sh` for å fjerne brukerinstallasjonen.
-Debian-pakken legger appen under `/usr/bin` og utvidelsen under `/usr/share`.
-Slå på Klipp-utvidelsen i Innstillinger og logg ut og inn etter første installasjon.
+Use one installation method at a time. If you previously installed under `~/.local` and
+want to switch to the `.deb`, run `./uninstall.sh` first to remove the user installation.
+The Debian package installs the app under `/usr/bin` and the extension under `/usr/share`.
+Enable the Klipp extension in **Innstillinger** and log out and back in after the first
+installation.
 
-Kontroller nedlastingene i mappen der filene og `SHA256SUMS` ligger:
+Verify the downloads in the folder containing the files and `SHA256SUMS`:
 
 ```sh
 sha256sum --check SHA256SUMS
 ```
 
-
-Vil du slippe å bygge, last ned `klipp` fra
-[Releases](https://github.com/bejulian1/agentic-klipp/releases) og pek på den. Da trengs
-ingen Rust-pakker, bare GTK 4 og libadwaita, som GNOME allerede har:
+If you want to skip building from a cloned repo, download `klipp` from
+[Releases](https://github.com/bejulian1/agentic-klipp/releases) and point to it. No Rust
+packages are needed — only GTK 4 and libadwaita, which GNOME already includes:
 
 ```sh
-./install.sh --bin ~/Nedlastinger/klipp
+./install.sh --bin ~/Downloads/klipp
 ```
 
-Binæren er bygd på Ubuntu 26.04 for x86_64.
+The binary is built on Ubuntu 26.04 for x86_64.
 
-### Oppdatering
+### Updating
 
 ```sh
 git pull
 ./install.sh
 ```
 
-Skriptet starter Klipp på nytt hvis den kjører. Har utvidelsen endret seg, må du logge ut
-og inn før den nye versjonen tas i bruk.
+The script restarts Klipp if it is currently running. If the extension has changed, you
+need to log out and back in before the new version takes effect.
 
-### Hva som legges inn
+### What gets installed
 
-Skriptet endrer ingen GNOME-innstillinger. Det legger inn dette:
+The script does not modify any GNOME settings. It installs:
 
 - `~/.local/bin/klipp`
 - `~/.local/share/applications/io.github.AgenticKlipp.desktop`
@@ -174,60 +179,66 @@ Skriptet endrer ingen GNOME-innstillinger. Det legger inn dette:
 - `~/.local/share/icons/hicolor/symbolic/apps/io.github.AgenticKlipp-symbolic.svg`
 - `~/.local/share/gnome-shell/extensions/agentic-klipp@klipp.local/`
 
-`.desktop`-filen er ikke pynt. Uten den nekter portalen å kjenne igjen Klipp, og både
-global hurtigtast og skjermbilder uten dialog slutter å virke. Filen må hete
-`io.github.AgenticKlipp.desktop` og ha absolutt sti i `Exec=`. `install.sh` ordner begge
-deler.
+The `.desktop` file is not decorative. Without it, the desktop portal refuses to recognize
+Klipp, and both the global shortcut and dialog-free screenshots stop working. The file must
+be named `io.github.AgenticKlipp.desktop` and have an absolute path in `Exec=`. `install.sh`
+handles both.
 
-Valg: `--bin STI` installerer en ferdig binær uten å bygge, og `--no-start` lar være å
-starte appen. Bygget havner i `target/`, eller i `$CARGO_TARGET_DIR` hvis den er satt.
+Options: `--bin PATH` installs a prebuilt binary without compiling, and `--no-start` skips
+launching the app. Build artifacts go to `target/`, or `$CARGO_TARGET_DIR` if set.
 
-## Shell-utvidelsen
+## Shell extension
 
-Slå på utvidelsen. Uten den får du hvit blits og lukkerlyd hver gang, for portalen ber
-GNOME om det og har ikke noe valg for å la være. Utvidelsen tar også tasten selv, så
-Alt+K virker i alle apper, og den starter Klipp hvis appen ikke kjører.
+Enable the extension. Without it, you get a white flash and shutter sound every time,
+because the portal asks GNOME for them and has no option to turn them off. The extension
+also grabs the hotkey itself, so Alt+K works in all apps and starts Klipp if it isn't
+running.
 
-Åpne Innstillinger i Klipp og trykk **Slå på** på raden «Klipp-utvidelsen». Logg så ut
-og inn én gang. GNOME på Wayland oppdager nye utvidelser bare ved innlogging, så blitsen
-er der helt til det er gjort. Raden viser hele tiden hvor langt du har kommet. Oppdaterer
-du Klipp til en ny versjon av utvidelsen, må du også logge ut og inn før den tas i bruk.
+Open **Innstillinger** in Klipp and click **Slå på** on the "Klipp-utvidelsen" row. Then
+log out and back in once. GNOME on Wayland only discovers new extensions at login, so the
+flash remains until you do. The row always shows your current setup status. Whenever you
+update Klipp to a new version of the extension, you also need to log out and back in before
+it takes effect.
 
-| | Med utvidelsen | Uten |
+| | With extension | Without |
 | --- | --- | --- |
-| Blits og lukkerlyd | Nei | Ja, GNOME krever det |
-| Fra tast til grå skjerm | Omtrent 0,2 s | Omtrent 0,8 s |
-| Hurtigtast | Virker alltid | Bare mens Klipp kjører, etter en GNOME-dialog |
-| Fokus i andre apper | Overlegget får alltid fokus | Kan mangle, og da virker verken Esc eller kopiering |
+| Flash and shutter sound | No | Yes, GNOME requires it |
+| Keypress to dimmed screen | About 0.2 s | About 0.8 s |
+| Hotkey | Always works | Only while Klipp is running, after a GNOME dialog |
+| Focus in other apps | Overlay always gets focus | May lack focus, breaking Esc and copy |
 
-Utvidelsen er låst til GNOME 50 og må oppdateres ved ny GNOME-versjon. Klipp faller da
-tilbake på portalen av seg selv. Bare Klipp får bruke den: den sjekker avsenderen slik
-GNOME gjør for sin egen skjermbildetjeneste, og filen kan bare havne i
-`$XDG_RUNTIME_DIR`.
+The extension is pinned to GNOME 50 and must be updated for newer GNOME versions. Klipp
+falls back to the portal automatically if it is unavailable. Only Klipp is allowed to call
+it: it verifies the D-Bus sender the same way GNOME does for its own screenshot service,
+and files can only be written inside `$XDG_RUNTIME_DIR`.
 
-## Første gang
+## First run
 
-Med utvidelsen på blir du ikke spurt om noe. Uten den stiller GNOME to spørsmål, og du
-svarer på hvert av dem én gang:
+With the extension enabled, you will not be prompted for anything. Without it, GNOME asks
+two questions, once each:
 
-1. **«Allow Agentic Klipp to Take Screenshots?»** dukker opp første gang du tar et
-   bilde, og bare når Klipp er den fokuserte appen. Svar ja. Uten dette får ikke Klipp
-   tatt bilder.
-2. **«Legg til tastatursnarveier»** gjelder den globale hurtigtasten, se under.
+1. **"Allow Agentic Klipp to Take Screenshots?"** appears the first time you take a
+   screenshot, and only when Klipp is the focused app. Click Allow. Without this, Klipp
+   cannot capture screenshots.
+2. **"Legg til tastatursnarveier"** (Add Keyboard Shortcuts) is for the global shortcut —
+   see below.
 
-## Bruk
+## Usage
 
 ```sh
-klipp                    # vis vinduet
-klipp --capture          # ta et bilde med sist brukte modus
+klipp                    # show the window
+klipp --capture          # capture using the last used mode
 klipp --capture --mode omrade|frihand|vindu|skjerm
-klipp --hidden           # start skjult, for autostart
-klipp --quit             # avslutt appen
+klipp --hidden           # start hidden, for autostart
+klipp --quit             # quit the app
 ```
+
+The `--mode` values are `omrade` (area), `frihand` (freehand), `vindu` (window), and
+`skjerm` (full screen).
 
 ## Autostart
 
-Lag denne filen for å starte Klipp skjult ved innlogging:
+Create this file to start Klipp hidden on login:
 
 ```sh
 mkdir -p ~/.config/autostart
@@ -241,150 +252,156 @@ X-GNOME-Autostart-enabled=true
 EOF
 ```
 
-Slett filen igjen for å slå av autostart.
+Delete the file to disable autostart.
 
-## Hylla
+## The shelf
 
-| Handling | Hva som skjer |
+| Action | Result |
 | --- | --- |
-| Klikk på bildet | Åpner det for tegning og markering |
-| Shift+høyreklikk | Kopierer bildet |
-| Shift+klikk | Kopierer filstien |
-| Dra | Slipp bildet i terminalen eller en annen app |
-| Søppelbøtta på bildet | Legger fila i papirkurven |
-| Ctrl+klikk, Velg-knappen eller Ctrl+A | Velg flere bilder |
-| Klikk eller Shift+klikk mens du velger | Velger ett bilde, eller alle imellom |
-| Kopier (Ctrl+C) | Kopierer alle valgte som filer og stier. Ett bilde kopieres også som bilde |
-| Søppelbøtta (Delete) mens du velger | Legger alle valgte i papirkurven |
-| Dra et valgt bilde | Drar alle valgte |
-| Esc eller ✕ | Avslutter valget |
+| Click an image | Opens it for drawing and annotation |
+| Shift+right-click | Copies the image |
+| Shift+click | Copies the file path |
+| Drag | Drops the image into a terminal or another app |
+| Trash icon on the image | Moves the file to Trash |
+| Ctrl+click, the **Velg** (Select) button, or Ctrl+A | Select multiple images |
+| Click or Shift+click while selecting | Selects one image, or a range |
+| **Kopier** (Copy, Ctrl+C) | Copies all selected items as files and paths. A single image is also copied as image data |
+| Trash icon (Delete) while selecting | Moves all selected items to Trash |
+| Drag a selected image | Drags all selected images |
+| Esc or ✕ | Exits selection mode |
 
-Kopierte filer kan limes inn i Claude Code, chatapper og Filer. Minimer-knappen øverst
-skjuler vinduet. Systemfeltet eller `klipp` henter det fram igjen.
+Copied files can be pasted into Claude Code, chat apps, and Files. The minimize button at
+the top hides the window; the system tray icon or running `klipp` brings it back.
 
-## Tegning
+## Annotation
 
-Klikk på et bilde i hylla for å tegne på det. **Ferdig** brenner tegningen inn i fila,
-og **Kopier** legger resultatet på utklippstavlen.
+Click an image on the shelf to draw on it. **Ferdig** (Done) bakes the annotations into the
+file, and **Kopier** puts the result on the clipboard.
 
-| Verktøy | Tast | Merknad |
+| Tool | Key | Notes |
 | --- | --- | --- |
-| Pil | P | |
-| Linje | L | |
-| Rektangel | R | |
+| Arrow | P | |
+| Line | L | |
+| Rectangle | R | |
 | Ellipse | O | |
-| Frihånd | F | |
-| Merkepenn | H | Bred og gjennomsiktig, så teksten under kan leses |
-| Tekst | T | Enter avslutter, Shift+Enter gir ny linje |
-| Nummerert markør | M | Tallet øker for hver markør |
-| Sladd | S | Gjør området uleselig |
-| Viskelær | E | Fjerner hele tegninger. Det som blir fjernet, får stiplet rød ramme |
+| Freehand | F | |
+| Highlighter | H | Wide and semi-transparent so underlying text stays readable |
+| Text | T | Enter finishes, Shift+Enter inserts a newline |
+| Numbered marker | M | Counter increments for each marker |
+| Redact | S | Obscures the selected area |
+| Eraser | E | Removes whole strokes/shapes; items to be removed get a dashed red outline |
 
-Tastene 1 til 8 velger farge: rød, oransje, gul, grønn, blå, lilla, hvit og svart. Tast 9
-eller regnbueknappen gir egen farge fra GNOMEs fargevelger. Klikk på knappen igjen for å
-bytte egen farge. Størrelsen velges i menyen til høyre, fra ekstra tynn til ekstra tykk,
-eller med + og −. Ctrl+Z angrer, også viskelæret, og Ctrl+Shift+Z gjør om.
+Keys 1 through 8 pick a color: red, orange, yellow, green, blue, purple, white, and black.
+Key 9 or the rainbow button picks a custom color from GNOME's color chooser; click the button
+again to change the custom color. Stroke size is chosen from the menu on the right (from
+extra thin to extra thick), or with `+` and `−`. Ctrl+Z undoes (including eraser actions),
+and Ctrl+Shift+Z redoes.
 
-## Opptaksmåte
+## Capture method
 
-Velg under Innstillinger > Skjermbilde:
+Choose under **Innstillinger > Skjermbilde** (Settings > Screenshot):
 
-- **Stille** tar bildet gjennom utvidelsen. Det er raskest, og du velger selv om du vil
-  ha **Blits** og **Lukkerlyd**. Begge er av som standard. De kommer når bildet er tatt,
-  og blitsen dekker bare området du valgte. Uten utvidelsen brukes GNOMEs vei.
-- **GNOME** bruker GNOMEs vanlige vei, med blits over hele skjermen og lukkerlyd før du
-  markerer. De kan ikke slås av der, så bryterne er grå.
+- **Stille** (Silent) captures through the extension. It is the fastest option, and you can
+  choose whether to enable **Blits** (Flash) and **Lukkerlyd** (Shutter sound). Both are
+  off by default. They trigger after the screenshot is taken, and the flash only covers the
+  selected region. Without the extension, Klipp falls back to GNOME's method.
+- **GNOME** uses GNOME's standard screenshot flow, with a full-screen flash and shutter
+  sound before you select an area. These cannot be disabled there, so the toggles are
+  grayed out.
 
-Alt+K virker med begge valgene.
+Alt+K works with both options.
 
-## Lagringsmappe
+## Save folder
 
-Bilder lagres i `~/Bilder/Klipp/`. Velg en annen mappe under Innstillinger >
-Skjermbilde. Knappen **Standard** tar deg tilbake. Bilder som allerede er tatt, blir
-liggende der de er.
+Screenshots are saved in `Klipp/` inside your Pictures folder (`~/Pictures/Klipp/`, or
+`~/Bilder/Klipp/` on a Norwegian system). Choose a different folder under **Innstillinger >
+Skjermbilde**. The **Standard** (Default) button resets it. Screenshots already taken stay
+where they are.
 
-## Global hurtigtast
+## Global shortcut
 
-Standardtasten er Alt+K. Med utvidelsen på trenger du ikke gjøre noe mer, og tasten kan
-byttes under Innstillinger > Hurtigtaster. Uten utvidelsen finnes det to andre veier.
-**Velg én av dem.** Bruker du begge på samme tast, kan samme tastetrykk ta to bilder.
+The default shortcut is Alt+K. With the extension enabled, no further setup is needed, and
+you can change the key under **Innstillinger > Hurtigtaster** (Settings > Shortcuts).
+Without the extension, there are two alternatives. **Pick only one.** Binding the same key
+with both can trigger two screenshots at once.
 
-### GlobalShortcuts-portalen
+### GlobalShortcuts portal
 
-Klipp ber GNOME om tasten når appen starter. Første gang åpner GNOME en dialog med
-tittelen «Legg til tastatursnarveier» (eller «Add Keyboard Shortcuts»). Trykk
-**Legg til**. Valget lagres av GNOME, så senere starter er stille.
+Klipp requests the shortcut from GNOME when the app starts. The first time, GNOME opens a
+dialog titled "Legg til tastatursnarveier" (or "Add Keyboard Shortcuts"). Click **Legg til**
+(Add). GNOME remembers your choice, so subsequent launches are silent.
 
-- Tasten virker bare mens Klipp kjører. Bruk autostart hvis du vil ha den alltid.
-- Bytter du tast under Innstillinger > Hurtigtaster, åpner GNOME en ny dialog som
-  bekrefter den nye tasten.
-- GNOME sier at tasten kan endres på appens side i Innstillinger. Raden «Ta skjermbilde»
-  i Klipp viser hele tiden tasten GNOME faktisk bruker.
-- Tasten virker på vanlig skrivebord, men ikke mens oversikten (Activities) er åpen.
-- Lukker du dialogen uten å godta, spør ikke Klipp igjen ved neste start. Klikk raden
-  «Ta skjermbilde» og trykk tasten på nytt for å bli spurt.
+- The shortcut only works while Klipp is running. Use autostart if you want it available at
+  all times.
+- If you change the key under **Innstillinger > Hurtigtaster**, GNOME opens a new dialog to
+  confirm the new key.
+- GNOME notes that the shortcut can be changed on the app's page in GNOME Settings. The
+  "Ta skjermbilde" (Take screenshot) row in Klipp always shows the key GNOME is actually
+  using.
+- The shortcut works on the regular desktop, but not while the Activities overview is open.
+- If you dismiss the dialog without accepting, Klipp will not prompt again on the next
+  start. Click the "Ta skjermbilde" row and press the key again to be prompted.
 
-### GNOME-hurtigtast med `klipp --capture`
+### GNOME custom shortcut with `klipp --capture`
 
-Bruk denne hvis portalen ikke virker, eller hvis du vil at tasten skal virke også når
-Klipp ikke kjører.
+Use this if the portal does not work, or if you want the shortcut to work even when Klipp
+is not running.
 
-1. Slå av portaltasten: åpne Innstillinger i Klipp, klikk raden «Ta skjermbilde» og trykk
-   Backspace. Raden viser da «Ingen».
-2. Åpne GNOME Innstillinger > Tastatur > View and Customize Shortcuts > Egendefinerte
-   snarveier.
-3. Legg til en snarvei med navnet `Klipp` og kommandoen under, med din egen sti:
+1. Clear the portal shortcut: open **Innstillinger** in Klipp, click the "Ta skjermbilde"
+   row, and press Backspace. The row will then show "Ingen" (None).
+2. Open GNOME Settings > Keyboard > View and Customize Shortcuts > Custom Shortcuts.
+3. Add a shortcut named `Klipp` with the command below, using your own path:
 
    ```
-   /home/DITT-NAVN/.local/bin/klipp --capture
+   /home/YOUR-NAME/.local/bin/klipp --capture
    ```
 
-4. Velg tasten.
+4. Choose the shortcut key.
 
-Prøv kommandoen i en terminal først. Hvis du senere går tilbake til portalen eller
-utvidelsen, må du fjerne den egendefinerte snarveien.
+Test the command in a terminal first. If you later switch back to the portal or the
+extension, remember to remove the custom shortcut.
 
-## Ikon i systemfeltet
+## System tray icon
 
-GNOME viser ikke slike ikoner uten en utvidelse. Ubuntu har den med, men den kan være
-slått av. Slå den på slik:
+GNOME does not show tray icons without an extension. Ubuntu ships it preinstalled, though
+it may be disabled. Enable it with:
 
 ```sh
 gnome-extensions enable ubuntu-appindicators@ubuntu.com
 ```
 
-Klipp følger med, så ikonet dukker opp av seg selv uten at du må starte appen på nytt.
-Uten utvidelsen virker alt annet som før, men da må du åpne Klipp fra appoversikten.
+Klipp watches for it, so the icon appears automatically without restarting the app. Without
+the extension everything else works as usual, except you open Klipp from the app overview.
 
-## Feilsøking
+## Troubleshooting
 
-Se raden «Ta skjermbilde» under Innstillinger > Hurtigtaster. Den sier hva som er
-galt.
+Check the "Ta skjermbilde" row under **Innstillinger > Hurtigtaster**. It reports what is
+wrong.
 
-| Tekst i raden | Hva det betyr | Løsning |
+| Status text in the app | Meaning | Fix |
 | --- | --- | --- |
-| Aktiv: GNOME bruker … | Portalen har bundet tasten. | Ingenting. |
-| GNOME bekrefter hurtigtasten selv. Svar i dialogen | Klipp venter på svar. | Svar i dialogen. Den kan ligge bak andre vinduer. |
-| Klipp er ikke installert: … mangler | `.desktop`-filen finnes ikke. | Kjør `./install.sh`. |
-| GNOME godtok ikke … | Dialogen ble lukket uten at tasten ble godtatt. | Klikk raden og trykk tasten på nytt. |
-| ingen tast er valgt | Tasten er fjernet med Backspace. | Klikk raden og velg en tast. |
-| GlobalShortcuts-portalen finnes ikke her | Skrivebordet mangler portalen. | Slå på utvidelsen. |
+| `Aktiv: GNOME bruker …` | The portal has bound the key. | Nothing needed. |
+| `GNOME bekrefter hurtigtasten selv. Svar i dialogen` | Klipp is waiting for confirmation. | Respond to the dialog (it may be behind other windows). |
+| `Klipp er ikke installert: … mangler` | The `.desktop` file is missing. | Run `./install.sh`. |
+| `GNOME godtok ikke …` | The dialog was dismissed without accepting the key. | Click the row and press the key again. |
+| `ingen tast er valgt` | The key was cleared with Backspace. | Click the row and pick a key. |
+| `GlobalShortcuts-portalen finnes ikke her` | The desktop lacks the GlobalShortcuts portal. | Enable the shell extension. |
 
-Andre ting å sjekke:
+Other things to check:
 
-- **Hvit blits ved opptak:** Utvidelsen er ikke på. Sjekk med
+- **White flash on capture:** The extension is not enabled. Check with
   `gnome-extensions list --enabled | grep klipp`.
-- **Status er Aktiv, men tasten reagerer ikke:** Uten utvidelsen kan dette skje hvis
-  `xdg-desktop-portal` har krasjet. Logg ut og inn igjen.
-- **Ingen ikon i systemfeltet:** Sjekk utvidelsen med
-  `gnome-extensions list --enabled | grep appindicators`. Ikonet krever også
-  `./install.sh`, ellers viser panelet tre prikker i stedet for Klipp-ikonet.
-- **Innstillingene lastes ikke:** Filen `~/.config/klipp/config` er vanlig tekst. Er den
-  ødelagt, bruker Klipp standardverdier for det den ikke forstår. Du kan trygt slette
-  filen.
+- **Status says Active, but the key does nothing:** Without the extension, this can happen
+  if `xdg-desktop-portal` has crashed. Log out and back in.
+- **No system tray icon:** Check the extension with
+  `gnome-extensions list --enabled | grep appindicators`. The icon also requires
+  `./install.sh`, otherwise the top bar shows three dots instead of the Klipp icon.
+- **Settings are not loading:** `~/.config/klipp/config` is plain text. If it is corrupted,
+  Klipp falls back to defaults for any entries it cannot parse. You can safely delete the
+  file.
 
-Vil du prøve delene alene under utvikling, finnes det eksempler. Bruk en midlertidig
-`XDG_CONFIG_HOME`, så lar de innstillingene dine være i fred:
+If you want to test components in isolation during development, there are examples. Pass a
+temporary `XDG_CONFIG_HOME` so they leave your real settings alone:
 
 ```sh
 XDG_CONFIG_HOME=$(mktemp -d) cargo run -p klipp-system --example settings -- --hotkey
@@ -392,23 +409,24 @@ cargo run -p klipp-system --example tray
 cargo run -p klipp-system --example hotkey
 ```
 
-## Avinstallering
+## Uninstalling
 
 ```sh
 ./uninstall.sh
 ```
 
-Skriptet fjerner det `install.sh` la inn. Skjermbildene dine under `~/Bilder/Klipp/` og
-innstillingene under `~/.config/klipp/` blir liggende. Du kan slette dem selv:
+The script removes everything `install.sh` installed. Your screenshots in `Klipp/` inside
+your Pictures folder and your settings in `~/.config/klipp/` are left untouched. You can
+delete the settings yourself:
 
 ```sh
 rm -r ~/.config/klipp
 ```
 
-Har du laget autostart, skriver skriptet ut hvordan du fjerner den. Tasten GNOME har
-lagret for Klipp, blir liggende i GNOMEs innstillinger og gjør ingen ting uten appen.
+If you set up autostart, the script prints how to remove it. Any shortcut GNOME stored for
+Klipp stays in GNOME Settings and has no effect once the app is removed.
 
-## Utvikling
+## Development
 
 ```sh
 cargo build --release
@@ -416,26 +434,27 @@ cargo test --workspace
 cargo clippy --workspace --all-targets
 ```
 
-| Mappe | Innhold |
+| Directory | Contents |
 | --- | --- |
-| `src/` | Selve appen: vindu, hylle, opptak, utklippstavle og lagring |
-| `crates/klipp-annotate/` | Tegnevinduet og verktøyene |
-| `crates/klipp-system/` | Innstillinger, hurtigtaster, systemfelt og konfigurasjon |
-| `shell-extension/` | GNOME Shell-utvidelsen for stille opptak og Alt+K |
-| `data/` | Ikoner, CSS og GResource |
-| `prototype/` | HTML-prototypen som er fasit for utseendet |
+| `src/` | The app itself: window, shelf, capture, clipboard, and storage |
+| `crates/klipp-annotate/` | Annotation window and drawing tools |
+| `crates/klipp-system/` | Settings, hotkeys, system tray, and configuration |
+| `shell-extension/` | GNOME Shell extension for silent capture and Alt+K |
+| `data/` | Icons, CSS, and GResource |
+| `prototype/` | HTML prototype used as the visual reference |
 
-Versjon **1.2.1**, release-bygg **20261114.1641**. Versjonen står i alle tre
-`Cargo.toml`-filene. Byggnummeret er byggetidspunktet i Europe/Oslo, og kan fastsettes
-for en release med `KLIPP_BUILD_NUMBER=YYYYMMDD.HHMM`. Begge vises under
-Innstillinger > Om Klipp og med `klipp --version`.
+Version **1.2.1**, release build **20261114.1641**. The version is declared in all three
+`Cargo.toml` files. The build number is the build timestamp in `Europe/Oslo`, and can be
+pinned for a release with `KLIPP_BUILD_NUMBER=YYYYMMDD.HHMM`. Both are shown under
+**Innstillinger > Om Klipp** (Settings > About Klipp) and via `klipp --version`.
 
-Klikk **Innstillinger > Om Klipp > Versjonslogg** for å åpne historikken i et eget vindu.
-Loggen følger med appen og virker uten internett. Den hentes fra [CHANGELOG.md](CHANGELOG.md),
-som også er versjonsloggen på GitHub. Nyeste versjon vises øverst, eldste nederst.
-Versjon 1.0.0 er omtalt i kildekoden, men har ingen bevart publiseringsdato.
+Click **Innstillinger > Om Klipp > Versjonslogg** (Version history) to open the changelog
+in its own window. The changelog is bundled with the app and works offline. It is sourced
+from [CHANGELOG.md](CHANGELOG.md), which is also the changelog on GitHub. The newest
+version is shown at the top and the oldest at the bottom. Version 1.0.0 is referenced in
+the source code, but its original release date was not preserved.
 
-### Lage release-pakker
+### Building release packages
 
 ```sh
 python3 scripts/update-readme-history.py
@@ -443,23 +462,32 @@ KLIPP_BUILD_NUMBER=20261114.1641 cargo build --release --locked
 bash scripts/package-release.sh
 ```
 
-Pakkene havner i `dist/`, som er ignorert av Git. Release-arkivet inneholder bare
-appen, installasjonsfiler og dokumentasjon. Tester og byggemapper pakkes ikke med.
-Linux-pakkene publiseres i **GitHub Releases**. GitHub Packages har ikke et eget
-Debian/apt-register; `.deb`-filen lastes derfor ned fra Releases. Se
-[GitHubs støttede pakkeformater](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages#supported-clients-and-formats).
+Packages are written to `dist/`, which is ignored by Git. The release archive contains only
+the app, installation files, and documentation — tests and build directories are excluded.
+Linux packages are published on **GitHub Releases**. GitHub Packages does not offer a
+Debian/apt registry, so the `.deb` file is downloaded from Releases. See
+[GitHub's supported package formats](https://docs.github.com/en/packages/learn-github-packages/introduction-to-github-packages#supported-clients-and-formats).
 
-## Bidragsytere
+## Contributing
 
-| Bidragsyter / modell | Verktøy | Bidrag |
+Contributions — bug reports, features, translations, and documentation — are welcome!
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, coding guidelines, and PR expectations.
+- Follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+- To report a security issue privately, see [SECURITY.md](SECURITY.md).
+
+## Contributors
+
+| Contributor / model | Tool | Contribution |
 | --- | --- | --- |
-| **Julian / [bejulian1](https://github.com/bejulian1)** | | Prosjekteier, produktvalg og utprøving |
-| **Anthropic Claude Opus 5.5** | Claude Code | Opprinnelig implementasjon og utvikling til og med 1.1.1 |
-| **OpenAI GPT 6.1 Sol** | Codex | Versjonslogg, 1.2-serien, dokumentasjon og release-pakking |
+| **Julian / [bejulian1](https://github.com/bejulian1)** | | Project owner, product decisions, and testing |
+| **Anthropic Claude Opus 5.5** | Claude Code | Initial implementation and development through 1.1.1 |
+| **OpenAI GPT 6.1 Sol** | Codex | Version history, 1.2 series, documentation, and release packaging |
 
-Se [CONTRIBUTORS.md](CONTRIBUTORS.md) for kreditering. GitHubs automatiske Contributors-liste
-styres av commitforfattere og koblede GitHub-kontoer, se [GitHubs forklaring](https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-a-projects-contributors).
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for full attribution. GitHub's automatic Contributors
+list is based on commit authors and linked GitHub accounts; see
+[GitHub's documentation](https://docs.github.com/en/repositories/viewing-activity-and-data-for-your-repository/viewing-a-projects-contributors).
 
-## Lisens
+## License
 
 [MIT](LICENSE).
