@@ -254,6 +254,20 @@ impl ShelfStorage {
         let worker = thread::spawn(move || {
             let mut initial = match load(&path) {
                 Ok(shots) => shots,
+                // En ødelagt fil blir ikke lesbar av seg selv. Ta vare på den og start på nytt.
+                Err(e) if e.kind() == io::ErrorKind::InvalidData => {
+                    let backup = path.with_extension("tsv.ugyldig");
+                    eprintln!(
+                        "klipp: hylla var ødelagt og er flyttet til {}: {e}",
+                        backup.display()
+                    );
+                    if let Err(e) = fs::rename(&path, &backup) {
+                        eprintln!("klipp: kunne ikke flytte den ødelagte hylla: {e}");
+                        return;
+                    }
+                    Vec::new()
+                }
+                // Utilgjengelig fil: skriv ingenting, så historikken kan leses neste gang.
                 Err(e) => {
                     eprintln!("klipp: kunne ikke lese hylla: {e}");
                     return;
@@ -612,15 +626,34 @@ mod tests {
     #[test]
     fn failed_history_read_does_not_overwrite_the_state_file() {
         let dir = tmp("lesefeil");
+        // En mappe der fila skulle vært, gir en lesefeil som ikke er ødelagt innhold.
+        let state = dir.join("shelf.tsv");
+        fs::create_dir(&state).unwrap();
+        let (store, _history) = ShelfStorage::start(state.clone());
+        store.save(ShelfSnapshot::BeforeLoad(vec![shot(dir.join("ny.png"), 2)]));
+        store.finish();
+
+        assert!(state.is_dir());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn corrupt_history_is_kept_aside_and_replaced() {
+        let dir = tmp("ugyldig");
         let state = dir.join("shelf.tsv");
         let invalid_utf8 = [0xff];
         fs::write(&state, invalid_utf8).unwrap();
-        let (store, _history) = ShelfStorage::start(state.clone());
         let capture = shot(dir.join("ny.png"), 2);
-        store.save(ShelfSnapshot::BeforeLoad(vec![capture]));
+        fs::write(&capture.path, b"x").unwrap();
+        let (store, _history) = ShelfStorage::start(state.clone());
+        store.save(ShelfSnapshot::BeforeLoad(vec![capture.clone()]));
         store.finish();
 
-        assert_eq!(fs::read(&state).unwrap(), invalid_utf8);
+        assert_eq!(
+            fs::read(dir.join("shelf.tsv.ugyldig")).unwrap(),
+            invalid_utf8
+        );
+        assert_eq!(load_shelf(&state).unwrap(), vec![capture]);
         fs::remove_dir_all(dir).unwrap();
     }
 
