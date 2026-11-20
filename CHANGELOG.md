@@ -1,5 +1,18 @@
 # Versjonslogg
 
+## 1.3.0 — 2026-11-20
+
+- Klipp finnes nå på ti språk: norsk bokmål, engelsk, svensk, dansk, tysk, fransk, spansk, italiensk, brasiliansk portugisisk og nederlandsk.
+- Nytt språkvalg under Innstillinger → Utseende. Standard er systemspråket, og Klipp bruker engelsk når systemspråket ikke støttes.
+- Knappen Start på nytt tar i bruk det nye språket med en gang.
+- Programnavnet og hurtighandlingene i appoversikten er oversatt.
+- Valgknappene i Innstillinger viser alltid hele teksten.
+- Bildehylla mister ikke lenger historikk ved raske endringer, rett etter oppstart eller når bildemappen er frakoblet. En ødelagt hyllefil tas vare på som shelf.tsv.ugyldig.
+- Frihåndsklipp er helt gjennomsiktige utenfor formen, og Kopier i tegnevinduet virker også etter at du har byttet app.
+- Debian-pakken finner Klipp-utvidelsen, og Alt+K virker etter installasjon fra pakken.
+- Kildekoden er åpen på GitHub med engelsk README, retningslinjer for bidrag og automatisk testing.
+- README viser nye skjermbilder på engelsk.
+
 ## 1.2.1 — 2026-11-14
 
 - Teksten i versjonsloggen kan ikke markeres eller få tekstfokus.

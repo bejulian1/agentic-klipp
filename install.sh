@@ -121,23 +121,59 @@ cat >"$desktop.tmp" <<DESKTOP
 [Desktop Entry]
 Type=Application
 Name=Agentic Klipp
-GenericName=Skjermbilde
-Comment=Skjermbilder til AI-kodeagenter
+GenericName=Screenshot
+GenericName[nb]=Skjermbilde
+GenericName[sv]=Skärmbild
+GenericName[da]=Skærmbillede
+GenericName[de]=Bildschirmfoto
+GenericName[fr]=Capture d’écran
+GenericName[es]=Captura de pantalla
+GenericName[it]=Schermata
+GenericName[pt_BR]=Captura de tela
+GenericName[nl]=Schermafdruk
+Comment=Screenshots for AI coding agents
+Comment[nb]=Skjermbilder til AI-kodeagenter
+Comment[sv]=Skärmbilder till AI-kodagenter
+Comment[da]=Skærmbilleder til AI-kodeagenter
+Comment[de]=Bildschirmfotos für KI-Coding-Agenten
+Comment[fr]=Captures d’écran pour les agents de code IA
+Comment[es]=Capturas de pantalla para agentes de código con IA
+Comment[it]=Schermate per agenti di programmazione IA
+Comment[pt_BR]=Capturas de tela para agentes de código com IA
+Comment[nl]=Schermafdrukken voor AI-codeeragents
 Exec=$exec_line
 Icon=$app_id
 Terminal=false
 Categories=Utility;
-Keywords=skjermbilde;screenshot;klipp;agent;
+Keywords=screenshot;klipp;agent;skjermbilde;skärmbild;skærmbillede;bildschirmfoto;capture;captura;schermata;schermafdruk;
 StartupNotify=true
 StartupWMClass=$app_id
 Actions=capture;area;
 
 [Desktop Action capture]
-Name=Ta skjermbilde
+Name=Take Screenshot
+Name[nb]=Ta skjermbilde
+Name[sv]=Ta skärmbild
+Name[da]=Tag skærmbillede
+Name[de]=Bildschirmfoto aufnehmen
+Name[fr]=Prendre une capture d’écran
+Name[es]=Hacer una captura de pantalla
+Name[it]=Acquisisci schermata
+Name[pt_BR]=Fazer uma captura de tela
+Name[nl]=Schermafdruk maken
 Exec=$exec_line --capture
 
 [Desktop Action area]
-Name=Ta bilde av område
+Name=Capture Area
+Name[nb]=Ta bilde av område
+Name[sv]=Ta skärmbild av område
+Name[da]=Tag skærmbillede af område
+Name[de]=Bereich aufnehmen
+Name[fr]=Capturer une zone
+Name[es]=Capturar un área
+Name[it]=Acquisisci un’area
+Name[pt_BR]=Capturar uma área
+Name[nl]=Gebied vastleggen
 Exec=$exec_line --capture --mode omrade
 DESKTOP
 mv -f "$desktop.tmp" "$desktop"
