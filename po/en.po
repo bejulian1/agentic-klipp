@@ -861,7 +861,7 @@ msgstr "Build {build}"
 
 #: crates/klipp-system/src/history.rs:191
 #: crates/klipp-system/src/history.rs:197
-#: crates/klipp-system/src/settings.rs:625
+#: crates/klipp-system/src/settings.rs:630
 msgid "Versjonslogg"
 msgstr "Version History"
 
@@ -1017,123 +1017,123 @@ msgstr "Restart"
 msgid "Utseende"
 msgstr "Appearance"
 
-#: crates/klipp-system/src/settings.rs:412
+#: crates/klipp-system/src/settings.rs:407
 msgid "Tema"
 msgstr "Theme"
 
 #. Keep these placeholders where they occur: {language}.
 #. {language} is the system language's endonym, e.g. Norsk bokmål.
-#: crates/klipp-system/src/settings.rs:422
+#: crates/klipp-system/src/settings.rs:417
 msgid "Systemspråk ({language})"
 msgstr "System Language ({language})"
 
-#: crates/klipp-system/src/settings.rs:433
+#: crates/klipp-system/src/settings.rs:428
 msgid "Språk"
 msgstr "Language"
 
-#: crates/klipp-system/src/settings.rs:465
+#: crates/klipp-system/src/settings.rs:460
 msgid "Klipp-utvidelsen"
 msgstr "Klipp Extension"
 
-#: crates/klipp-system/src/settings.rs:469
+#: crates/klipp-system/src/settings.rs:464
 msgid "Slå på"
 msgstr "Turn On"
 
-#: crates/klipp-system/src/settings.rs:480
+#: crates/klipp-system/src/settings.rs:475
 msgid "GNOME godtok ikke endringen"
 msgstr "GNOME did not accept the change"
 
-#: crates/klipp-system/src/settings.rs:502
+#: crates/klipp-system/src/settings.rs:507
 msgid "Opptaksmåte"
 msgstr "Capture Method"
 
-#: crates/klipp-system/src/settings.rs:511
+#: crates/klipp-system/src/settings.rs:516
 msgid "Blits"
 msgstr "Flash"
 
-#: crates/klipp-system/src/settings.rs:512
+#: crates/klipp-system/src/settings.rs:517
 msgid "Lyser opp området når bildet er tatt"
 msgstr "Lights up the area after capture"
 
-#: crates/klipp-system/src/settings.rs:518
+#: crates/klipp-system/src/settings.rs:523
 msgid "Lukkerlyd"
 msgstr "Shutter Sound"
 
-#: crates/klipp-system/src/settings.rs:519
+#: crates/klipp-system/src/settings.rs:524
 msgid "Spiller GNOMEs lyd når bildet er tatt"
 msgstr "Plays the GNOME shutter sound after capture"
 
-#: crates/klipp-system/src/settings.rs:548
+#: crates/klipp-system/src/settings.rs:553
 msgid "Lagre skjermbilder i"
 msgstr "Save Screenshots In"
 
-#: crates/klipp-system/src/settings.rs:553
+#: crates/klipp-system/src/settings.rs:558
 msgctxt "save-folder-reset"
 msgid "Standard"
 msgstr "Default"
 
-#: crates/klipp-system/src/settings.rs:559
+#: crates/klipp-system/src/settings.rs:564
 msgid "Velg mappe"
 msgstr "Choose Folder"
 
-#: crates/klipp-system/src/settings.rs:579
+#: crates/klipp-system/src/settings.rs:584
 msgid "Velg mappe for skjermbilder"
 msgstr "Choose a Folder for Screenshots"
 
-#: crates/klipp-system/src/settings.rs:580
+#: crates/klipp-system/src/settings.rs:585
 msgctxt "folder-chooser"
 msgid "Velg"
 msgstr "Select"
 
-#: crates/klipp-system/src/settings.rs:598
+#: crates/klipp-system/src/settings.rs:603
 msgid "Klipp kan ikke bruke den mappen"
 msgstr "Klipp cannot use this folder"
 
-#: crates/klipp-system/src/settings.rs:612
+#: crates/klipp-system/src/settings.rs:617
 msgid "Om Klipp"
 msgstr "About Klipp"
 
-#: crates/klipp-system/src/settings.rs:614
+#: crates/klipp-system/src/settings.rs:619
 msgid "Versjon"
 msgstr "Version"
 
-#: crates/klipp-system/src/settings.rs:614
+#: crates/klipp-system/src/settings.rs:619
 msgid "Bygg"
 msgstr "Build"
 
-#: crates/klipp-system/src/settings.rs:626
+#: crates/klipp-system/src/settings.rs:631
 msgid "Endringer fra første til nyeste versjon"
 msgstr "Changes from the first to the latest release"
 
-#: crates/klipp-system/src/settings.rs:646
+#: crates/klipp-system/src/settings.rs:651
 msgid "Navnet på byggeserien denne versjonen hører til"
 msgstr "The name of the build series for this version"
 
-#: crates/klipp-system/src/settings.rs:664
+#: crates/klipp-system/src/settings.rs:669
 msgid "Skjermbilde"
 msgstr "Screenshot"
 
-#: crates/klipp-system/src/settings.rs:675
+#: crates/klipp-system/src/settings.rs:680
 msgid "Ta bildet med en gang"
 msgstr "Capture Immediately"
 
-#: crates/klipp-system/src/settings.rs:676
+#: crates/klipp-system/src/settings.rs:681
 msgid "Bildet tas når du slipper musa, uten bekreftelse"
 msgstr "Takes the screenshot when you release the mouse button"
 
-#: crates/klipp-system/src/settings.rs:682
+#: crates/klipp-system/src/settings.rs:687
 msgid "Kopier automatisk"
 msgstr "Copy Automatically"
 
-#: crates/klipp-system/src/settings.rs:683
+#: crates/klipp-system/src/settings.rs:688
 msgid "Legger hvert nye bilde på utklippstavlen"
 msgstr "Copies each new screenshot to the clipboard"
 
-#: crates/klipp-system/src/settings.rs:713
+#: crates/klipp-system/src/settings.rs:718
 msgid "Hurtigtaster"
 msgstr "Keyboard Shortcuts"
 
-#: crates/klipp-system/src/settings.rs:717
+#: crates/klipp-system/src/settings.rs:722
 msgid "Tilbakestill"
 msgstr "Reset"
 

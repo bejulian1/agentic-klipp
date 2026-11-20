@@ -3,7 +3,17 @@ use std::collections::BTreeSet;
 use std::path::Path;
 use std::process::Command;
 
-const COMPLETE_LANGUAGES: &[Language] = &[Language::En];
+const COMPLETE_LANGUAGES: &[Language] = &[
+    Language::En,
+    Language::Sv,
+    Language::Da,
+    Language::De,
+    Language::Fr,
+    Language::Es,
+    Language::It,
+    Language::PtBr,
+    Language::Nl,
+];
 const TEMPLATE: &str = include_str!("../../../../po/klipp.pot");
 
 #[test]
