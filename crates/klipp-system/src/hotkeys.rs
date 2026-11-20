@@ -4,6 +4,7 @@
 //! form som prototypen. GTK og portalen får den oversatt med [`accel_for`].
 
 use crate::config::{Config, Mode};
+use crate::i18n::{tr, tr_fmt, trc};
 use gtk::gdk;
 use gtk::glib::translate::FromGlib;
 
@@ -40,12 +41,12 @@ impl Action {
 
     pub fn label(self) -> &'static str {
         match self {
-            Action::Capture => "Ta skjermbilde",
-            Action::ModeArea => "Område",
-            Action::ModeFreehand => "Frihånd",
-            Action::ModeWindow => "Vindu",
-            Action::ModeScreen => "Hele skjermen",
-            Action::ToggleShelf => "Vis/skjul hylla",
+            Action::Capture => tr("Ta skjermbilde"),
+            Action::ModeArea => trc("capture-mode", "Område"),
+            Action::ModeFreehand => trc("capture-mode", "Frihånd"),
+            Action::ModeWindow => trc("capture-mode", "Vindu"),
+            Action::ModeScreen => tr("Hele skjermen"),
+            Action::ToggleShelf => tr("Vis/skjul hylla"),
         }
     }
 
@@ -291,10 +292,11 @@ pub enum BindError {
 impl BindError {
     pub fn message(&self) -> String {
         match self {
-            BindError::Reserved(c) => format!("«{c}» er reservert av Klipp"),
-            BindError::InUse { combo, by } => {
-                format!("«{combo}» brukes allerede av {}", by.label())
-            }
+            BindError::Reserved(c) => tr_fmt("«{key}» er reservert av Klipp", &[("key", c)]),
+            BindError::InUse { combo, by } => tr_fmt(
+                "«{key}» brukes allerede av {action}",
+                &[("key", combo), ("action", by.label())],
+            ),
         }
     }
 }

@@ -19,6 +19,7 @@
 //!   sin. Ny binding melder da suksess, men tasten fyrer ikke før ny innlogging.
 //!   Dør begge, virker den automatiske nye bindingen.
 
+use crate::i18n::{tr, tr_fmt};
 use ashpd::desktop::global_shortcuts::{
     BindShortcutsOptions, GlobalShortcuts, NewShortcut, Shortcut,
 };
@@ -35,7 +36,6 @@ use crate::config::Config;
 use crate::hotkeys::{Action, Mods, combo_text, key_label, same_combo};
 
 const PORTAL: &str = "org.freedesktop.portal.Desktop";
-const DESCRIPTION: &str = "Ta skjermbilde";
 
 /// Status for global hurtigtast, vist i innstillingene.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -56,13 +56,16 @@ pub(crate) enum Phase {
 impl Phase {
     pub(crate) fn text(&self) -> String {
         match self {
-            Phase::NotStarted => "Ikke aktiv: global hurtigtast er ikke startet".to_string(),
-            Phase::Connecting => "GNOME bekrefter hurtigtasten selv. Svar i dialogen".to_string(),
-            Phase::Active { trigger } if trigger.is_empty() => {
-                "Aktiv via GlobalShortcuts-portalen".to_string()
+            Phase::NotStarted => tr("Ikke aktiv: global hurtigtast er ikke startet").to_string(),
+            Phase::Connecting => {
+                tr("GNOME bekrefter hurtigtasten selv. Svar i dialogen").to_string()
             }
-            Phase::Active { trigger } => format!("Aktiv: GNOME bruker {trigger}"),
-            Phase::Unavailable(why) => format!("Ikke aktiv: {why}"),
+            Phase::Active { trigger } if trigger.is_empty() => {
+                tr("Aktiv via GlobalShortcuts-portalen").to_string()
+            }
+            Phase::Active { trigger } => tr_fmt("Aktiv: GNOME bruker {key}", &[("key", trigger)]),
+            // Oversettere: {reason} explains why the global shortcut is inactive.
+            Phase::Unavailable(why) => tr_fmt("Ikke aktiv: {reason}", &[("reason", why)]),
         }
     }
 }
@@ -172,7 +175,7 @@ pub fn hotkey_handed_over(combo: Option<&str>) {
         Some(combo) => Phase::Active {
             trigger: combo.to_string(),
         },
-        None => Phase::Unavailable("ingen tast er valgt for Ta skjermbilde".to_string()),
+        None => Phase::Unavailable(tr("ingen tast er valgt for Ta skjermbilde").to_string()),
     };
     set_phase(phase, &|_| {});
 }
@@ -217,7 +220,7 @@ impl Job {
         };
         let (Some(combo), Some(accel)) = (combo, accel) else {
             self.report(Phase::Unavailable(
-                "ingen tast er valgt for Ta skjermbilde".to_string(),
+                tr("ingen tast er valgt for Ta skjermbilde").to_string(),
             ));
             return;
         };
@@ -234,7 +237,7 @@ impl Job {
             }
             Ok(Ended::PortalRestarted) => {
                 self.report(Phase::Unavailable(
-                    "portalen startet på nytt, prøver igjen".to_string(),
+                    tr("portalen startet på nytt, prøver igjen").to_string(),
                 ));
                 glib::timeout_future_seconds(2).await;
                 if self.current() {
@@ -264,21 +267,33 @@ impl Job {
         accel: &str,
         stop: &mut oneshot::Receiver<()>,
     ) -> Result<Ended, String> {
-        let conn = zbus::Connection::session()
-            .await
-            .map_err(|e| format!("får ikke kontakt med D-Bus ({e})"))?;
-        let app_id = AppID::try_from(crate::APP_ID).map_err(|e| format!("ugyldig app-ID ({e})"))?;
+        let conn = zbus::Connection::session().await.map_err(|e| {
+            tr_fmt(
+                "får ikke kontakt med D-Bus ({error})",
+                &[("error", &e.to_string())],
+            )
+        })?;
+        let app_id = AppID::try_from(crate::APP_ID)
+            .map_err(|e| tr_fmt("ugyldig app-ID ({error})", &[("error", &e.to_string())]))?;
         ashpd::register_host_app_with_connection(conn.clone(), app_id)
             .await
             .map_err(|e| explain_register(&e))?;
 
-        let dbus = zbus::fdo::DBusProxy::new(&conn)
-            .await
-            .map_err(|e| format!("får ikke fulgt med på portalen ({e})"))?;
+        let dbus = zbus::fdo::DBusProxy::new(&conn).await.map_err(|e| {
+            tr_fmt(
+                "får ikke fulgt med på portalen ({error})",
+                &[("error", &e.to_string())],
+            )
+        })?;
         let mut owner = dbus
             .receive_name_owner_changed_with_args(&[(0, PORTAL)])
             .await
-            .map_err(|e| format!("får ikke fulgt med på portalen ({e})"))?
+            .map_err(|e| {
+                tr_fmt(
+                    "får ikke fulgt med på portalen ({error})",
+                    &[("error", &e.to_string())],
+                )
+            })?
             .fuse();
 
         let portal = GlobalShortcuts::with_connection(conn.clone())
@@ -304,7 +319,8 @@ impl Job {
         let mut closed = std::pin::pin!(closed);
 
         let id = shortcut_id(accel);
-        let shortcut = NewShortcut::new(id.clone(), DESCRIPTION).preferred_trigger(accel);
+        // Oversettere: GNOME displays this action name in the Global Shortcuts dialog.
+        let shortcut = NewShortcut::new(id.clone(), tr("Ta skjermbilde")).preferred_trigger(accel);
         let shortcuts = [shortcut];
         let bind = async {
             portal
@@ -334,8 +350,9 @@ impl Job {
             Err(e) => return Err(explain_portal(&e)),
         };
         let Some(trigger) = trigger_of(bound.shortcuts(), &id) else {
-            return Err(format!(
-                "GNOME bandt ikke {combo}, sjekk Innstillinger > Tastatur"
+            return Err(tr_fmt(
+                "GNOME bandt ikke {key}, sjekk Innstillinger > Tastatur",
+                &[("key", combo)],
             ));
         };
         self.report(Phase::Active { trigger });
@@ -348,7 +365,7 @@ impl Job {
                 }
                 signal = activated.next() => {
                     let Some(signal) = signal else {
-                        return Err("portalen sluttet å svare".to_string());
+                        return Err(tr("portalen sluttet å svare").to_string());
                     };
                     if signal.shortcut_id() == id {
                         (self.on_activate)();
@@ -362,7 +379,7 @@ impl Job {
                     }
                 }
                 _ = closed.next() => {
-                    return Err("GNOME lukket økten for hurtigtasten".to_string());
+                    return Err(tr("GNOME lukket økten for hurtigtasten").to_string());
                 }
                 _ = owner.next() => return Ok(Ended::PortalRestarted),
             }
@@ -371,7 +388,10 @@ impl Job {
 }
 
 fn refused(combo: &str) -> String {
-    format!("GNOME godtok ikke {combo}. Trykk tasten her på nytt for å bli spurt igjen")
+    tr_fmt(
+        "GNOME godtok ikke {key}. Trykk tasten her på nytt for å bli spurt igjen",
+        &[("key", combo)],
+    )
 }
 
 /// Tasten GNOME faktisk har bundet. GNOME beskriver den med en oversatt setning
@@ -413,25 +433,38 @@ fn explain_register(e: &Error) -> String {
     let text = e.to_string();
     if text.contains("App info not found") {
         eprintln!("klipp: {text}");
-        format!(
-            "Klipp er ikke installert: {}.desktop mangler. Kjør install.sh",
-            crate::APP_ID
+        // Oversettere: {file} is the app’s desktop entry. Keep install.sh unchanged.
+        tr_fmt(
+            "Klipp er ikke installert: {file} mangler. Kjør install.sh",
+            &[("file", &format!("{}.desktop", crate::APP_ID))],
         )
     } else if matches!(e, Error::PortalNotFound(_)) || text.contains("Unknown") {
-        format!("portalen kan ikke registrere vertsapper ({text})")
+        tr_fmt(
+            "portalen kan ikke registrere vertsapper ({error})",
+            &[("error", &text)],
+        )
     } else {
-        format!("portalen godtok ikke Klipp ({text})")
+        tr_fmt("portalen godtok ikke Klipp ({error})", &[("error", &text)])
     }
 }
 
 fn explain_portal(e: &Error) -> String {
     match e {
-        Error::PortalNotFound(_) => "GlobalShortcuts-portalen finnes ikke her".to_string(),
-        Error::RequiresVersion(need, have) => {
-            format!("portalen er for gammel (trenger v{need}, har v{have})")
+        Error::PortalNotFound(_) => tr("GlobalShortcuts-portalen finnes ikke her").to_string(),
+        Error::RequiresVersion(need, have) => tr_fmt(
+            "portalen er for gammel (trenger v{required}, har v{installed})",
+            &[
+                ("required", &need.to_string()),
+                ("installed", &have.to_string()),
+            ],
+        ),
+        Error::Portal(PortalError::NotAllowed(why)) => {
+            tr_fmt("portalen nekter ({reason})", &[("reason", why)])
         }
-        Error::Portal(PortalError::NotAllowed(why)) => format!("portalen nekter ({why})"),
-        other => format!("portalen feilet ({other})"),
+        other => tr_fmt(
+            "portalen feilet ({error})",
+            &[("error", &other.to_string())],
+        ),
     }
 }
 

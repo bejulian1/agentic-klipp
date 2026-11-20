@@ -1,6 +1,7 @@
 //! Shell-utvidelsen som gir opptak uten blits og lukkerlyd. GNOME oppdager nye
 //! utvidelser bare ved innlogging, så en utvidelse kan være slått på uten å kjøre.
 
+use crate::i18n::tr;
 use gtk::{gio, gio::prelude::*, glib};
 use std::path::PathBuf;
 
@@ -29,10 +30,12 @@ impl ExtensionState {
 
     pub(crate) fn text(self) -> &'static str {
         match self {
-            Self::Active => "På: stille opptak er klart, og Alt+K virker alltid",
-            Self::NeedsLogin => "Logg ut og inn én gang for å fullføre",
-            Self::Off => "Av: kreves for stille opptak. Uten den blinker GNOME ved hvert bilde",
-            Self::NotInstalled => "Utvidelsen mangler. Kjør install.sh",
+            // Oversettere: Alt+K is the extension’s fixed shortcut.
+            Self::Active => tr("På: stille opptak er klart, og Alt+K virker alltid"),
+            Self::NeedsLogin => tr("Logg ut og inn én gang for å fullføre"),
+            Self::Off => tr("Av: kreves for stille opptak. Uten den blinker GNOME ved hvert bilde"),
+            // Oversettere: Keep the script filename install.sh unchanged.
+            Self::NotInstalled => tr("Utvidelsen mangler. Kjør install.sh"),
         }
     }
 }

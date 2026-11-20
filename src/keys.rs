@@ -2,6 +2,7 @@
 
 use gtk::gdk;
 use gtk::prelude::*;
+use klipp_system::i18n::tr_fmt;
 use klipp_system::{Action, Config};
 
 /// Handlingene som virker inne i Klipp. Den globale hører ikke hjemme her.
@@ -52,8 +53,13 @@ pub fn label(cfg: &Config, action: Action) -> Option<String> {
     cfg.key(action).map(str::to_string)
 }
 
-pub fn hint(cfg: &Config, action: Action) -> String {
-    label(cfg, action).map_or(String::new(), |l| format!(" ({l})"))
+pub fn hint(cfg: &Config, action: Action, label: &str) -> String {
+    if let Some(key) = cfg.key(action) {
+        // Oversettere: {label} is the action name and {key} is its configured shortcut.
+        tr_fmt("{label} ({key})", &[("label", label), ("key", key)])
+    } else {
+        label.to_owned()
+    }
 }
 
 /// Filtrerer bort tasterepetisjon. GTK skiller ikke repetisjon fra nytt trykk.

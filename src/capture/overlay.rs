@@ -12,6 +12,7 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{cairo, gdk, glib, graphene, gsk};
 use klipp_system::Action;
+use klipp_system::i18n::{tr, tr_fmt, trc};
 use std::cell::{Cell, OnceCell, RefCell};
 use std::rc::{Rc, Weak};
 use std::time::Duration;
@@ -295,15 +296,18 @@ impl Canvas {
         if warn {
             p.hint.add_css_class("warn");
             p.hint
-                .set_label("For lite område. Prøv igjen, eller trykk Esc.");
+                .set_label(tr("For lite område. Prøv igjen, eller trykk Esc."));
         } else {
             p.hint.remove_css_class("warn");
-            p.hint.set_label(&format!("{hint} · Esc lukker"));
+            p.hint.set_label(hint);
         }
         let dragging = phase == Phase::Drag || act;
         p.size.set_visible(dragging && sel.is_some());
         if let Some(s) = sel {
-            let txt = format!("{} × {} px", s.w, s.h);
+            let txt = tr_fmt(
+                "{width} × {height} px",
+                &[("width", &s.w.to_string()), ("height", &s.h.to_string())],
+            );
             p.size.set_label(&txt);
             if s.w < geometry::MIN_SIZE || s.h < geometry::MIN_SIZE {
                 p.size.add_css_class("warn");
@@ -468,7 +472,7 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
     let cfg = session.k.config.borrow();
     let toggles = adw::ToggleGroup::new();
     for m in Mode::ALL {
-        let tip = format!("{}{}", mode_label(m), keys::hint(&cfg, Action::for_mode(m)));
+        let tip = keys::hint(&cfg, Action::for_mode(m), mode_label(m));
         toggles.add(
             adw::Toggle::builder()
                 .name(m.id())
@@ -486,7 +490,7 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
         }
     });
     let close = gtk::Button::builder()
-        .label("Lukk")
+        .label(trc("capture-overlay", "Lukk"))
         .css_classes(["flat"])
         .build();
     let weak = Rc::downgrade(session);
@@ -507,8 +511,8 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
 
     let dims = gtk::Label::builder().css_classes(["klipp-ov-dims"]).build();
     let undo = gtk::Button::builder()
-        .label("Angre")
-        .tooltip_text("Angre (Ctrl+Z)")
+        .label(trc("capture-selection", "Angre"))
+        .tooltip_text(trc("capture-selection", "Angre (Ctrl+Z)"))
         .css_classes(["flat"])
         .build();
     let idx = canvas.index();
@@ -519,8 +523,8 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
         }
     });
     let take = gtk::Button::builder()
-        .label("Ta bilde")
-        .tooltip_text("Ta bilde (Enter)")
+        .label(tr("Ta bilde"))
+        .tooltip_text(tr("Ta bilde (Enter)"))
         .css_classes(["suggested-action"])
         .build();
     let weak = Rc::downgrade(session);
@@ -617,7 +621,7 @@ pub fn open(k: &Rc<Klipp>, frozen: Frozen, mode: Mode) {
     }
     if views.is_empty() {
         super::overlay_cancelled(k);
-        k.ui.toast("Fant ingen skjerm å vise overlegget på");
+        k.ui.toast(tr("Fant ingen skjerm å vise overlegget på"));
         return;
     }
     session.frozen.replace(Some(frozen));

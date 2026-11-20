@@ -10,6 +10,7 @@ use crate::view;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gtk::{cairo, gdk, gio, glib};
+use klipp_system::i18n::{tr, tr_fmt, trc};
 use std::cell::{Cell, OnceCell, RefCell};
 use std::f64::consts::TAU;
 use std::path::{Path, PathBuf};
@@ -111,21 +112,32 @@ mod imp {
             let header = adw::HeaderBar::new();
             header.set_show_start_title_buttons(false);
             header.set_show_end_title_buttons(false);
-            header.set_title_widget(Some(&adw::WindowTitle::new("Annoter", title)));
+            header.set_title_widget(Some(&adw::WindowTitle::new(
+                trc("annotation-title", "Annoter"),
+                title,
+            )));
 
-            let cancel = text_button("Avbryt", "Avbryt (Esc)");
+            let cancel = text_button(trc("annotation-cancel", "Avbryt"), tr("Avbryt (Esc)"));
             cancel.connect_clicked(glib::clone!(
                 #[weak(rename_to = imp)]
                 self,
                 move |_| imp.cancel()
             ));
-            let undo = icon_button("klipp-undo-symbolic", "Angre (Ctrl+Z)", "Angre");
+            let undo = icon_button(
+                "klipp-undo-symbolic",
+                trc("annotation-undo", "Angre (Ctrl+Z)"),
+                trc("annotation-undo", "Angre"),
+            );
             undo.connect_clicked(glib::clone!(
                 #[weak]
                 canvas,
                 move |_| canvas.undo()
             ));
-            let redo = icon_button("klipp-redo-symbolic", "Gjør om (Ctrl+Shift+Z)", "Gjør om");
+            let redo = icon_button(
+                "klipp-redo-symbolic",
+                tr("Gjør om (Ctrl+Shift+Z)"),
+                trc("annotation-redo", "Gjør om"),
+            );
             redo.connect_clicked(glib::clone!(
                 #[weak]
                 canvas,
@@ -135,14 +147,16 @@ mod imp {
             header.pack_start(&undo);
             header.pack_start(&redo);
 
-            let done = text_button("Ferdig", "Ferdig (Ctrl+Enter)");
+            // Oversettere: Saves annotations and closes the editor. Keep the header button short.
+            let done = text_button(trc("annotation-save", "Ferdig"), tr("Ferdig (Ctrl+Enter)"));
             done.add_css_class("suggested-action");
             done.connect_clicked(glib::clone!(
                 #[weak(rename_to = imp)]
                 self,
                 move |_| imp.done()
             ));
-            let copy = text_button("Kopier", "Kopier (Ctrl+C)");
+            // Oversettere: Copies the annotated image. Keep the header button short.
+            let copy = text_button(trc("annotation-copy", "Kopier"), tr("Kopier (Ctrl+C)"));
             copy.connect_clicked(glib::clone!(
                 #[weak(rename_to = imp)]
                 self,
@@ -199,11 +213,18 @@ mod imp {
             let bar = gtk::Box::new(gtk::Orientation::Horizontal, 2);
             bar.set_halign(gtk::Align::Center);
             bar.set_height_request(TOOLBAR_HEIGHT);
-            bar.update_property(&[gtk::accessible::Property::Label("Annoteringsverktøy")]);
+            bar.update_property(&[gtk::accessible::Property::Label(tr("Annoteringsverktøy"))]);
 
             let mut tools = Vec::new();
             for tool in Tool::ALL {
-                let tip = format!("{} ({})", tool.label(), tool.key().to_ascii_uppercase());
+                // Oversettere: {label} is an annotation tool and {key} is its fixed shortcut.
+                let tip = tr_fmt(
+                    "{label} ({key})",
+                    &[
+                        ("label", tool.label()),
+                        ("key", &tool.key().to_ascii_uppercase().to_string()),
+                    ],
+                );
                 let b = gtk::ToggleButton::new();
                 b.set_icon_name(tool.icon());
                 setup_toggle(&b, &tip, tool.label(), canvas);
@@ -233,8 +254,14 @@ mod imp {
                 b.add_css_class("image-button");
                 let color = swatch.color;
                 b.set_child(Some(&swatch_dot(&b, move || Some(color))));
-                let tip = format!("{} ({})", swatch.name, i + 1);
-                setup_toggle(&b, &tip, &format!("Farge: {}", swatch.name), canvas);
+                let label = (swatch.label)();
+                let tip = tr_fmt(
+                    "{label} ({key})",
+                    &[("label", label), ("key", &(i + 1).to_string())],
+                );
+                // Oversettere: Accessible label for a color swatch.
+                let accessible = tr_fmt("Farge: {color}", &[("color", label)]);
+                setup_toggle(&b, &tip, &accessible, canvas);
                 b.set_group(colors.first());
                 b.set_active(i == 0);
                 b.connect_toggled(glib::clone!(
@@ -274,8 +301,12 @@ mod imp {
             b.add_css_class("image-button");
             let custom = self.custom.clone();
             b.set_child(Some(&swatch_dot(&b, move || custom.get())));
-            let tip = format!("Egen farge ({})", COLORS.len() + 1);
-            setup_toggle(&b, &tip, "Egen farge", canvas);
+            // Oversettere: The fixed number key opens the custom color picker.
+            let tip = tr_fmt(
+                "Egen farge ({key})",
+                &[("key", &(COLORS.len() + 1).to_string())],
+            );
+            setup_toggle(&b, &tip, tr("Egen farge"), canvas);
             b.set_group(group);
             b.connect_toggled(glib::clone!(
                 #[weak(rename_to = imp)]
@@ -317,7 +348,7 @@ mod imp {
                 .unwrap_or(COLORS[self.last_color.get()].color);
             let initial = gdk::RGBA::new(start.r as f32, start.g as f32, start.b as f32, 1.0);
             let dialog = gtk::ColorDialog::builder()
-                .title("Egen farge")
+                .title(tr("Egen farge"))
                 .modal(true)
                 .with_alpha(false)
                 .build();
@@ -382,7 +413,7 @@ mod imp {
                 .child(&face)
                 .popover(&popover)
                 .valign(gtk::Align::Center)
-                .tooltip_text("Størrelse (+ / −)")
+                .tooltip_text(tr("Størrelse (+ / −)"))
                 .css_classes(["flat"])
                 .build();
             menu.set_focus_on_click(false);
@@ -392,7 +423,7 @@ mod imp {
                 let line = gtk::Box::new(gtk::Orientation::Horizontal, 0);
                 line.append(&thick_dot(t.dot));
                 let name = gtk::Label::builder()
-                    .label(t.name)
+                    .label((t.label)())
                     .xalign(0.0)
                     .hexpand(true)
                     .build();
@@ -416,9 +447,9 @@ mod imp {
                         if b.is_active() {
                             canvas.set_thick(i);
                             current.queue_draw();
-                            menu.update_property(&[gtk::accessible::Property::Label(&format!(
-                                "Størrelse: {}",
-                                THICK[i].name
+                            menu.update_property(&[gtk::accessible::Property::Label(&tr_fmt(
+                                "Størrelse: {size}",
+                                &[("size", (THICK[i].label)())],
                             ))]);
                             popover.popdown();
                         }
@@ -428,15 +459,15 @@ mod imp {
                 rows.push(b);
             }
             let hint = gtk::Label::builder()
-                .label("+ og − bytter størrelse")
+                .label(tr("+ og − bytter størrelse"))
                 .css_classes(["dim-label", "caption"])
                 .margin_top(6)
                 .margin_bottom(2)
                 .build();
             list.append(&hint);
-            menu.update_property(&[gtk::accessible::Property::Label(&format!(
-                "Størrelse: {}",
-                THICK[DEFAULT_THICK].name
+            menu.update_property(&[gtk::accessible::Property::Label(&tr_fmt(
+                "Størrelse: {size}",
+                &[("size", (THICK[DEFAULT_THICK].label)())],
             ))]);
             // Fokus på den valgte størrelsen, ikke den første, når menyen åpnes.
             popover.connect_show(glib::clone!(
@@ -589,7 +620,7 @@ mod imp {
                     file::save_atomic(&target, &flat.bytes, flat.width, flat.height, flat.alpha)
                 })
                 .await
-                .unwrap_or_else(|_| Err("Kunne ikke lagre bildet".to_string()));
+                .unwrap_or_else(|_| Err(tr("Kunne ikke lagre bildet").to_string()));
                 let Some(window) = window.upgrade() else {
                     return;
                 };
@@ -620,9 +651,9 @@ mod imp {
                 clipboard.is_local()
             };
             self.toast(if copied {
-                "Kopiert!"
+                tr("Kopiert!")
             } else {
-                "Kunne ikke kopiere bildet"
+                tr("Kunne ikke kopiere bildet")
             });
         }
     }
@@ -768,7 +799,7 @@ impl AnnotateWindow {
     ) -> Self {
         let obj: Self = glib::Object::builder()
             .property("application", app)
-            .property("title", "Annoter")
+            .property("title", trc("annotation-title", "Annoter"))
             .build();
         let imp = obj.imp();
         imp.path.set(path.to_path_buf()).ok();
@@ -786,7 +817,7 @@ impl AnnotateWindow {
             .unwrap_or_default();
         let canvas = Canvas::new(image);
         imp.build(canvas.clone(), &name);
-        obj.update_property(&[gtk::accessible::Property::Label("Annoter skjermbilde")]);
+        obj.update_property(&[gtk::accessible::Property::Label(tr("Annoter skjermbilde"))]);
         gtk::prelude::GtkWindowExt::set_focus(&obj, Some(&canvas));
         obj
     }

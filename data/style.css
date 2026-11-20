@@ -1,12 +1,4 @@
 /* Bare det libadwaita ikke gir selv. Farger kommer fra systemet. */
-.klipp-kbd {
-  font-weight: 600;
-  font-size: 12px;
-  padding: 3px 7px;
-  border-radius: 6px;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-}
-
 headerbar.klipp-narrow > windowhandle > box { min-height: 40px; padding: 0 3px 0 5px; }
 headerbar.klipp-narrow button { min-height: 20px; }
 headerbar.klipp-narrow splitbutton > button,

@@ -15,6 +15,7 @@ mod window;
 
 use adw::prelude::*;
 use gtk::{gio, glib};
+use klipp_system::i18n::{tr, trc};
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -61,7 +62,7 @@ pub fn open(app: &adw::Application, path: &Path, on_event: impl Fn(AnnotateEvent
         let source = path.clone();
         let loaded = gio::spawn_blocking(move || file::load(&source))
             .await
-            .unwrap_or_else(|_| Err("Bildet kunne ikke leses".to_string()));
+            .unwrap_or_else(|_| Err(tr("Bildet kunne ikke leses").to_string()));
         OPENING.with_borrow_mut(|o| o.remove(&path));
         match loaded {
             Ok(image) => AnnotateWindow::new(&app, &path, image, on_event).present(),
@@ -85,7 +86,7 @@ fn keep_big_buffers_off_the_heap() {
 fn show_error(app: &adw::Application, error: &str, on_event: impl Fn(AnnotateEvent) + 'static) {
     let page = adw::StatusPage::builder()
         .icon_name("dialog-error-symbolic")
-        .title("Kunne ikke åpne bildet")
+        .title(tr("Kunne ikke åpne bildet"))
         .description(glib::markup_escape_text(error).as_str())
         .build();
     let content = adw::ToolbarView::new();
@@ -93,7 +94,7 @@ fn show_error(app: &adw::Application, error: &str, on_event: impl Fn(AnnotateEve
     content.set_content(Some(&page));
     let window = adw::Window::builder()
         .application(app)
-        .title("Annoter")
+        .title(trc("annotation-title", "Annoter"))
         .default_width(420)
         .default_height(320)
         .content(&content)

@@ -7,6 +7,7 @@ use futures_util::FutureExt;
 use futures_util::future::{LocalBoxFuture, Shared};
 use gtk::glib;
 use klipp_system::APP_ID;
+use klipp_system::i18n::{tr, tr_fmt};
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -64,7 +65,7 @@ pub async fn take(interactive: bool, limit: Option<Duration>) -> Result<Outcome,
     match limit {
         Some(d) => glib::future_with_timeout(d, request(interactive))
             .await
-            .unwrap_or_else(|_| Err("Portalen svarte ikke i tide".to_string())),
+            .unwrap_or_else(|_| Err(tr("Portalen svarte ikke i tide").to_string())),
         None => request(interactive).await,
     }
 }
@@ -76,20 +77,28 @@ async fn request(interactive: bool) -> Result<Outcome, String> {
         .modal(false)
         .send()
         .await
-        .map_err(|e| format!("Portalen svarte ikke: {e}"))?;
+        .map_err(|e| {
+            tr_fmt(
+                "Portalen svarte ikke: {error}",
+                &[("error", &e.to_string())],
+            )
+        })?;
     match req.response() {
         Ok(shot) => {
             let uri = shot.uri().to_string();
             trace(&format!("portal: {uri}"));
             crate::storage::local_path_of_uri(&uri)
                 .map(Outcome::File)
-                .ok_or_else(|| "Portalen ga ikke en lokal fil".to_string())
+                .ok_or_else(|| tr("Portalen ga ikke en lokal fil").to_string())
         }
         Err(ashpd::Error::Response(ResponseError::Cancelled)) => Ok(Outcome::Cancelled),
         Err(ashpd::Error::Response(ResponseError::Other)) => {
             Ok(Outcome::Denied("Portalen avviste skjermbildet".to_string()))
         }
-        Err(e) => Err(format!("Skjermbildet feilet: {e}")),
+        Err(e) => Err(tr_fmt(
+            "Skjermbildet feilet: {error}",
+            &[("error", &e.to_string())],
+        )),
     }
 }
 
@@ -97,6 +106,7 @@ async fn request(interactive: bool) -> Result<Outcome, String> {
 #[cfg(debug_assertions)]
 fn test_source(src: PathBuf) -> Result<Outcome, String> {
     let tmp = std::env::temp_dir().join(format!("klipp-test-portal-{}.png", std::process::id()));
-    std::fs::copy(&src, &tmp).map_err(|e| format!("Testkilde: {e}"))?;
+    std::fs::copy(&src, &tmp)
+        .map_err(|e| tr_fmt("Testkilde: {error}", &[("error", &e.to_string())]))?;
     Ok(Outcome::File(tmp))
 }

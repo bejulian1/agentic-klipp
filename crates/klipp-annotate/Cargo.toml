@@ -11,4 +11,5 @@ adw.workspace = true
 futures-util.workspace = true
 png.workspace = true
 pangocairo = "0.22"
+klipp-system = { path = "../klipp-system" }
 libc = "0.2"

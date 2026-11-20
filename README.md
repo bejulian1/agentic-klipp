@@ -8,8 +8,8 @@ Press **Alt+K** in any app. The screen dims, you drag over what you want, and th
 is captured as soon as you release the mouse — with no flash and no shutter sound. You stay
 right in the app you were working in.
 
-> **Note:** The app's UI is currently in Norwegian (bokmål) only. Translations and i18n
-> contributions are welcome — see [Contributing](#contributing).
+> **Note:** Klipp supports ten UI languages and follows your system language by default.
+> To choose a language, open **Settings → Language**.
 
 The image lands on the shelf, on your clipboard, and as a file in `Klipp/` inside your
 Pictures folder (`~/Pictures/Klipp/`, or `~/Bilder/Klipp/` on a Norwegian system). From

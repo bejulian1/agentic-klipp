@@ -6,6 +6,7 @@ use futures_util::future::{FutureExt, LocalBoxFuture, Shared};
 use gtk::gdk::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
+use klipp_system::i18n::tr;
 use std::cell::OnceCell;
 use std::future::Future;
 use std::pin::Pin;
@@ -45,7 +46,7 @@ mod imp {
                 let Some(encoding) = encoding.filter(|_| is_png) else {
                     return Err(glib::Error::new(
                         gio::IOErrorEnum::NotSupported,
-                        "Ukjent format",
+                        tr("Ukjent format"),
                     ));
                 };
                 stream
@@ -71,7 +72,7 @@ impl PngProvider {
         let encoding = async move {
             worker
                 .await
-                .unwrap_or_else(|_| Err("Bildet kunne ikke kodes som PNG".into()))
+                .unwrap_or_else(|_| Err(tr("Bildet kunne ikke kodes som PNG").into()))
                 .map(glib::Bytes::from_owned)
                 .map_err(|e| glib::Error::new(gio::IOErrorEnum::Failed, &e))
         }

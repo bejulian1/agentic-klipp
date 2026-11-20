@@ -3,6 +3,8 @@
 //! Utvalget ligger alltid i ekte bildepiksler for skjermen det hører til. `f` er
 //! CSS-piksler (GTK-koordinater) per bildepiksel, som i prototypen.
 
+use klipp_system::i18n::{tr, trc};
+
 pub const MIN_SIZE: i32 = 4;
 /// Håndtakets radius i CSS-piksler.
 pub const HANDLE_R: f64 = 5.0;
@@ -37,18 +39,18 @@ pub use klipp_system::Mode;
 
 pub fn mode_label(m: Mode) -> &'static str {
     match m {
-        Mode::Area => "Område",
-        Mode::Freehand => "Frihånd",
-        Mode::Window => "Vindu",
-        Mode::Screen => "Hele skjermen",
+        Mode::Area => trc("capture-mode", "Område"),
+        Mode::Freehand => trc("capture-mode", "Frihånd"),
+        Mode::Window => trc("capture-mode", "Vindu"),
+        Mode::Screen => tr("Hele skjermen"),
     }
 }
 
 pub fn mode_hint(m: Mode) -> &'static str {
     match m {
-        Mode::Area => "Dra for å velge område",
-        Mode::Freehand => "Tegn en lukket form",
-        Mode::Window => "Klikk på et vindu",
+        Mode::Area => tr("Dra for å velge område · Esc lukker"),
+        Mode::Freehand => tr("Tegn en lukket form · Esc lukker"),
+        Mode::Window => tr("Klikk på et vindu · Esc lukker"),
         Mode::Screen => "",
     }
 }

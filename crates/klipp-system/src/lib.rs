@@ -7,6 +7,7 @@ mod config;
 mod extension;
 mod history;
 pub mod hotkeys;
+pub mod i18n;
 mod portal;
 mod settings;
 mod theme;

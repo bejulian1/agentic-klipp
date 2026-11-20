@@ -8,6 +8,7 @@ use crate::{cli, clipboard, trace};
 use adw::prelude::*;
 use gtk::{gdk, gio, glib};
 use klipp_annotate::AnnotateEvent;
+use klipp_system::i18n::{tr, trc, trn};
 use klipp_system::{APP_ID, About, Action, Config, HotkeyStatus, SettingsChange, Tray, TrayEvent};
 use std::cell::{Cell, OnceCell, RefCell};
 use std::path::Path;
@@ -276,11 +277,11 @@ impl Klipp {
         }
         self.save_config();
         let body = if klipp_system::tray_online() {
-            "Åpne den igjen fra ikonet i systemfeltet."
+            tr("Åpne den igjen fra ikonet i systemfeltet.")
         } else {
-            "Kjør klipp for å åpne den igjen."
+            tr("Kjør klipp for å åpne den igjen.")
         };
-        notify("Klipp kjører i bakgrunnen", body);
+        notify(tr("Klipp kjører i bakgrunnen"), body);
     }
 
     pub fn copy_shot(&self, shot: &Shot) {
@@ -289,18 +290,18 @@ impl Klipp {
             return;
         }
         if clipboard::copy_file(m.path) {
-            self.ui.toast("Kopiert!");
+            self.ui.toast(tr("Kopiert!"));
         } else {
-            self.ui.toast("Ikke kopiert. Klipp mangler fokus.");
+            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
         }
     }
 
     pub fn copy_path(&self, shot: &Shot) {
         let m = shot.meta();
         if clipboard::copy_text(&m.path.to_string_lossy()) {
-            self.ui.toast("Filsti kopiert");
+            self.ui.toast(tr("Filsti kopiert"));
         } else {
-            self.ui.toast("Ikke kopiert. Klipp mangler fokus.");
+            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
         }
     }
 
@@ -323,17 +324,17 @@ impl Klipp {
         }
         if paths.is_empty() {
             if unavailable {
-                self.ui.toast("Filene er utilgjengelige");
+                self.ui.toast(tr("Filene er utilgjengelige"));
             } else if !missing.is_empty() {
-                self.ui.toast("Filene finnes ikke lenger");
+                self.ui.toast(tr("Filene finnes ikke lenger"));
             }
             return;
         }
         if clipboard::copy_files(&paths) {
             self.ui
-                .toast(&format!("{} kopiert", count_text(paths.len())));
+                .toast(&trn("{n} bilde kopiert", "{n} bilder kopiert", paths.len()));
         } else {
-            self.ui.toast("Ikke kopiert. Klipp mangler fokus.");
+            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
         }
     }
 
@@ -430,9 +431,9 @@ impl Klipp {
             ShotFile::Deleted => {
                 self.shelf.remove(shot);
                 self.ui.sync_shelf(&self.shelf, &self.config.borrow());
-                self.ui.toast("Filen finnes ikke lenger");
+                self.ui.toast(tr("Filen finnes ikke lenger"));
             }
-            ShotFile::Unavailable => self.ui.toast("Filen er utilgjengelig"),
+            ShotFile::Unavailable => self.ui.toast(tr("Filen er utilgjengelig")),
         }
         false
     }
@@ -454,8 +455,28 @@ impl Klipp {
                     }
                 }
                 SettingsChange::Capture => k.ui.sync_save_dir(&k.config.borrow()),
+                SettingsChange::Restart => k.restart(),
             }
         });
+    }
+
+    fn restart(&self) {
+        let spawned = std::env::current_exe().and_then(|exe| {
+            std::process::Command::new(exe)
+                .arg("--after-pid")
+                .arg(std::process::id().to_string())
+                .spawn()
+        });
+        match spawned {
+            Ok(_) => self.app.quit(),
+            Err(error) => {
+                eprintln!("klipp: kunne ikke starte på nytt: {error}");
+                let dialog =
+                    adw::AlertDialog::new(Some(tr("Kunne ikke starte Klipp på nytt")), None);
+                dialog.add_response("close", trc("error-dialog", "Lukk"));
+                dialog.present(self.app.active_window().as_ref());
+            }
+        }
     }
 
     pub fn set_mode(&self, mode: Mode) {
@@ -486,24 +507,25 @@ impl Klipp {
         let saved = self.shelf.take_all();
         self.ui.sync_shelf(&self.shelf, &self.config.borrow());
         let saved = RefCell::new(Some(saved));
-        self.ui
-            .toast_with_action("Tømt. Filene er beholdt.", "Angre", 6, move || {
+        self.ui.toast_with_action(
+            tr("Tømt. Filene er beholdt."),
+            trc("shelf-clear", "Angre"),
+            6,
+            move || {
                 let k = Klipp::get();
                 if let Some(s) = saved.borrow_mut().take() {
                     k.shelf.restore(s);
                     k.ui.sync_shelf(&k.shelf, &k.config.borrow());
                 }
-            });
+            },
+        );
     }
 }
 
 /// «1 bilde», «3 bilder».
 pub fn count_text(n: usize) -> String {
-    if n == 1 {
-        "1 bilde".to_string()
-    } else {
-        format!("{n} bilder")
-    }
+    // Oversettere: Image count at the bottom of the shelf.
+    trn("{n} bilde", "{n} bilder", n)
 }
 
 /// Hvordan det gikk med papirkurven, til én ærlig toast.
@@ -518,20 +540,32 @@ impl TrashTally {
     fn message(&self) -> String {
         // Ett bilde: de korte tekstene fra søppelbøtta på ruta.
         match (self.trashed, self.gone, self.failed) {
-            (1, 0, 0) => return "Lagt i papirkurven".into(),
-            (0, 1, 0) => return "Filen finnes ikke lenger".into(),
-            (0, 0, 1) => return "Kunne ikke legge i papirkurven".into(),
+            (1, 0, 0) => return tr("Lagt i papirkurven").into(),
+            (0, 1, 0) => return tr("Filen finnes ikke lenger").into(),
+            (0, 0, 1) => return tr("Kunne ikke legge i papirkurven").into(),
             _ => {}
         }
         let mut parts = Vec::new();
         if self.trashed > 0 {
-            parts.push(format!("{} lagt i papirkurven", count_text(self.trashed)));
+            parts.push(trn(
+                "{n} bilde lagt i papirkurven",
+                "{n} bilder lagt i papirkurven",
+                self.trashed,
+            ));
         }
         if self.gone > 0 {
-            parts.push(format!("{} fantes ikke lenger", count_text(self.gone)));
+            parts.push(trn(
+                "{n} bilde fantes ikke lenger",
+                "{n} bilder fantes ikke lenger",
+                self.gone,
+            ));
         }
         if self.failed > 0 {
-            parts.push(format!("{} kunne ikke flyttes", count_text(self.failed)));
+            parts.push(trn(
+                "{n} bilde kunne ikke flyttes",
+                "{n} bilder kunne ikke flyttes",
+                self.failed,
+            ));
         }
         parts.join(". ")
     }

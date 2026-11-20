@@ -1,5 +1,6 @@
 //! Operasjonslista for annotering. Ingen piksler redigeres direkte, alt spilles av
 //! på originalen, så angre og gjør om er trivielt.
+use klipp_system::i18n::trc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Tool {
@@ -45,16 +46,16 @@ impl Tool {
     }
     pub fn label(self) -> &'static str {
         match self {
-            Tool::Arrow => "Pil",
-            Tool::Line => "Linje",
-            Tool::Rect => "Rektangel",
-            Tool::Ellipse => "Ellipse",
-            Tool::Free => "Frihånd",
-            Tool::Highlight => "Merkepenn",
-            Tool::Text => "Tekst",
-            Tool::Marker => "Nummerert markør",
-            Tool::Redact => "Sladd",
-            Tool::Eraser => "Viskelær",
+            Tool::Arrow => trc("annotation-tool", "Pil"),
+            Tool::Line => trc("annotation-tool", "Linje"),
+            Tool::Rect => trc("annotation-tool", "Rektangel"),
+            Tool::Ellipse => trc("annotation-tool", "Ellipse"),
+            Tool::Free => trc("annotation-tool", "Frihånd"),
+            Tool::Highlight => trc("annotation-tool", "Merkepenn"),
+            Tool::Text => trc("annotation-tool", "Tekst"),
+            Tool::Marker => trc("annotation-tool", "Nummerert markør"),
+            Tool::Redact => trc("annotation-tool", "Sladd"),
+            Tool::Eraser => trc("annotation-tool", "Viskelær"),
         }
     }
     pub fn icon(self) -> &'static str {
@@ -118,47 +119,47 @@ pub const WHITE: Color = rgb(0xffffff);
 pub const BLACK: Color = rgb(0x000000);
 
 pub struct Swatch {
-    pub name: &'static str,
+    pub label: fn() -> &'static str,
     pub color: Color,
 }
 
 pub const COLORS: [Swatch; 8] = [
     Swatch {
-        name: "Rød",
+        label: || trc("annotation-color", "Rød"),
         color: rgb(0xed333b),
     },
     Swatch {
-        name: "Oransje",
+        label: || trc("annotation-color", "Oransje"),
         color: rgb(0xff7800),
     },
     Swatch {
-        name: "Gul",
+        label: || trc("annotation-color", "Gul"),
         color: rgb(0xf6d32d),
     },
     Swatch {
-        name: "Grønn",
+        label: || trc("annotation-color", "Grønn"),
         color: rgb(0x33d17a),
     },
     Swatch {
-        name: "Blå",
+        label: || trc("annotation-color", "Blå"),
         color: rgb(0x62a0ea),
     },
     Swatch {
-        name: "Lilla",
+        label: || trc("annotation-color", "Lilla"),
         color: rgb(0xc061cb),
     },
     Swatch {
-        name: "Hvit",
+        label: || trc("annotation-color", "Hvit"),
         color: WHITE,
     },
     Swatch {
-        name: "Svart",
+        label: || trc("annotation-color", "Svart"),
         color: rgb(0x1e1e1e),
     },
 ];
 
 pub struct Thickness {
-    pub name: &'static str,
+    pub label: fn() -> &'static str,
     pub line: f64,
     pub text: f64,
     pub r: f64,
@@ -168,7 +169,7 @@ pub struct Thickness {
 
 pub const THICK: [Thickness; 5] = [
     Thickness {
-        name: "Ekstra tynn",
+        label: || trc("annotation-thickness", "Ekstra tynn"),
         line: 2.0,
         text: 13.0,
         r: 9.0,
@@ -176,7 +177,7 @@ pub const THICK: [Thickness; 5] = [
         dot: 3.0,
     },
     Thickness {
-        name: "Tynn",
+        label: || trc("annotation-thickness", "Tynn"),
         line: 3.0,
         text: 16.0,
         r: 11.0,
@@ -184,7 +185,7 @@ pub const THICK: [Thickness; 5] = [
         dot: 5.0,
     },
     Thickness {
-        name: "Middels",
+        label: || trc("annotation-thickness", "Middels"),
         line: 5.0,
         text: 22.0,
         r: 14.0,
@@ -192,7 +193,7 @@ pub const THICK: [Thickness; 5] = [
         dot: 7.0,
     },
     Thickness {
-        name: "Tykk",
+        label: || trc("annotation-thickness", "Tykk"),
         line: 8.0,
         text: 30.0,
         r: 18.0,
@@ -200,7 +201,7 @@ pub const THICK: [Thickness; 5] = [
         dot: 10.0,
     },
     Thickness {
-        name: "Ekstra tykk",
+        label: || trc("annotation-thickness", "Ekstra tykk"),
         line: 12.0,
         text: 40.0,
         r: 24.0,
