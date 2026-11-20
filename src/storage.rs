@@ -1,12 +1,15 @@
 //! Filer: bildemappen, filnavn, tilstandsfila for hylla og thumbnail-cachen.
 
 use crate::imaging::{self, Image};
+use futures_channel::oneshot;
 use gtk::{gio, glib};
 use std::fs::{self, File, OpenOptions};
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc;
+use std::thread::{self, JoinHandle};
 
 /// Skriv via en midlertidig fil, så en krasj aldri etterlater en halv fil.
 pub fn write_atomic(path: &Path, data: &[u8]) -> io::Result<()> {
@@ -179,20 +182,125 @@ pub fn shelf_path() -> PathBuf {
     state_dir().join("shelf.tsv")
 }
 
-/// Les hylla. Filer som er borte fjernes fra lista.
-pub fn load_shelf(path: &Path) -> Vec<ShotMeta> {
-    let text = fs::read_to_string(path).unwrap_or_default();
-    parse_shelf(&text)
-        .into_iter()
-        .filter(|m| m.path.is_file())
-        .collect()
+pub enum ShotFile {
+    Available,
+    Deleted,
+    Unavailable,
 }
 
-pub fn save_shelf(path: &Path, shots: &[ShotMeta]) -> io::Result<()> {
+pub fn shot_file(path: &Path) -> ShotFile {
+    match path.metadata() {
+        Ok(meta) if meta.is_file() => ShotFile::Available,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {
+            let parent = path.parent().filter(|p| !p.as_os_str().is_empty());
+            // Behold oppføringen når mappa eller lenkemålet er utilgjengelig.
+            if parent.unwrap_or(Path::new(".")).is_dir()
+                && path
+                    .symlink_metadata()
+                    .is_err_and(|e| e.kind() == io::ErrorKind::NotFound)
+            {
+                ShotFile::Deleted
+            } else {
+                ShotFile::Unavailable
+            }
+        }
+        _ => ShotFile::Unavailable,
+    }
+}
+
+/// Les hylla og behold oppføringer fra mapper som kan bli tilgjengelige igjen.
+fn load_shelf(path: &Path) -> io::Result<Vec<ShotMeta>> {
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(e),
+    };
+    Ok(parse_shelf(&text)
+        .into_iter()
+        .filter(|m| !matches!(shot_file(&m.path), ShotFile::Deleted))
+        .collect())
+}
+
+fn save_shelf(path: &Path, shots: &[ShotMeta]) -> io::Result<()> {
     if let Some(dir) = path.parent() {
         fs::create_dir_all(dir)?;
     }
     write_atomic(path, serialize_shelf(shots).as_bytes())
+}
+
+pub enum ShelfSnapshot {
+    /// Endringene som allerede vises mens den gamle historikken lastes.
+    BeforeLoad(Vec<ShotMeta>),
+    Complete(Vec<ShotMeta>),
+}
+
+/// Én tråd leser historikken og skriver alle senere endringer i samme rekkefølge.
+pub struct ShelfStorage {
+    snapshots: mpsc::Sender<ShelfSnapshot>,
+    worker: JoinHandle<()>,
+}
+
+impl ShelfStorage {
+    pub fn start(path: PathBuf) -> (Self, oneshot::Receiver<Vec<ShotMeta>>) {
+        Self::start_loading(path, load_shelf)
+    }
+
+    fn start_loading(
+        path: PathBuf,
+        load: impl FnOnce(&Path) -> io::Result<Vec<ShotMeta>> + Send + 'static,
+    ) -> (Self, oneshot::Receiver<Vec<ShotMeta>>) {
+        let (loaded, history) = oneshot::channel();
+        let (snapshots, pending) = mpsc::channel();
+        let worker = thread::spawn(move || {
+            let mut initial = match load(&path) {
+                Ok(shots) => shots,
+                Err(e) => {
+                    eprintln!("klipp: kunne ikke lese hylla: {e}");
+                    return;
+                }
+            };
+            let _ = loaded.send(initial.clone());
+            let mut retry = None;
+            while let Ok(first) = pending.recv() {
+                let snapshot = pending.try_iter().last().unwrap_or(first);
+                let shots = match snapshot {
+                    ShelfSnapshot::BeforeLoad(mut shots) => {
+                        shots.extend_from_slice(&initial);
+                        shots
+                    }
+                    ShelfSnapshot::Complete(shots) => {
+                        initial = Vec::new();
+                        shots
+                    }
+                };
+                retry = match save_shelf(&path, &shots) {
+                    Ok(()) => None,
+                    Err(e) => {
+                        eprintln!("klipp: kunne ikke lagre hylla: {e}");
+                        Some(shots)
+                    }
+                };
+            }
+            // Gi den siste endringen en ny sjanse ved avslutning hvis skrivingen feilet.
+            if let Some(shots) = retry
+                && let Err(e) = save_shelf(&path, &shots)
+            {
+                eprintln!("klipp: kunne ikke lagre hylla ved avslutning: {e}");
+            }
+        });
+        (Self { snapshots, worker }, history)
+    }
+
+    pub fn save(&self, snapshot: ShelfSnapshot) {
+        let _ = self.snapshots.send(snapshot);
+    }
+
+    pub fn finish(self) {
+        drop(self.snapshots);
+        if self.worker.join().is_err() {
+            eprintln!("klipp: lagringstråden for hylla stoppet uventet");
+        }
+    }
 }
 
 fn cache_dir() -> PathBuf {
@@ -292,6 +400,16 @@ pub fn remove_portal_file(path: &Path, own_dir: &Path) -> io::Result<()> {
 mod tests {
     use super::*;
 
+    fn shot(path: PathBuf, ts: i64) -> ShotMeta {
+        ShotMeta {
+            path,
+            ts,
+            w: 1,
+            h: 1,
+            alpha: false,
+        }
+    }
+
     fn tmp(name: &str) -> PathBuf {
         let d = std::env::temp_dir().join(format!("klipp-st-{}-{name}", std::process::id()));
         let _ = fs::remove_dir_all(&d);
@@ -390,10 +508,120 @@ mod tests {
         ];
         let state = d.join("state").join("shelf.tsv");
         save_shelf(&state, &shots).unwrap();
-        let got = load_shelf(&state);
+        let got = load_shelf(&state).unwrap();
         assert_eq!(got.len(), 1);
         assert_eq!(got[0].path, keep);
         let _ = fs::remove_dir_all(d);
+    }
+
+    #[test]
+    fn clear_and_undo_survive_restart() {
+        let dir = tmp("angre");
+        let state = dir.join("shelf.tsv");
+        let original = shot(dir.join("klipp.png"), 1);
+        fs::write(&original.path, b"x").unwrap();
+        save_shelf(&state, std::slice::from_ref(&original)).unwrap();
+
+        let (store, history) = ShelfStorage::start(state.clone());
+        let saved = glib::MainContext::new().block_on(history).unwrap();
+        store.save(ShelfSnapshot::Complete(Vec::new()));
+        store.save(ShelfSnapshot::Complete(saved));
+        store.finish();
+
+        assert_eq!(load_shelf(&state).unwrap(), vec![original]);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn capture_during_startup_is_saved_with_history() {
+        let dir = tmp("forsinket");
+        let state = dir.join("shelf.tsv");
+        let old = shot(dir.join("før.png"), 1);
+        let capture = shot(dir.join("ny.png"), 2);
+        fs::write(&old.path, b"x").unwrap();
+        fs::write(&capture.path, b"x").unwrap();
+        save_shelf(&state, std::slice::from_ref(&old)).unwrap();
+
+        let (resume, delayed) = mpsc::channel();
+        let (store, _history) = ShelfStorage::start_loading(state.clone(), move |path| {
+            delayed.recv().unwrap();
+            load_shelf(path)
+        });
+        store.save(ShelfSnapshot::BeforeLoad(vec![capture.clone()]));
+        assert_eq!(
+            load_shelf(&state).unwrap().as_slice(),
+            std::slice::from_ref(&old)
+        );
+        resume.send(()).unwrap();
+        // Avslutt mens UI-et fortsatt venter på historikken.
+        store.finish();
+
+        assert_eq!(load_shelf(&state).unwrap(), vec![capture, old]);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn disconnected_folder_survives_reload_and_reconnect() {
+        let dir = tmp("frakoblet");
+        let state = dir.join("shelf.tsv");
+        let pictures = dir.join("Bilder");
+        let offline = dir.join("Frakoblet");
+        fs::create_dir(&pictures).unwrap();
+        let remote = shot(pictures.join("klipp.png"), 1);
+        fs::write(&remote.path, b"x").unwrap();
+        save_shelf(&state, std::slice::from_ref(&remote)).unwrap();
+
+        fs::rename(&pictures, &offline).unwrap();
+        assert!(matches!(shot_file(&remote.path), ShotFile::Unavailable));
+        let (store, history) = ShelfStorage::start(state.clone());
+        let mut shown = glib::MainContext::new().block_on(history).unwrap();
+        assert_eq!(shown.as_slice(), std::slice::from_ref(&remote));
+
+        let local = shot(dir.join("ny.png"), 2);
+        fs::write(&local.path, b"x").unwrap();
+        shown.insert(0, local.clone());
+        store.save(ShelfSnapshot::Complete(shown));
+        store.finish();
+
+        fs::rename(&offline, &pictures).unwrap();
+        assert!(matches!(shot_file(&remote.path), ShotFile::Available));
+        assert_eq!(
+            load_shelf(&state).unwrap(),
+            vec![local.clone(), remote.clone()]
+        );
+        fs::remove_file(&remote.path).unwrap();
+        assert!(matches!(shot_file(&remote.path), ShotFile::Deleted));
+        assert_eq!(load_shelf(&state).unwrap(), vec![local]);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn filesystem_errors_do_not_delete_entries() {
+        let dir = tmp("filfeil");
+        let state = dir.join("shelf.tsv");
+        let parent = dir.join("Bilder");
+        fs::write(&parent, b"x").unwrap();
+        let image = shot(parent.join("klipp.png"), 1);
+        save_shelf(&state, std::slice::from_ref(&image)).unwrap();
+
+        assert!(matches!(shot_file(&image.path), ShotFile::Unavailable));
+        assert_eq!(load_shelf(&state).unwrap(), vec![image]);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn failed_history_read_does_not_overwrite_the_state_file() {
+        let dir = tmp("lesefeil");
+        let state = dir.join("shelf.tsv");
+        let invalid_utf8 = [0xff];
+        fs::write(&state, invalid_utf8).unwrap();
+        let (store, _history) = ShelfStorage::start(state.clone());
+        let capture = shot(dir.join("ny.png"), 2);
+        store.save(ShelfSnapshot::BeforeLoad(vec![capture]));
+        store.finish();
+
+        assert_eq!(fs::read(&state).unwrap(), invalid_utf8);
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

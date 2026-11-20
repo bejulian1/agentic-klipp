@@ -28,6 +28,7 @@ path = "src/main.rs"
 gtk.workspace = true
 adw.workspace = true
 ashpd.workspace = true
+futures-channel = { version = "0.3", default-features = false, features = ["std"] }
 png.workspace = true
 libc = "0.2"
 futures-util.workspace = true
