@@ -387,12 +387,7 @@ fn appearance_group(state: &Rc<State>, restart: &adw::Banner) -> adw::Preference
         .valign(gtk::Align::Center)
         .build();
     for theme in Theme::ALL {
-        toggles.add(
-            adw::Toggle::builder()
-                .name(theme.id())
-                .label(theme.label())
-                .build(),
-        );
+        toggles.add(full_toggle(theme.id(), theme.label()));
     }
     toggles.set_active_name(Some(state.config.borrow().theme.id()));
 
@@ -484,6 +479,16 @@ fn extension_row(about: About) -> adw::ActionRow {
     row
 }
 
+/// AdwToggle forkorter teksten sin heller enn å ta plass fra radtittelen, og på
+/// mange språk ble valgene uleselige. Med egen etikett vises alltid hele teksten.
+fn full_toggle(name: &str, label: &str) -> adw::Toggle {
+    adw::Toggle::builder()
+        .name(name)
+        .label(label)
+        .child(&gtk::Label::new(Some(label)))
+        .build()
+}
+
 /// Opptaksmåte, med blits og lyd som bare betyr noe for stille opptak. GNOMEs vei har
 /// dem alltid, så der er bryterne ute av spill.
 fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
@@ -495,7 +500,7 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
         .valign(gtk::Align::Center)
         .build();
     for m in CaptureMethod::ALL {
-        toggles.add(adw::Toggle::builder().name(m.id()).label(m.label()).build());
+        toggles.add(full_toggle(m.id(), m.label()));
     }
     toggles.set_active_name(Some(method.id()));
     let row = adw::ActionRow::builder()
