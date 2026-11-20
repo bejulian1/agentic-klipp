@@ -1,6 +1,6 @@
 # Agentic Klipp
 
-[![Version](https://img.shields.io/badge/version-1.2.1-3584e4)](https://github.com/bejulian1/agentic-klipp/releases/tag/v1.2.1)
+[![Version](https://img.shields.io/badge/version-1.3.0-3584e4)](CHANGELOG.md)
 [Version history](#version-history) · [Download](https://github.com/bejulian1/agentic-klipp/releases/latest) · [Contributors](#contributors)
 
 A screenshot tool for Ubuntu and GNOME, built for handing screenshots to AI coding agents.
@@ -8,8 +8,10 @@ Press **Alt+K** in any app. The screen dims, you drag over what you want, and th
 is captured as soon as you release the mouse — with no flash and no shutter sound. You stay
 right in the app you were working in.
 
-> **Note:** Klipp supports ten UI languages and follows your system language by default.
-> To choose a language, open **Settings → Language**.
+> **Languages:** English, Norsk bokmål, Svenska, Dansk, Deutsch, Français, Español, Italiano,
+> Português (Brasil) and Nederlands. Klipp follows your system language by default (English
+> when it isn't supported). Choose another under **Settings → Appearance → Language** and
+> click **Restart**. The labels below are the English ones.
 
 The image lands on the shelf, on your clipboard, and as a file in `Klipp/` inside your
 Pictures folder (`~/Pictures/Klipp/`, or `~/Bilder/Klipp/` on a Norwegian system). From
@@ -29,15 +31,15 @@ Written in Rust with GTK 4 and libadwaita. The binary is named `klipp`, and the 
 
 Main window with the screenshot shelf:
 
-![Agentic Klipp – main window and screenshot shelf](docs/images/hovedvindu.png)
+![Agentic Klipp – main window and screenshot shelf](docs/images/main-window.png)
 
-Settings with theme and screenshot options:
+Settings with theme, language, and screenshot options:
 
-![Agentic Klipp – top of Settings](docs/images/innstillinger.png)
+![Agentic Klipp – top of Settings](docs/images/settings.png)
 
 Annotation mode with drawing tools, colors, and callouts:
 
-![Agentic Klipp – annotation mode](docs/images/annotering.png)
+![Agentic Klipp – annotation mode](docs/images/annotation.png)
 
 The screenshots are taken from the app with demo images in an isolated profile.
 
@@ -47,6 +49,19 @@ The screenshots are taken from the app with demo images in an isolated profile.
 <summary>Show all versions (in Norwegian, same text as in the app) – newest first</summary>
 
 <!-- BEGIN VERSION HISTORY -->
+
+### 1.3.0 — 2026-11-20
+
+- Klipp finnes nå på ti språk: norsk bokmål, engelsk, svensk, dansk, tysk, fransk, spansk, italiensk, brasiliansk portugisisk og nederlandsk.
+- Nytt språkvalg under Innstillinger → Utseende. Standard er systemspråket, og Klipp bruker engelsk når systemspråket ikke støttes.
+- Knappen Start på nytt tar i bruk det nye språket med en gang.
+- Programnavnet og hurtighandlingene i appoversikten er oversatt.
+- Valgknappene i Innstillinger viser alltid hele teksten.
+- Bildehylla mister ikke lenger historikk ved raske endringer, rett etter oppstart eller når bildemappen er frakoblet. En ødelagt hyllefil tas vare på som shelf.tsv.ugyldig.
+- Frihåndsklipp er helt gjennomsiktige utenfor formen, og Kopier i tegnevinduet virker også etter at du har byttet app.
+- Debian-pakken finner Klipp-utvidelsen, og Alt+K virker etter installasjon fra pakken.
+- Kildekoden er åpen på GitHub med engelsk README, retningslinjer for bidrag og automatisk testing.
+- README viser nye skjermbilder på engelsk.
 
 ### 1.2.1 — 2026-11-14
 
@@ -111,8 +126,8 @@ The script then builds Klipp, installs it under `~/.local`, and launches the app
 build takes a few minutes because the release profile uses LTO. If your machine is low on
 memory, run `CARGO_BUILD_JOBS=2 ./install.sh`.
 
-Finally, once: open **Innstillinger** (Settings) in Klipp, click **Slå på** (Enable) on the
-"Klipp-utvidelsen" (Klipp extension) row, and log out and back in. After that, the flash is
+Finally, once: open **Settings** in Klipp, click **Turn On** on the **Klipp Extension** row,
+and log out and back in. After that, the flash is
 gone and Alt+K works everywhere. See [Shell extension](#shell-extension).
 
 ### Prebuilt release
@@ -120,8 +135,8 @@ gone and Alt+K works everywhere. See [Shell extension](#shell-extension).
 The [latest release](https://github.com/bejulian1/agentic-klipp/releases/latest) includes:
 
 - `klipp`: the standalone Linux binary.
-- `agentic-klipp-1.2.1-linux-x86_64.tar.gz`: complete installation archive with binary, icons, and GNOME extension.
-- `agentic-klipp_1.2.1+20261114.1641_amd64.deb`: Ubuntu package.
+- `agentic-klipp-<version>-linux-x86_64.tar.gz`: complete installation archive with binary, icons, and GNOME extension.
+- `agentic-klipp_<version>+<build>_amd64.deb`: Ubuntu package.
 - `SHA256SUMS`: checksums for the three files.
 
 Easiest way without building: extract the installation archive and run this inside the
@@ -134,13 +149,13 @@ extracted folder:
 Alternatively, install the Ubuntu package with:
 
 ```sh
-sudo apt install ./agentic-klipp_1.2.1+20261114.1641_amd64.deb
+sudo apt install ./agentic-klipp_<version>+<build>_amd64.deb
 ```
 
 Use one installation method at a time. If you previously installed under `~/.local` and
 want to switch to the `.deb`, run `./uninstall.sh` first to remove the user installation.
 The Debian package installs the app under `/usr/bin` and the extension under `/usr/share`.
-Enable the Klipp extension in **Innstillinger** and log out and back in after the first
+Enable the Klipp extension in **Settings** and log out and back in after the first
 installation.
 
 Verify the downloads in the folder containing the files and `SHA256SUMS`:
@@ -194,7 +209,7 @@ because the portal asks GNOME for them and has no option to turn them off. The e
 also grabs the hotkey itself, so Alt+K works in all apps and starts Klipp if it isn't
 running.
 
-Open **Innstillinger** in Klipp and click **Slå på** on the "Klipp-utvidelsen" row. Then
+Open **Settings** in Klipp and click **Turn On** on the **Klipp Extension** row. Then
 log out and back in once. GNOME on Wayland only discovers new extensions at login, so the
 flash remains until you do. The row always shows your current setup status. Whenever you
 update Klipp to a new version of the extension, you also need to log out and back in before
@@ -220,7 +235,7 @@ two questions, once each:
 1. **"Allow Agentic Klipp to Take Screenshots?"** appears the first time you take a
    screenshot, and only when Klipp is the focused app. Click Allow. Without this, Klipp
    cannot capture screenshots.
-2. **"Legg til tastatursnarveier"** (Add Keyboard Shortcuts) is for the global shortcut —
+2. **"Add Keyboard Shortcuts"** is for the global shortcut —
    see below.
 
 ## Usage
@@ -263,9 +278,9 @@ Delete the file to disable autostart.
 | Shift+click | Copies the file path |
 | Drag | Drops the image into a terminal or another app |
 | Trash icon on the image | Moves the file to Trash |
-| Ctrl+click, the **Velg** (Select) button, or Ctrl+A | Select multiple images |
+| Ctrl+click, the **Select** button, or Ctrl+A | Select multiple images |
 | Click or Shift+click while selecting | Selects one image, or a range |
-| **Kopier** (Copy, Ctrl+C) | Copies all selected items as files and paths. A single image is also copied as image data |
+| **Copy** (Ctrl+C) | Copies all selected items as files and paths. A single image is also copied as image data |
 | Trash icon (Delete) while selecting | Moves all selected items to Trash |
 | Drag a selected image | Drags all selected images |
 | Esc or ✕ | Exits selection mode |
@@ -275,8 +290,8 @@ the top hides the window; the system tray icon or running `klipp` brings it back
 
 ## Annotation
 
-Click an image on the shelf to draw on it. **Ferdig** (Done) bakes the annotations into the
-file, and **Kopier** puts the result on the clipboard.
+Click an image on the shelf to draw on it. **Done** bakes the annotations into the
+file, and **Copy** puts the result on the clipboard.
 
 | Tool | Key | Notes |
 | --- | --- | --- |
@@ -299,10 +314,10 @@ and Ctrl+Shift+Z redoes.
 
 ## Capture method
 
-Choose under **Innstillinger > Skjermbilde** (Settings > Screenshot):
+Choose under **Settings > Screenshot > Capture Method**:
 
-- **Stille** (Silent) captures through the extension. It is the fastest option, and you can
-  choose whether to enable **Blits** (Flash) and **Lukkerlyd** (Shutter sound). Both are
+- **Silent** captures through the extension. It is the fastest option, and you can
+  choose whether to enable **Flash** and **Shutter Sound**. Both are
   off by default. They trigger after the screenshot is taken, and the flash only covers the
   selected region. Without the extension, Klipp falls back to GNOME's method.
 - **GNOME** uses GNOME's standard screenshot flow, with a full-screen flash and shutter
@@ -314,41 +329,40 @@ Alt+K works with both options.
 ## Save folder
 
 Screenshots are saved in `Klipp/` inside your Pictures folder (`~/Pictures/Klipp/`, or
-`~/Bilder/Klipp/` on a Norwegian system). Choose a different folder under **Innstillinger >
-Skjermbilde**. The **Standard** (Default) button resets it. Screenshots already taken stay
+`~/Bilder/Klipp/` on a Norwegian system). Choose a different folder under **Settings >
+Screenshot**. The **Default** button resets it. Screenshots already taken stay
 where they are.
 
 ## Global shortcut
 
 The default shortcut is Alt+K. With the extension enabled, no further setup is needed, and
-you can change the key under **Innstillinger > Hurtigtaster** (Settings > Shortcuts).
+you can change the key under **Settings > Keyboard Shortcuts**.
 Without the extension, there are two alternatives. **Pick only one.** Binding the same key
 with both can trigger two screenshots at once.
 
 ### GlobalShortcuts portal
 
 Klipp requests the shortcut from GNOME when the app starts. The first time, GNOME opens a
-dialog titled "Legg til tastatursnarveier" (or "Add Keyboard Shortcuts"). Click **Legg til**
-(Add). GNOME remembers your choice, so subsequent launches are silent.
+dialog titled "Add Keyboard Shortcuts". Click **Add**. GNOME remembers your choice, so subsequent launches are silent.
 
 - The shortcut only works while Klipp is running. Use autostart if you want it available at
   all times.
-- If you change the key under **Innstillinger > Hurtigtaster**, GNOME opens a new dialog to
+- If you change the key under **Settings > Keyboard Shortcuts**, GNOME opens a new dialog to
   confirm the new key.
 - GNOME notes that the shortcut can be changed on the app's page in GNOME Settings. The
-  "Ta skjermbilde" (Take screenshot) row in Klipp always shows the key GNOME is actually
+  **Take Screenshot** row in Klipp always shows the key GNOME is actually
   using.
 - The shortcut works on the regular desktop, but not while the Activities overview is open.
 - If you dismiss the dialog without accepting, Klipp will not prompt again on the next
-  start. Click the "Ta skjermbilde" row and press the key again to be prompted.
+  start. Click the **Take Screenshot** row and press the key again to be prompted.
 
 ### GNOME custom shortcut with `klipp --capture`
 
 Use this if the portal does not work, or if you want the shortcut to work even when Klipp
 is not running.
 
-1. Clear the portal shortcut: open **Innstillinger** in Klipp, click the "Ta skjermbilde"
-   row, and press Backspace. The row will then show "Ingen" (None).
+1. Clear the portal shortcut: open **Settings** in Klipp, click the **Take Screenshot**
+   row, and press Backspace. The row will then show **None**.
 2. Open GNOME Settings > Keyboard > View and Customize Shortcuts > Custom Shortcuts.
 3. Add a shortcut named `Klipp` with the command below, using your own path:
 
@@ -375,17 +389,17 @@ the extension everything else works as usual, except you open Klipp from the app
 
 ## Troubleshooting
 
-Check the "Ta skjermbilde" row under **Innstillinger > Hurtigtaster**. It reports what is
+Check the **Take Screenshot** row under **Settings > Keyboard Shortcuts**. It reports what is
 wrong.
 
 | Status text in the app | Meaning | Fix |
 | --- | --- | --- |
-| `Aktiv: GNOME bruker …` | The portal has bound the key. | Nothing needed. |
-| `GNOME bekrefter hurtigtasten selv. Svar i dialogen` | Klipp is waiting for confirmation. | Respond to the dialog (it may be behind other windows). |
-| `Klipp er ikke installert: … mangler` | The `.desktop` file is missing. | Run `./install.sh`. |
-| `GNOME godtok ikke …` | The dialog was dismissed without accepting the key. | Click the row and press the key again. |
-| `ingen tast er valgt` | The key was cleared with Backspace. | Click the row and pick a key. |
-| `GlobalShortcuts-portalen finnes ikke her` | The desktop lacks the GlobalShortcuts portal. | Enable the shell extension. |
+| `Active: GNOME uses …` | The portal has bound the key. | Nothing needed. |
+| `Confirm the shortcut in the GNOME dialog` | Klipp is waiting for confirmation. | Respond to the dialog (it may be behind other windows). |
+| `Klipp is not installed: … is missing` | The `.desktop` file is missing. | Run `./install.sh`. |
+| `GNOME did not accept …` | The dialog was dismissed without accepting the key. | Click the row and press the key again. |
+| `no shortcut is set for Take Screenshot` | The key was cleared with Backspace. | Click the row and pick a key. |
+| `the GlobalShortcuts portal is unavailable` | The desktop lacks the GlobalShortcuts portal. | Enable the shell extension. |
 
 Other things to check:
 
@@ -443,12 +457,12 @@ cargo clippy --workspace --all-targets
 | `data/` | Icons, CSS, and GResource |
 | `prototype/` | HTML prototype used as the visual reference |
 
-Version **1.2.1**, release build **20261114.1641**. The version is declared in all three
+Version **1.3.0**. The version is declared in all three
 `Cargo.toml` files. The build number is the build timestamp in `Europe/Oslo`, and can be
 pinned for a release with `KLIPP_BUILD_NUMBER=YYYYMMDD.HHMM`. Both are shown under
-**Innstillinger > Om Klipp** (Settings > About Klipp) and via `klipp --version`.
+**Settings > About Klipp** and via `klipp --version`.
 
-Click **Innstillinger > Om Klipp > Versjonslogg** (Version history) to open the changelog
+Click **Settings > About Klipp > Version History** to open the changelog
 in its own window. The changelog is bundled with the app and works offline. It is sourced
 from [CHANGELOG.md](CHANGELOG.md), which is also the changelog on GitHub. The newest
 version is shown at the top and the oldest at the bottom. Version 1.0.0 is referenced in
@@ -458,7 +472,7 @@ the source code, but its original release date was not preserved.
 
 ```sh
 python3 scripts/update-readme-history.py
-KLIPP_BUILD_NUMBER=20261114.1641 cargo build --release --locked
+KLIPP_BUILD_NUMBER=$(TZ=Europe/Oslo date +%Y%m%d.%H%M) cargo build --release --locked
 bash scripts/package-release.sh
 ```
 
