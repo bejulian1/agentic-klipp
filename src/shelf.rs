@@ -3,7 +3,7 @@
 use crate::app::Klipp;
 use crate::clipboard;
 use crate::imaging::Image;
-use crate::storage::{self, ShotMeta};
+use crate::storage::{self, ShelfSnapshot, ShelfStorage, ShotFile, ShotMeta};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, gio, glib, graphene, gsk};
@@ -560,7 +560,8 @@ pub struct Shelf {
     next_id: Cell<u64>,
     fresh: Rc<Cell<u64>>,
     sel: Rc<Selection>,
-    state_path: std::path::PathBuf,
+    storage: RefCell<Option<ShelfStorage>>,
+    loaded: Cell<bool>,
 }
 
 impl Shelf {
@@ -682,7 +683,8 @@ impl Shelf {
             next_id: Cell::new(1),
             fresh,
             sel,
-            state_path: storage::shelf_path(),
+            storage: RefCell::new(None),
+            loaded: Cell::new(false),
         });
         // Bilder som forsvinner, forsvinner også fra utvalget.
         let weak = Rc::downgrade(&shelf);
@@ -826,26 +828,35 @@ impl Shelf {
 
     /// Les hylla fra disk utenfor UI-tråden.
     pub fn load(self: &Rc<Self>, done: impl FnOnce() + 'static) {
+        let (storage, history) = ShelfStorage::start(storage::shelf_path());
+        self.storage.replace(Some(storage));
         let this = self.clone();
-        let path = self.state_path.clone();
         glib::spawn_future_local(async move {
-            let metas = gio::spawn_blocking(move || storage::load_shelf(&path))
-                .await
-                .unwrap_or_default();
-            let shots: Vec<Shot> = metas.into_iter().map(|m| this.make_shot(m)).collect();
-            this.store.splice(this.store.n_items(), 0, &shots);
-            done();
+            if let Ok(metas) = history.await {
+                // Nye opptak kan allerede ligge øverst på hylla.
+                let shots: Vec<Shot> = metas.into_iter().map(|m| this.make_shot(m)).collect();
+                this.store.splice(this.store.n_items(), 0, &shots);
+                this.loaded.set(true);
+                done();
+            }
         });
     }
 
-    pub fn save(&self) {
-        let metas = self.metas();
-        let path = self.state_path.clone();
-        gio::spawn_blocking(move || {
-            if let Err(e) = storage::save_shelf(&path, &metas) {
-                eprintln!("klipp: kunne ikke lagre hylla: {e}");
-            }
-        });
+    fn save(&self) {
+        if let Some(storage) = self.storage.borrow().as_ref() {
+            let snapshot = if self.loaded.get() {
+                ShelfSnapshot::Complete(self.metas())
+            } else {
+                ShelfSnapshot::BeforeLoad(self.metas())
+            };
+            storage.save(snapshot);
+        }
+    }
+
+    pub fn finish_saving(&self) {
+        if let Some(storage) = self.storage.take() {
+            storage.finish();
+        }
     }
 
     /// Nytt skjermbilde øverst, merket i ca. ett sekund, med fokus på ruta.
@@ -956,8 +967,7 @@ impl Shelf {
         }
     }
 
-    /// Flere på én gang, med ett lagringskall. Lagring i tur og orden på andre
-    /// tråder kunne ellers blitt ferdig i feil rekkefølge.
+    /// Flere på én gang, med ett lagringskall.
     pub fn remove_many(&self, shots: &[Shot]) {
         let mut changed = false;
         for shot in shots {
@@ -991,30 +1001,34 @@ impl Shelf {
         self.save();
     }
 
-    /// Fjern filer som er borte, sjekket utenfor UI-tråden.
+    /// Fjern bekreftet slettede filer, sjekket utenfor UI-tråden.
     pub fn prune(self: &Rc<Self>, done: impl FnOnce() + 'static) {
-        let paths: Vec<_> = self.metas().into_iter().map(|m| m.path).collect();
+        let paths: Vec<_> = self
+            .shots()
+            .into_iter()
+            .map(|s| (s.id(), s.meta().path))
+            .collect();
         let this = self.clone();
         glib::spawn_future_local(async move {
             let gone = gio::spawn_blocking(move || {
                 paths
                     .into_iter()
-                    .filter(|p| !p.is_file())
-                    .collect::<Vec<_>>()
+                    .filter_map(|(id, path)| {
+                        matches!(storage::shot_file(&path), ShotFile::Deleted).then_some(id)
+                    })
+                    .collect::<HashSet<_>>()
             })
             .await
             .unwrap_or_default();
-            if gone.is_empty() {
+            let removed: Vec<_> = this
+                .shots()
+                .into_iter()
+                .filter(|s| gone.contains(&s.id()))
+                .collect();
+            if removed.is_empty() {
                 return;
             }
-            for s in this.shots() {
-                if gone.contains(&s.meta().path)
-                    && let Some(pos) = this.store.find(&s)
-                {
-                    this.store.remove(pos);
-                }
-            }
-            this.save();
+            this.remove_many(&removed);
             done();
         });
     }

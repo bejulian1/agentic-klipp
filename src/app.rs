@@ -2,6 +2,7 @@
 
 use crate::capture::{self, geometry::Mode};
 use crate::shelf::{Shelf, Shot};
+use crate::storage::{self, ShotFile};
 use crate::window::MainUi;
 use crate::{cli, clipboard, trace};
 use adw::prelude::*;
@@ -9,6 +10,7 @@ use gtk::{gdk, gio, glib};
 use klipp_annotate::AnnotateEvent;
 use klipp_system::{APP_ID, About, Action, Config, HotkeyStatus, SettingsChange, Tray, TrayEvent};
 use std::cell::{Cell, OnceCell, RefCell};
+use std::path::Path;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
@@ -41,6 +43,13 @@ pub fn build_application() -> adw::Application {
         .resource_base_path("/io/github/AgenticKlipp")
         .build();
     app.connect_startup(Klipp::init);
+    app.connect_shutdown(|_| {
+        KLIPP.with(|k| {
+            if let Some(k) = k.get() {
+                k.shelf.finish_saving();
+            }
+        });
+    });
     app.connect_command_line(|_, line| {
         let args: Vec<String> = line
             .arguments()
@@ -276,10 +285,7 @@ impl Klipp {
 
     pub fn copy_shot(&self, shot: &Shot) {
         let m = shot.meta();
-        if !m.path.is_file() {
-            self.shelf.remove(shot);
-            self.ui.sync_shelf(&self.shelf, &self.config.borrow());
-            self.ui.toast("Filen finnes ikke lenger");
+        if !self.shot_available(shot, &m.path) {
             return;
         }
         if clipboard::copy_file(m.path) {
@@ -300,22 +306,29 @@ impl Klipp {
 
     /// Alle valgte bilder på utklippstavla på én gang, ovenfra og ned.
     pub fn copy_selected(&self) {
-        let (shots, missing): (Vec<Shot>, Vec<Shot>) = self
-            .shelf
-            .selected()
-            .into_iter()
-            .partition(|s| s.meta().path.is_file());
+        let mut paths = Vec::new();
+        let mut missing = Vec::new();
+        let mut unavailable = false;
+        for shot in self.shelf.selected() {
+            let path = shot.meta().path;
+            match storage::shot_file(&path) {
+                ShotFile::Available => paths.push(path),
+                ShotFile::Deleted => missing.push(shot),
+                ShotFile::Unavailable => unavailable = true,
+            }
+        }
         self.shelf.remove_many(&missing);
         if !missing.is_empty() {
             self.ui.sync_shelf(&self.shelf, &self.config.borrow());
         }
-        if shots.is_empty() {
-            if !missing.is_empty() {
+        if paths.is_empty() {
+            if unavailable {
+                self.ui.toast("Filene er utilgjengelige");
+            } else if !missing.is_empty() {
                 self.ui.toast("Filene finnes ikke lenger");
             }
             return;
         }
-        let paths: Vec<_> = shots.iter().map(|s| s.meta().path).collect();
         if clipboard::copy_files(&paths) {
             self.ui
                 .toast(&format!("{} kopiert", count_text(paths.len())));
@@ -346,10 +359,16 @@ impl Klipp {
             let mut tally = TrashTally::default();
             let mut removed = Vec::new();
             for shot in shots {
-                let file = gio::File::for_path(shot.meta().path);
+                let path = shot.meta().path;
+                let file = gio::File::for_path(&path);
                 match file.trash_future(glib::Priority::DEFAULT).await {
                     Ok(()) => tally.trashed += 1,
-                    Err(e) if e.matches(gio::IOErrorEnum::NotFound) => tally.gone += 1,
+                    Err(e)
+                        if e.matches(gio::IOErrorEnum::NotFound)
+                            && matches!(storage::shot_file(&path), ShotFile::Deleted) =>
+                    {
+                        tally.gone += 1;
+                    }
                     Err(e) => {
                         eprintln!("klipp: kunne ikke legge i papirkurven: {e}");
                         tally.failed += 1;
@@ -392,10 +411,7 @@ impl Klipp {
 
     pub fn annotate(&self, shot: &Shot) {
         let m = shot.meta();
-        if !m.path.is_file() {
-            self.shelf.remove(shot);
-            self.ui.sync_shelf(&self.shelf, &self.config.borrow());
-            self.ui.toast("Filen finnes ikke lenger");
+        if !self.shot_available(shot, &m.path) {
             return;
         }
         let path = m.path.clone();
@@ -406,6 +422,19 @@ impl Klipp {
             }
             k.shelf.focus_path(&path);
         });
+    }
+
+    fn shot_available(&self, shot: &Shot, path: &Path) -> bool {
+        match storage::shot_file(path) {
+            ShotFile::Available => return true,
+            ShotFile::Deleted => {
+                self.shelf.remove(shot);
+                self.ui.sync_shelf(&self.shelf, &self.config.borrow());
+                self.ui.toast("Filen finnes ikke lenger");
+            }
+            ShotFile::Unavailable => self.ui.toast("Filen er utilgjengelig"),
+        }
+        false
     }
 
     pub fn open_settings(&self) {
