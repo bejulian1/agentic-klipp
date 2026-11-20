@@ -12,9 +12,11 @@ mod window;
 
 use gtk::glib;
 use gtk::prelude::*;
+use klipp_system::Config;
+use klipp_system::i18n::{self, tr, tr_fmt};
 use std::process::ExitCode;
 use std::sync::OnceLock;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const BUILD: &str = env!("KLIPP_BUILD");
@@ -50,23 +52,50 @@ fn choose_renderer() {
     }
 }
 
+fn wait_for_exit(pid: i32) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        // SAFETY: A positive PID and signal 0 only check whether the process exists.
+        if unsafe { libc::kill(pid, 0) } == -1
+            && std::io::Error::last_os_error().raw_os_error() == Some(libc::ESRCH)
+        {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    }
+}
+
 fn main() -> ExitCode {
     trace("start");
+    i18n::init(Config::load().language);
     let command = match cli::parse(std::env::args().skip(1)) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("klipp: {e}\n\n{}", cli::HELP);
+            eprintln!("klipp: {e}\n\n{}", cli::help());
             return ExitCode::from(2);
         }
     };
     match command {
         cli::Command::Version => {
-            println!("klipp {VERSION} (bygg {BUILD})");
+            // Oversettere: {version} is the app version and {build} is the build identifier.
+            let version = tr_fmt(
+                "klipp {version} (bygg {build})",
+                &[("version", VERSION), ("build", BUILD)],
+            );
+            println!("{version}");
             return ExitCode::SUCCESS;
         }
         cli::Command::Help => {
-            print!("{}", cli::HELP);
+            print!("{}", cli::help());
             return ExitCode::SUCCESS;
+        }
+        cli::Command::RestartAfter(pid) if !wait_for_exit(pid) => {
+            let error = tr("Klipp avsluttet ikke i tide");
+            eprintln!("klipp: {error}");
+            return ExitCode::FAILURE;
         }
         _ => {}
     }
@@ -78,7 +107,10 @@ fn main() -> ExitCode {
     gtk::gio::resources_register_include!("klipp.gresource").expect("innebygde ressurser");
 
     let app = app::build_application();
-    let argv: Vec<String> = std::env::args().collect();
+    let mut argv: Vec<String> = std::env::args().collect();
+    if matches!(command, cli::Command::RestartAfter(_)) {
+        argv.truncate(1);
+    }
     let code = app.run_with_args(&argv);
     ExitCode::from(code.get().clamp(0, 255) as u8)
 }

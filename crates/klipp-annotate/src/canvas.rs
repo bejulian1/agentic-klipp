@@ -15,6 +15,7 @@ use crate::view::{Stage, View};
 use adw::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, glib, graphene, gsk};
+use klipp_system::i18n::tr;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::OnceLock;
@@ -137,7 +138,7 @@ mod imp {
             obj.set_vexpand(true);
             obj.set_overflow(gtk::Overflow::Hidden);
             obj.add_css_class("view");
-            obj.update_property(&[gtk::accessible::Property::Label("Annoter skjermbilde")]);
+            obj.update_property(&[gtk::accessible::Property::Label(tr("Annoter skjermbilde"))]);
             self.setup_input();
         }
 
@@ -728,7 +729,7 @@ mod imp {
             view.set_css_classes(&["klipp-text", &self.text_class]);
             view.set_wrap_mode(gtk::WrapMode::None);
             view.set_accepts_tab(false);
-            view.update_property(&[gtk::accessible::Property::Label("Tekst i bildet")]);
+            view.update_property(&[gtk::accessible::Property::Label(tr("Tekst i bildet"))]);
             view.set_parent(&*obj);
 
             view.buffer().connect_changed(glib::clone!(

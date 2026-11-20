@@ -6,6 +6,7 @@
 //! ingenting. Etter første start tar ksni selv hånd om at watcheren forsvinner
 //! og kommer tilbake.
 
+use crate::i18n::tr;
 use ksni::{MenuItem, OfflineReason, TrayMethods, menu::StandardItem};
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -84,15 +85,15 @@ impl ksni::Tray for KlippTray {
 
     fn menu(&self) -> Vec<MenuItem<Self>> {
         let toggle = if self.window_visible {
-            "Skjul Klipp"
+            tr("Skjul Klipp")
         } else {
-            "Vis Klipp"
+            tr("Vis Klipp")
         };
         vec![
-            item("Ta skjermbilde", TrayEvent::Capture),
+            item(tr("Ta skjermbilde"), TrayEvent::Capture),
             item(toggle, TrayEvent::ToggleWindow),
             MenuItem::Separator,
-            item("Avslutt", TrayEvent::Quit),
+            item(tr("Avslutt"), TrayEvent::Quit),
         ]
     }
 

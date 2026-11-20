@@ -1,8 +1,11 @@
 //! Kommandolinja. Ren parsing, slik at `--help` og `--version` aldri rører GTK.
 
 use crate::capture::geometry::Mode;
+use klipp_system::i18n::{tr, tr_fmt};
 
-pub const HELP: &str = "\
+pub fn help() -> &'static str {
+    // Oversettere: Keep the command name, flags and mode values unchanged.
+    tr("\
 Agentic Klipp: skjermbilder til AI-kodeagenter
 
 Bruk:
@@ -13,11 +16,13 @@ Bruk:
   klipp --quit           Avslutt appen
   klipp --version        Vis versjonen
   klipp --help           Vis denne hjelpen
-";
+")
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Command {
     Show,
+    RestartAfter(i32),
     Capture(Option<Mode>),
     Hidden,
     Quit,
@@ -42,6 +47,7 @@ where
 {
     let (mut capture, mut hidden) = (false, false);
     let mut mode = None;
+    let mut after_pid = None;
     let mut it = args.into_iter();
     while let Some(arg) = it.next() {
         let arg = arg.as_ref();
@@ -51,35 +57,63 @@ where
             "--quit" => return Ok(Command::Quit),
             "--capture" => capture = true,
             "--hidden" => hidden = true,
+            "--after-pid" => {
+                let pid = it
+                    .next()
+                    .and_then(|arg| arg.as_ref().parse::<i32>().ok())
+                    .filter(|&pid| pid > 0)
+                    .ok_or_else(|| {
+                        tr_fmt(
+                            "{flag} trenger en gyldig prosess-ID",
+                            &[("flag", "--after-pid")],
+                        )
+                    })?;
+                after_pid = Some(pid);
+            }
             "--mode" => {
-                let v = it.next().ok_or("--mode trenger en verdi")?;
+                let v = it
+                    .next()
+                    .ok_or_else(|| tr_fmt("{flag} trenger en verdi", &[("flag", "--mode")]))?;
                 mode = Some(parse_mode(v.as_ref())?);
             }
             other => {
                 if let Some(v) = other.strip_prefix("--mode=") {
                     mode = Some(parse_mode(v)?);
                 } else {
-                    return Err(format!("Ukjent argument: {other}"));
+                    return Err(tr_fmt("Ukjent argument: {arg}", &[("arg", other)]));
                 }
             }
         }
     }
     if mode.is_some() && !capture {
-        return Err("--mode kan bare brukes sammen med --capture".to_string());
+        // Oversettere: {mode} and {capture} are the literal flags --mode and --capture.
+        return Err(tr_fmt(
+            "{mode} kan bare brukes sammen med {capture}",
+            &[("mode", "--mode"), ("capture", "--capture")],
+        ));
     }
     if capture && hidden {
-        return Err("--capture og --hidden kan ikke brukes sammen".to_string());
+        // Oversettere: {capture} and {hidden} are the literal flags --capture and --hidden.
+        return Err(tr_fmt(
+            "{capture} og {hidden} kan ikke brukes sammen",
+            &[("capture", "--capture"), ("hidden", "--hidden")],
+        ));
     }
     Ok(match (capture, hidden) {
         (true, _) => Command::Capture(mode),
         (_, true) => Command::Hidden,
-        _ => Command::Show,
+        _ => after_pid.map_or(Command::Show, Command::RestartAfter),
     })
 }
 
 fn parse_mode(v: &str) -> Result<Mode, String> {
-    mode_arg(v)
-        .ok_or_else(|| format!("Ukjent modus: {v}. Bruk omrade, frihand, vindu eller skjerm"))
+    mode_arg(v).ok_or_else(|| {
+        // Oversettere: omrade, frihand, vindu and skjerm are literal CLI values.
+        tr_fmt(
+            "Ukjent modus: {mode}. Bruk omrade, frihand, vindu eller skjerm",
+            &[("mode", v)],
+        )
+    })
 }
 
 #[cfg(test)]
@@ -130,6 +164,16 @@ mod tests {
     #[test]
     fn quit_flag() {
         assert_eq!(p(&["--quit"]), Ok(Command::Quit));
+    }
+
+    #[test]
+    fn restart_pid_is_validated_and_hidden() {
+        assert_eq!(p(&["--after-pid", "123"]), Ok(Command::RestartAfter(123)));
+        for arg in ["0", "-1", "foo", "2147483648"] {
+            assert!(p(&["--after-pid", arg]).is_err());
+        }
+        assert!(p(&["--after-pid"]).is_err());
+        assert!(!help().contains("--after-pid"));
     }
 
     #[test]

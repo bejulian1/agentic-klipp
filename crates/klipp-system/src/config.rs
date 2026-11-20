@@ -2,6 +2,7 @@
 //! at en manglende eller ødelagt fil aldri kan stoppe appen.
 
 use crate::hotkeys::{self, Action};
+use crate::i18n::{Language, tr, trc};
 use gtk::glib;
 use std::fs;
 use std::io::{self, Write};
@@ -64,15 +65,15 @@ impl CaptureMethod {
 
     pub fn label(self) -> &'static str {
         match self {
-            CaptureMethod::Silent => "Stille",
+            CaptureMethod::Silent => tr("Stille"),
             CaptureMethod::Gnome => "GNOME",
         }
     }
 
     pub fn hint(self) -> &'static str {
         match self {
-            CaptureMethod::Silent => "Raskest. Du velger selv blits og lyd under",
-            CaptureMethod::Gnome => "GNOMEs vanlige vei, alltid med blits og lukkerlyd",
+            CaptureMethod::Silent => tr("Raskest. Du velger selv blits og lyd under"),
+            CaptureMethod::Gnome => tr("GNOMEs vanlige vei, alltid med blits og lukkerlyd"),
         }
     }
 }
@@ -102,9 +103,9 @@ impl Theme {
 
     pub fn label(self) -> &'static str {
         match self {
-            Theme::System => "System",
-            Theme::Light => "Lys",
-            Theme::Dark => "Mørk",
+            Theme::System => trc("theme", "System"),
+            Theme::Light => trc("theme", "Lys"),
+            Theme::Dark => trc("theme", "Mørk"),
         }
     }
 }
@@ -126,6 +127,7 @@ pub fn pretty_dir(dir: &Path) -> String {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
     pub theme: Theme,
+    pub language: Language,
     pub instant_capture: bool,
     pub auto_copy: bool,
     pub capture_method: CaptureMethod,
@@ -149,6 +151,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             theme: Theme::System,
+            language: Language::System,
             instant_capture: true,
             auto_copy: true,
             capture_method: CaptureMethod::Silent,
@@ -249,6 +252,11 @@ impl Config {
                         c.theme = t;
                     }
                 }
+                "language" => {
+                    if let Some(language) = Language::from_id(v) {
+                        c.language = language;
+                    }
+                }
                 "compact" => parse_bool(v, &mut c.compact),
                 "instant" => parse_bool(v, &mut c.instant_capture),
                 "autocopy" => parse_bool(v, &mut c.auto_copy),
@@ -302,10 +310,11 @@ impl Config {
 
     pub fn serialize(&self) -> String {
         let mut s = format!(
-            "schema={SCHEMA}\nmode={}\ncompact={}\ntheme={}\ninstant={}\nautocopy={}\ncapture_method={}\nflash={}\nsound={}\nclose_hint_shown={}\n",
+            "schema={SCHEMA}\nmode={}\ncompact={}\ntheme={}\nlanguage={}\ninstant={}\nautocopy={}\ncapture_method={}\nflash={}\nsound={}\nclose_hint_shown={}\n",
             self.last_mode.id(),
             self.compact,
             self.theme.id(),
+            self.language.id(),
             self.instant_capture,
             self.auto_copy,
             self.capture_method.id(),
@@ -358,6 +367,19 @@ mod tests {
 
     fn temp_dir(name: &str) -> PathBuf {
         std::env::temp_dir().join(format!("klipp-cfg-{name}-{}", std::process::id()))
+    }
+
+    #[test]
+    fn language_round_trips_and_defaults_to_system() {
+        for language in Language::ALL {
+            let config = Config {
+                language,
+                ..Config::default()
+            };
+            assert_eq!(Config::parse(&config.serialize()), config);
+        }
+        assert_eq!(Config::parse("").language, Language::System);
+        assert_eq!(Config::parse("language=xx").language, Language::System);
     }
 
     #[test]

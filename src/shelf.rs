@@ -7,15 +7,13 @@ use crate::storage::{self, ShelfSnapshot, ShelfStorage, ShotFile, ShotMeta};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, gio, glib, graphene, gsk};
+use klipp_system::i18n::{tr, tr_fmt};
 use std::cell::{Cell, RefCell};
 use std::collections::{HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::time::Duration;
 
-const TILE_TIP: &str = "Klikk for å tegne\nCtrl+klikk velger flere\nShift+høyreklikk kopierer bildet\nShift+klikk kopierer filstien\nDra til terminalen";
-const SELECT_TIP: &str =
-    "Klikk for å velge\nShift+klikk velger alle imellom\nDra de valgte til terminalen";
 const MAX_TILE_H: f32 = 300.0;
 /// Samme radius som `klipp-tile` i style.css.
 const TILE_RADIUS: f32 = 9.0;
@@ -103,9 +101,17 @@ fn time_text(
     if day == today {
         t
     } else if next_day == Some(today) {
-        format!("i går {t}")
+        tr_fmt("i går {time}", &[("time", &t)])
     } else {
-        format!("{:02}.{:02}. {t}", dm.0, dm.1)
+        // Oversettere: Day and month are zero-padded numbers, e.g. 03 and 11.
+        tr_fmt(
+            "{day}.{month}. {time}",
+            &[
+                ("day", &format!("{:02}", dm.0)),
+                ("month", &format!("{:02}", dm.1)),
+                ("time", &t),
+            ],
+        )
     }
 }
 
@@ -148,7 +154,7 @@ mod tile_imp {
             *self.osd.borrow_mut() = Some(osd);
             let trash = gtk::Button::builder()
                 .icon_name("user-trash-symbolic")
-                .tooltip_text("Legg i papirkurven")
+                .tooltip_text(tr("Legg i papirkurven"))
                 .halign(gtk::Align::End)
                 .valign(gtk::Align::Start)
                 .css_classes(["klipp-tile-trash"])
@@ -297,10 +303,22 @@ pub fn snapshot_checker(s: &gtk::Snapshot, bw: f32, bh: f32) {
     s.pop();
 }
 
+fn tile_tip(selecting: bool) -> &'static str {
+    if selecting {
+        // Oversettere: Tooltip for a shelf image while selecting multiple screenshots.
+        tr("Klikk for å velge\nShift+klikk velger alle imellom\nDra de valgte til terminalen")
+    } else {
+        // Oversettere: Tooltip for a shelf image. Keep one action per line.
+        tr(
+            "Klikk for å tegne\nCtrl+klikk velger flere\nShift+høyreklikk kopierer bildet\nShift+klikk kopierer filstien\nDra til terminalen",
+        )
+    }
+}
+
 impl Tile {
     fn new() -> Self {
         let t: Self = glib::Object::new();
-        t.set_tooltip_text(Some(TILE_TIP));
+        t.set_tooltip_text(Some(tile_tip(false)));
         t.install_input();
         t
     }
@@ -320,7 +338,10 @@ impl Tile {
         *imp.texture.borrow_mut() = None;
         if let (Some(shot), Some(osd)) = (shot, imp.osd.borrow().as_ref()) {
             let m = shot.meta();
-            osd.set_label(&format!("{} · {}", m.dims(), fmt_time(m.ts)));
+            osd.set_label(&tr_fmt(
+                "{size} · {time}",
+                &[("size", &m.dims()), ("time", &fmt_time(m.ts))],
+            ));
         }
         if fresh {
             self.add_css_class("fresh");
@@ -333,7 +354,7 @@ impl Tile {
     /// Valgmodus og valgt-tilstand, som CSS-klasser. Søppelbøtta viker for haken.
     fn set_selection(&self, selecting: bool, selected: bool) {
         if self.has_css_class("selecting") != selecting {
-            self.set_tooltip_text(Some(if selecting { SELECT_TIP } else { TILE_TIP }));
+            self.set_tooltip_text(Some(tile_tip(selecting)));
             if let Some(trash) = self.imp().trash.borrow().as_ref() {
                 trash.set_can_target(!selecting);
                 trash.set_focusable(!selecting);

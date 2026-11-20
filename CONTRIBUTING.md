@@ -4,7 +4,7 @@ Thanks for your interest in contributing to Agentic Klipp! Contributions of all 
 
 - **Bug reports** — clear reproduction steps help a lot.
 - **Features and fixes** — code improvements, polish, and bug fixes.
-- **Translations / i18n** — the UI is currently Norwegian (bokmål) only; help with internationalization is very welcome.
+- **Translations** — help translate the app into more languages.
 - **Documentation** — clearer guides, troubleshooting tips, and examples.
 
 ## Reporting bugs
@@ -63,9 +63,25 @@ On Wayland, GNOME Shell only reloads extensions at login. After modifying files 
 | `data/` | Icons, CSS, and GResource |
 | `prototype/` | HTML prototype used as the visual reference |
 
-## UI strings, changelog, and versioning
+## Translations
 
-- **UI strings:** The app's UI is currently in Norwegian (bokmål). Please keep new UI strings in Norwegian consistent with existing phrasing — or write them in English and note it in your PR so the maintainer can translate and adjust them.
+Norwegian Bokmål strings in Rust are the source messages. Use the functions in
+`klipp_system::i18n` for UI strings and add `// Oversettere:` comments where
+translators need context. Run `python3 -I scripts/update-po.py` to regenerate
+`po/klipp.pot` and merge changes into the language catalogs.
+
+Edit `po/<language>.po` in a text editor or Poedit. Keep the same named
+placeholders, such as `{name}` and `{n}`, in each translation and its source
+form. You can move them within the sentence. Blank entries fall back to English.
+
+To add a language, add its code and endonym to `Language` in
+`crates/klipp-system/src/i18n.rs`, configure locale matching and plural rules,
+then create and embed `po/<language>.po`. Add the corresponding PO header rule
+in `scripts/update-po.py` and run the script again. Once the catalog is complete,
+add the language to `COMPLETE_LANGUAGES` in the i18n tests.
+
+## Changelog and versioning
+
 - **Changelog:** For user-visible changes, add an entry to [CHANGELOG.md](CHANGELOG.md) (in Norwegian, or in English for the maintainer to translate) and update the embedded section in `README.md` by running:
   ```sh
   python3 scripts/update-readme-history.py

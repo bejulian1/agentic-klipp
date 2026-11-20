@@ -1,0 +1,1126 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Agentic Klipp\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/app.rs:280
+msgid "Åpne den igjen fra ikonet i systemfeltet."
+msgstr ""
+
+#: src/app.rs:282
+msgid "Kjør klipp for å åpne den igjen."
+msgstr ""
+
+#: src/app.rs:284
+msgid "Klipp kjører i bakgrunnen"
+msgstr ""
+
+#: src/app.rs:293
+#: src/capture/mod.rs:379
+#: src/capture/mod.rs:386
+#: crates/klipp-annotate/src/window.rs:654
+msgid "Kopiert!"
+msgstr ""
+
+#: src/app.rs:295
+#: src/app.rs:304
+#: src/app.rs:337
+msgid "Ikke kopiert. Klipp mangler fokus."
+msgstr ""
+
+#: src/app.rs:302
+msgid "Filsti kopiert"
+msgstr ""
+
+#: src/app.rs:327
+msgid "Filene er utilgjengelige"
+msgstr ""
+
+#: src/app.rs:329
+msgid "Filene finnes ikke lenger"
+msgstr ""
+
+#. Keep these placeholders where they occur: {n}.
+#: src/app.rs:335
+msgid "{n} bilde kopiert"
+msgid_plural "{n} bilder kopiert"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/app.rs:434
+#: src/app.rs:544
+msgid "Filen finnes ikke lenger"
+msgstr ""
+
+#: src/app.rs:436
+msgid "Filen er utilgjengelig"
+msgstr ""
+
+#: src/app.rs:475
+msgid "Kunne ikke starte Klipp på nytt"
+msgstr ""
+
+#: src/app.rs:476
+msgctxt "error-dialog"
+msgid "Lukk"
+msgstr ""
+
+#: src/app.rs:511
+msgid "Tømt. Filene er beholdt."
+msgstr ""
+
+#: src/app.rs:512
+msgctxt "shelf-clear"
+msgid "Angre"
+msgstr ""
+
+#. Image count at the bottom of the shelf.
+#. Keep these placeholders where they occur: {n}.
+#: src/app.rs:528
+msgid "{n} bilde"
+msgid_plural "{n} bilder"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/app.rs:543
+msgid "Lagt i papirkurven"
+msgstr ""
+
+#: src/app.rs:545
+msgid "Kunne ikke legge i papirkurven"
+msgstr ""
+
+#. Keep these placeholders where they occur: {n}.
+#: src/app.rs:550
+msgid "{n} bilde lagt i papirkurven"
+msgid_plural "{n} bilder lagt i papirkurven"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Keep these placeholders where they occur: {n}.
+#: src/app.rs:557
+msgid "{n} bilde fantes ikke lenger"
+msgid_plural "{n} bilder fantes ikke lenger"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Keep these placeholders where they occur: {n}.
+#: src/app.rs:564
+msgid "{n} bilde kunne ikke flyttes"
+msgid_plural "{n} bilder kunne ikke flyttes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/capture/geometry.rs:42
+#: crates/klipp-system/src/hotkeys.rs:45
+msgctxt "capture-mode"
+msgid "Område"
+msgstr ""
+
+#: src/capture/geometry.rs:43
+#: crates/klipp-system/src/hotkeys.rs:46
+msgctxt "capture-mode"
+msgid "Frihånd"
+msgstr ""
+
+#: src/capture/geometry.rs:44
+#: crates/klipp-system/src/hotkeys.rs:47
+msgctxt "capture-mode"
+msgid "Vindu"
+msgstr ""
+
+#: src/capture/geometry.rs:45
+#: crates/klipp-system/src/hotkeys.rs:48
+msgid "Hele skjermen"
+msgstr ""
+
+#: src/capture/geometry.rs:51
+msgid "Dra for å velge område · Esc lukker"
+msgstr ""
+
+#: src/capture/geometry.rs:52
+msgid "Tegn en lukket form · Esc lukker"
+msgstr ""
+
+#: src/capture/geometry.rs:53
+msgid "Klikk på et vindu · Esc lukker"
+msgstr ""
+
+#: src/capture/mod.rs:173
+#: crates/klipp-annotate/src/lib.rs:65
+msgid "Bildet kunne ikke leses"
+msgstr ""
+
+#: src/capture/mod.rs:188
+#: src/capture/mod.rs:194
+msgid "Klipp har ikke tilgang til skjermbilder"
+msgstr ""
+
+#: src/capture/mod.rs:354
+msgid "Bildet kunne ikke lagres"
+msgstr ""
+
+#: src/capture/mod.rs:380
+msgid "Ikke kopiert"
+msgstr ""
+
+#: src/capture/mod.rs:388
+msgid "Lagret, men ikke kopiert. Shift+høyreklikk på bildet."
+msgstr ""
+
+#: src/capture/overlay.rs:299
+msgid "For lite område. Prøv igjen, eller trykk Esc."
+msgstr ""
+
+#. Keep these placeholders where they occur: {height}, {width}.
+#: src/capture/overlay.rs:307
+#: src/storage.rs:108
+msgid "{width} × {height} px"
+msgstr ""
+
+#: src/capture/overlay.rs:493
+msgctxt "capture-overlay"
+msgid "Lukk"
+msgstr ""
+
+#: src/capture/overlay.rs:514
+msgctxt "capture-selection"
+msgid "Angre"
+msgstr ""
+
+#: src/capture/overlay.rs:515
+msgctxt "capture-selection"
+msgid "Angre (Ctrl+Z)"
+msgstr ""
+
+#: src/capture/overlay.rs:526
+msgid "Ta bilde"
+msgstr ""
+
+#: src/capture/overlay.rs:527
+msgid "Ta bilde (Enter)"
+msgstr ""
+
+#: src/capture/overlay.rs:624
+msgid "Fant ingen skjerm å vise overlegget på"
+msgstr ""
+
+#: src/capture/portal.rs:68
+msgid "Portalen svarte ikke i tide"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/capture/portal.rs:81
+msgid "Portalen svarte ikke: {error}"
+msgstr ""
+
+#: src/capture/portal.rs:92
+msgid "Portalen ga ikke en lokal fil"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/capture/portal.rs:98
+msgid "Skjermbildet feilet: {error}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/capture/portal.rs:110
+msgid "Testkilde: {error}"
+msgstr ""
+
+#. Keep the command name, flags and mode values unchanged.
+#: src/cli.rs:8
+msgid ""
+"Agentic Klipp: skjermbilder til AI-kodeagenter\n"
+"\n"
+"Bruk:\n"
+"  klipp                  Vis vinduet (starter appen om den ikke kjører)\n"
+"  klipp --capture        Ta et skjermbilde med sist brukte modus\n"
+"  klipp --capture --mode omrade|frihand|vindu|skjerm\n"
+"  klipp --hidden         Start skjult, for autostart\n"
+"  klipp --quit           Avslutt appen\n"
+"  klipp --version        Vis versjonen\n"
+"  klipp --help           Vis denne hjelpen\n"
+msgstr ""
+
+#. Keep these placeholders where they occur: {flag}.
+#: src/cli.rs:66
+msgid "{flag} trenger en gyldig prosess-ID"
+msgstr ""
+
+#. Keep these placeholders where they occur: {flag}.
+#: src/cli.rs:76
+msgid "{flag} trenger en verdi"
+msgstr ""
+
+#. Keep these placeholders where they occur: {arg}.
+#: src/cli.rs:83
+msgid "Ukjent argument: {arg}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {capture}, {mode}.
+#. {mode} and {capture} are the literal flags --mode and --capture.
+#: src/cli.rs:90
+msgid "{mode} kan bare brukes sammen med {capture}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {capture}, {hidden}.
+#. {capture} and {hidden} are the literal flags --capture and --hidden.
+#: src/cli.rs:97
+msgid "{capture} og {hidden} kan ikke brukes sammen"
+msgstr ""
+
+#. Keep these placeholders where they occur: {mode}.
+#. omrade, frihand, vindu and skjerm are literal CLI values.
+#: src/cli.rs:112
+msgid "Ukjent modus: {mode}. Bruk omrade, frihand, vindu eller skjerm"
+msgstr ""
+
+#: src/clipboard.rs:64
+msgid "ukjent format"
+msgstr ""
+
+#: src/clipboard.rs:70
+msgid "bildet ble ikke lagret"
+msgstr ""
+
+#: src/clipboard.rs:75
+msgid "kunne ikke lese bildet"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/imaging.rs:30
+msgid "Kunne ikke åpne bildet: {error}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/imaging.rs:54
+#: src/imaging.rs:61
+msgid "Ugyldig PNG: {error}"
+msgstr ""
+
+#: src/imaging.rs:57
+msgid "PNG-en er for stor"
+msgstr ""
+
+#. Keep these placeholders where they occur: {format}.
+#: src/imaging.rs:72
+msgid "Ukjent PNG-format: {format}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/imaging.rs:90
+msgid "Kunne ikke kode PNG: {error}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: src/imaging.rs:117
+msgid "Kunne ikke skrive bildet: {error}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}, {label}.
+#. {label} is an annotation tool and {key} is its fixed shortcut.
+#. {label} is the action name and {key} is its configured shortcut.
+#: src/keys.rs:59
+#: crates/klipp-annotate/src/window.rs:221
+#: crates/klipp-annotate/src/window.rs:258
+msgid "{label} ({key})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {build}, {version}.
+#. {version} is the app version and {build} is the build identifier.
+#: src/main.rs:84
+msgid "klipp {version} (bygg {build})"
+msgstr ""
+
+#: src/main.rs:96
+msgid "Klipp avsluttet ikke i tide"
+msgstr ""
+
+#. Keep these placeholders where they occur: {time}.
+#: src/shelf.rs:104
+msgid "i går {time}"
+msgstr ""
+
+#. Day and month are zero-padded numbers, e.g. 03 and 11.
+#. Keep these placeholders where they occur: {day}, {month}, {time}.
+#: src/shelf.rs:107
+msgid "{day}.{month}. {time}"
+msgstr ""
+
+#: src/shelf.rs:157
+#: src/window.rs:312
+msgid "Legg i papirkurven"
+msgstr ""
+
+#. Tooltip for a shelf image while selecting multiple screenshots.
+#: src/shelf.rs:309
+msgid ""
+"Klikk for å velge\n"
+"Shift+klikk velger alle imellom\n"
+"Dra de valgte til terminalen"
+msgstr ""
+
+#. Tooltip for a shelf image. Keep one action per line.
+#: src/shelf.rs:312
+msgid ""
+"Klikk for å tegne\n"
+"Ctrl+klikk velger flere\n"
+"Shift+høyreklikk kopierer bildet\n"
+"Shift+klikk kopierer filstien\n"
+"Dra til terminalen"
+msgstr ""
+
+#. Keep these placeholders where they occur: {size}, {time}.
+#: src/shelf.rs:341
+msgid "{size} · {time}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}, {path}.
+#: src/storage.rs:383
+msgid "Kunne ikke lagre i {path}: {error}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {path}.
+#. {path} is the screenshot folder, where the files stay after clearing the shelf.
+#: src/window.rs:73
+msgid ""
+"Tøm hylla\n"
+"Filene blir liggende i {path}"
+msgstr ""
+
+#. Keep the narrow header button label short. It starts a new screenshot.
+#: src/window.rs:126
+#: src/window.rs:135
+msgctxt "new-screenshot-button"
+msgid "Ny"
+msgstr ""
+
+#: src/window.rs:128
+msgid "Velg modus"
+msgstr ""
+
+#: src/window.rs:150
+#: src/window.rs:540
+#: src/window.rs:576
+msgid "Skjul hylla"
+msgstr ""
+
+#: src/window.rs:156
+#: crates/klipp-system/src/settings.rs:310
+msgid "Innstillinger"
+msgstr ""
+
+#. Opens the compact preview screenshot for annotation.
+#: src/window.rs:210
+msgctxt "annotate-button"
+msgid "Annoter"
+msgstr ""
+
+#: src/window.rs:214
+#: src/window.rs:538
+#: src/window.rs:574
+msgid "Vis hylla"
+msgstr ""
+
+#: src/window.rs:253
+msgid "Trykk Ny for å ta et skjermbilde"
+msgstr ""
+
+#: src/window.rs:262
+msgid "Hylla er tom"
+msgstr ""
+
+#: src/window.rs:280
+msgid ""
+"Velg flere bilder (Ctrl+A)\n"
+"Ctrl+klikk på et bilde gjør det samme"
+msgstr ""
+
+#: src/window.rs:282
+msgid "Velg flere bilder"
+msgstr ""
+
+#: src/window.rs:298
+#: crates/klipp-annotate/src/window.rs:120
+msgid "Avbryt (Esc)"
+msgstr ""
+
+#: src/window.rs:299
+msgctxt "selection-cancel"
+msgid "Avbryt"
+msgstr ""
+
+#: src/window.rs:310
+msgid "Legg i papirkurven (Delete)"
+msgstr ""
+
+#. Keep the button short. It copies all selected screenshots.
+#: src/window.rs:316
+msgctxt "shelf-copy"
+msgid "Kopier"
+msgstr ""
+
+#: src/window.rs:317
+msgid "Kopier de valgte bildene (Ctrl+C)"
+msgstr ""
+
+#. Keep these placeholders where they occur: {mode}.
+#. {mode} is a capture mode such as Area or Window.
+#: src/window.rs:570
+msgid "Ta skjermbilde: {mode}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#. {key} is the capture shortcut. Keep the <b> and </b> markup around it.
+#: src/window.rs:593
+msgid ""
+"Trykk <b>{key}</b>\n"
+"for å ta et skjermbilde"
+msgstr ""
+
+#: src/window.rs:607
+msgid "Velg bilder"
+msgstr ""
+
+#. Keep these placeholders where they occur: {n}.
+#. Number of selected screenshots. Both forms are the same in Norwegian.
+#: src/window.rs:610
+msgid "{n} valgt"
+msgid_plural "{n} valgt"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/window.rs:725
+msgid "Skjul til systemfeltet"
+msgstr ""
+
+#: src/window.rs:725
+msgid "Lukk vinduet"
+msgstr ""
+
+#: src/window.rs:736
+msgid "Minimer"
+msgstr ""
+
+#: crates/klipp-annotate/src/canvas.rs:141
+#: crates/klipp-annotate/src/window.rs:820
+msgid "Annoter skjermbilde"
+msgstr ""
+
+#: crates/klipp-annotate/src/canvas.rs:732
+msgid "Tekst i bildet"
+msgstr ""
+
+#: crates/klipp-annotate/src/clipboard.rs:49
+msgid "Ukjent format"
+msgstr ""
+
+#: crates/klipp-annotate/src/clipboard.rs:75
+#: crates/klipp-annotate/src/file.rs:36
+msgid "Bildet kunne ikke kodes som PNG"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:19
+msgid "Filen eller mappen finnes ikke"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:20
+msgid "Ingen tilgang"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:21
+msgid "Disken er full"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:22
+msgid "Ukjent feil ved lesing eller skriving"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:29
+#: crates/klipp-annotate/src/file.rs:87
+msgid "Filen er ikke en gyldig PNG"
+msgstr ""
+
+#. Keep these placeholders where they occur: {height}, {width}.
+#: crates/klipp-annotate/src/file.rs:64
+msgid "Bildet er for stort: {width}×{height}"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:74
+msgid "Bildet er for stort"
+msgstr ""
+
+#: crates/klipp-annotate/src/file.rs:151
+msgid "Ugyldig filsti"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-annotate/src/file.rs:157
+#: crates/klipp-annotate/src/file.rs:176
+msgid "Kunne ikke lagre bildet: {error}"
+msgstr ""
+
+#: crates/klipp-annotate/src/lib.rs:89
+msgid "Kunne ikke åpne bildet"
+msgstr ""
+
+#: crates/klipp-annotate/src/lib.rs:97
+#: crates/klipp-annotate/src/window.rs:116
+#: crates/klipp-annotate/src/window.rs:802
+msgctxt "annotation-title"
+msgid "Annoter"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:49
+msgctxt "annotation-tool"
+msgid "Pil"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:50
+msgctxt "annotation-tool"
+msgid "Linje"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:51
+msgctxt "annotation-tool"
+msgid "Rektangel"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:52
+msgctxt "annotation-tool"
+msgid "Ellipse"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:53
+msgctxt "annotation-tool"
+msgid "Frihånd"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:54
+msgctxt "annotation-tool"
+msgid "Merkepenn"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:55
+msgctxt "annotation-tool"
+msgid "Tekst"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:56
+msgctxt "annotation-tool"
+msgid "Nummerert markør"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:57
+msgctxt "annotation-tool"
+msgid "Sladd"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:58
+msgctxt "annotation-tool"
+msgid "Viskelær"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:128
+msgctxt "annotation-color"
+msgid "Rød"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:132
+msgctxt "annotation-color"
+msgid "Oransje"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:136
+msgctxt "annotation-color"
+msgid "Gul"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:140
+msgctxt "annotation-color"
+msgid "Grønn"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:144
+msgctxt "annotation-color"
+msgid "Blå"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:148
+msgctxt "annotation-color"
+msgid "Lilla"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:152
+msgctxt "annotation-color"
+msgid "Hvit"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:156
+msgctxt "annotation-color"
+msgid "Svart"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:172
+msgctxt "annotation-thickness"
+msgid "Ekstra tynn"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:180
+msgctxt "annotation-thickness"
+msgid "Tynn"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:188
+msgctxt "annotation-thickness"
+msgid "Middels"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:196
+msgctxt "annotation-thickness"
+msgid "Tykk"
+msgstr ""
+
+#: crates/klipp-annotate/src/ops.rs:204
+msgctxt "annotation-thickness"
+msgid "Ekstra tykk"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:120
+msgctxt "annotation-cancel"
+msgid "Avbryt"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:128
+msgctxt "annotation-undo"
+msgid "Angre (Ctrl+Z)"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:129
+msgctxt "annotation-undo"
+msgid "Angre"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:138
+msgid "Gjør om (Ctrl+Shift+Z)"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:139
+msgctxt "annotation-redo"
+msgid "Gjør om"
+msgstr ""
+
+#. Saves annotations and closes the editor. Keep the header button short.
+#: crates/klipp-annotate/src/window.rs:151
+msgctxt "annotation-save"
+msgid "Ferdig"
+msgstr ""
+
+#. Saves annotations and closes the editor. Keep the header button short.
+#: crates/klipp-annotate/src/window.rs:151
+msgid "Ferdig (Ctrl+Enter)"
+msgstr ""
+
+#. Copies the annotated image. Keep the header button short.
+#: crates/klipp-annotate/src/window.rs:159
+msgctxt "annotation-copy"
+msgid "Kopier"
+msgstr ""
+
+#. Copies the annotated image. Keep the header button short.
+#: crates/klipp-annotate/src/window.rs:159
+msgid "Kopier (Ctrl+C)"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:216
+msgid "Annoteringsverktøy"
+msgstr ""
+
+#. Accessible label for a color swatch.
+#. Keep these placeholders where they occur: {color}.
+#: crates/klipp-annotate/src/window.rs:263
+msgid "Farge: {color}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#. The fixed number key opens the custom color picker.
+#: crates/klipp-annotate/src/window.rs:305
+msgid "Egen farge ({key})"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:309
+#: crates/klipp-annotate/src/window.rs:351
+msgid "Egen farge"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:416
+msgid "Størrelse (+ / −)"
+msgstr ""
+
+#. Keep these placeholders where they occur: {size}.
+#: crates/klipp-annotate/src/window.rs:450
+#: crates/klipp-annotate/src/window.rs:468
+msgid "Størrelse: {size}"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:462
+msgid "+ og − bytter størrelse"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:623
+msgid "Kunne ikke lagre bildet"
+msgstr ""
+
+#: crates/klipp-annotate/src/window.rs:656
+msgid "Kunne ikke kopiere bildet"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:68
+msgid "Stille"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:75
+msgid "Raskest. Du velger selv blits og lyd under"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:76
+msgid "GNOMEs vanlige vei, alltid med blits og lukkerlyd"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:106
+msgctxt "theme"
+msgid "System"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:107
+msgctxt "theme"
+msgid "Lys"
+msgstr ""
+
+#: crates/klipp-system/src/config.rs:108
+msgctxt "theme"
+msgid "Mørk"
+msgstr ""
+
+#. Alt+K is the extension’s fixed shortcut.
+#: crates/klipp-system/src/extension.rs:34
+msgid "På: stille opptak er klart, og Alt+K virker alltid"
+msgstr ""
+
+#: crates/klipp-system/src/extension.rs:35
+msgid "Logg ut og inn én gang for å fullføre"
+msgstr ""
+
+#: crates/klipp-system/src/extension.rs:36
+msgid "Av: kreves for stille opptak. Uten den blinker GNOME ved hvert bilde"
+msgstr ""
+
+#. Keep the script filename install.sh unchanged.
+#: crates/klipp-system/src/extension.rs:38
+msgid "Utvidelsen mangler. Kjør install.sh"
+msgstr ""
+
+#. Keep these placeholders where they occur: {version}.
+#: crates/klipp-system/src/history.rs:178
+msgid "Klipp {version}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {build}.
+#: crates/klipp-system/src/history.rs:180
+msgid "Bygg {build}"
+msgstr ""
+
+#: crates/klipp-system/src/history.rs:191
+#: crates/klipp-system/src/history.rs:197
+#: crates/klipp-system/src/settings.rs:625
+msgid "Versjonslogg"
+msgstr ""
+
+#. GNOME displays this action name in the Global Shortcuts dialog.
+#: crates/klipp-system/src/hotkeys.rs:44
+#: crates/klipp-system/src/portal.rs:323
+#: crates/klipp-system/src/tray.rs:93
+msgid "Ta skjermbilde"
+msgstr ""
+
+#: crates/klipp-system/src/hotkeys.rs:49
+msgid "Vis/skjul hylla"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#: crates/klipp-system/src/hotkeys.rs:295
+msgid "«{key}» er reservert av Klipp"
+msgstr ""
+
+#. Keep these placeholders where they occur: {action}, {key}.
+#: crates/klipp-system/src/hotkeys.rs:296
+msgid "«{key}» brukes allerede av {action}"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:59
+msgid "Ikke aktiv: global hurtigtast er ikke startet"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:61
+msgid "GNOME bekrefter hurtigtasten selv. Svar i dialogen"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:64
+msgid "Aktiv via GlobalShortcuts-portalen"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#: crates/klipp-system/src/portal.rs:66
+msgid "Aktiv: GNOME bruker {key}"
+msgstr ""
+
+#. Keep these placeholders where they occur: {reason}.
+#. {reason} explains why the global shortcut is inactive.
+#: crates/klipp-system/src/portal.rs:68
+msgid "Ikke aktiv: {reason}"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:178
+#: crates/klipp-system/src/portal.rs:223
+msgid "ingen tast er valgt for Ta skjermbilde"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:240
+msgid "portalen startet på nytt, prøver igjen"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:271
+msgid "får ikke kontakt med D-Bus ({error})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:277
+msgid "ugyldig app-ID ({error})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:283
+#: crates/klipp-system/src/portal.rs:292
+msgid "får ikke fulgt med på portalen ({error})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#: crates/klipp-system/src/portal.rs:353
+msgid "GNOME bandt ikke {key}, sjekk Innstillinger > Tastatur"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:368
+msgid "portalen sluttet å svare"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:382
+msgid "GNOME lukket økten for hurtigtasten"
+msgstr ""
+
+#. Keep these placeholders where they occur: {key}.
+#: crates/klipp-system/src/portal.rs:391
+msgid "GNOME godtok ikke {key}. Trykk tasten her på nytt for å bli spurt igjen"
+msgstr ""
+
+#. Keep these placeholders where they occur: {file}.
+#. {file} is the app’s desktop entry. Keep install.sh unchanged.
+#: crates/klipp-system/src/portal.rs:437
+msgid "Klipp er ikke installert: {file} mangler. Kjør install.sh"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:442
+msgid "portalen kan ikke registrere vertsapper ({error})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:447
+msgid "portalen godtok ikke Klipp ({error})"
+msgstr ""
+
+#: crates/klipp-system/src/portal.rs:453
+msgid "GlobalShortcuts-portalen finnes ikke her"
+msgstr ""
+
+#. Keep these placeholders where they occur: {installed}, {required}.
+#: crates/klipp-system/src/portal.rs:454
+msgid "portalen er for gammel (trenger v{required}, har v{installed})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {reason}.
+#: crates/klipp-system/src/portal.rs:462
+msgid "portalen nekter ({reason})"
+msgstr ""
+
+#. Keep these placeholders where they occur: {error}.
+#: crates/klipp-system/src/portal.rs:464
+msgid "portalen feilet ({error})"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:105
+msgid "Esc avbryter · Backspace fjerner"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:107
+msgid "Trykk ny snarvei …"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:126
+msgctxt "shortcut-unassigned"
+msgid "Ingen"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:146
+msgid "Kunne ikke lagre innstillingene"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:282
+msgid "Språket tas i bruk når Klipp startes på nytt"
+msgstr ""
+
+#. Keep this settings banner button short.
+#: crates/klipp-system/src/settings.rs:284
+msgid "Start på nytt"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:384
+msgid "Utseende"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:412
+msgid "Tema"
+msgstr ""
+
+#. Keep these placeholders where they occur: {language}.
+#. {language} is the system language's endonym, e.g. Norsk bokmål.
+#: crates/klipp-system/src/settings.rs:422
+msgid "Systemspråk ({language})"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:433
+msgid "Språk"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:465
+msgid "Klipp-utvidelsen"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:469
+msgid "Slå på"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:480
+msgid "GNOME godtok ikke endringen"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:502
+msgid "Opptaksmåte"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:511
+msgid "Blits"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:512
+msgid "Lyser opp området når bildet er tatt"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:518
+msgid "Lukkerlyd"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:519
+msgid "Spiller GNOMEs lyd når bildet er tatt"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:548
+msgid "Lagre skjermbilder i"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:553
+msgctxt "save-folder-reset"
+msgid "Standard"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:559
+msgid "Velg mappe"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:579
+msgid "Velg mappe for skjermbilder"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:580
+msgctxt "folder-chooser"
+msgid "Velg"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:598
+msgid "Klipp kan ikke bruke den mappen"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:612
+msgid "Om Klipp"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:614
+msgid "Versjon"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:614
+msgid "Bygg"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:626
+msgid "Endringer fra første til nyeste versjon"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:646
+msgid "Navnet på byggeserien denne versjonen hører til"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:664
+msgid "Skjermbilde"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:675
+msgid "Ta bildet med en gang"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:676
+msgid "Bildet tas når du slipper musa, uten bekreftelse"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:682
+msgid "Kopier automatisk"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:683
+msgid "Legger hvert nye bilde på utklippstavlen"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:713
+msgid "Hurtigtaster"
+msgstr ""
+
+#: crates/klipp-system/src/settings.rs:717
+msgid "Tilbakestill"
+msgstr ""
+
+#: crates/klipp-system/src/tray.rs:88
+msgid "Skjul Klipp"
+msgstr ""
+
+#: crates/klipp-system/src/tray.rs:90
+msgid "Vis Klipp"
+msgstr ""
+
+#: crates/klipp-system/src/tray.rs:96
+msgid "Avslutt"
+msgstr ""

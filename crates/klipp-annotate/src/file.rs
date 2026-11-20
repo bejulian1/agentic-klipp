@@ -1,6 +1,7 @@
 //! PNG inn og ut. Alt her er blokkerende og skal kjøres utenfor GTK-hovedtråden.
 
 use crate::pixels;
+use klipp_system::i18n::{tr, tr_fmt};
 use std::ffi::OsString;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, BufWriter, ErrorKind, Write};
@@ -15,24 +16,24 @@ const MAX_DECODED: usize = 2 << 30;
 /// Feil fra systemet på norsk. Teksten vises i appen, så ingen engelske systemmeldinger.
 fn describe(e: &io::Error) -> &'static str {
     match e.kind() {
-        ErrorKind::NotFound => "Filen eller mappen finnes ikke",
-        ErrorKind::PermissionDenied | ErrorKind::ReadOnlyFilesystem => "Ingen tilgang",
-        ErrorKind::StorageFull | ErrorKind::QuotaExceeded => "Disken er full",
-        _ => "Ukjent feil ved lesing eller skriving",
+        ErrorKind::NotFound => tr("Filen eller mappen finnes ikke"),
+        ErrorKind::PermissionDenied | ErrorKind::ReadOnlyFilesystem => tr("Ingen tilgang"),
+        ErrorKind::StorageFull | ErrorKind::QuotaExceeded => tr("Disken er full"),
+        _ => tr("Ukjent feil ved lesing eller skriving"),
     }
 }
 
 fn decode_error(e: png::DecodingError) -> String {
     match e {
         png::DecodingError::IoError(e) => describe(&e).to_string(),
-        _ => "Filen er ikke en gyldig PNG".to_string(),
+        _ => tr("Filen er ikke en gyldig PNG").to_string(),
     }
 }
 
 fn encode_error(e: png::EncodingError) -> String {
     match e {
         png::EncodingError::IoError(e) => describe(&e).to_string(),
-        _ => "Bildet kunne ikke kodes som PNG".to_string(),
+        _ => tr("Bildet kunne ikke kodes som PNG").to_string(),
     }
 }
 
@@ -60,11 +61,17 @@ pub fn decode<R: std::io::BufRead + std::io::Seek>(r: R) -> Result<Loaded, Strin
     let mut reader = dec.read_info().map_err(decode_error)?;
     let (width, height) = reader.info().size();
     if width > MAX_SIDE || height > MAX_SIDE {
-        return Err(format!("Bildet er for stort: {width}×{height}"));
+        return Err(tr_fmt(
+            "Bildet er for stort: {width}×{height}",
+            &[
+                ("width", &width.to_string()),
+                ("height", &height.to_string()),
+            ],
+        ));
     }
     let size = reader
         .output_buffer_size()
-        .ok_or_else(|| "Bildet er for stort".to_string())?;
+        .ok_or_else(|| tr("Bildet er for stort").to_string())?;
     let mut buf = vec![0; size];
     let info = reader.next_frame(&mut buf).map_err(decode_error)?;
     buf.truncate(info.buffer_size());
@@ -77,7 +84,7 @@ pub fn decode<R: std::io::BufRead + std::io::Seek>(r: R) -> Result<Loaded, Strin
             }
             out
         }
-        _ => return Err("Filen er ikke en gyldig PNG".to_string()),
+        _ => return Err(tr("Filen er ikke en gyldig PNG").to_string()),
     };
     let alpha = pixels::rgba_to_premul_bgra(&mut rgba);
     Ok(Loaded {
@@ -141,12 +148,17 @@ pub fn write_atomic(
     write: impl FnOnce(&mut BufWriter<File>) -> Result<(), String>,
 ) -> Result<(), String> {
     let target = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
-    let tmp = temp_path(&target).ok_or_else(|| "Ugyldig filsti".to_string())?;
+    let tmp = temp_path(&target).ok_or_else(|| tr("Ugyldig filsti").to_string())?;
     let file = OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(&tmp)
-        .map_err(|e| format!("Kunne ikke lagre bildet: {}", describe(&e)))?;
+        .map_err(|e| {
+            tr_fmt(
+                "Kunne ikke lagre bildet: {error}",
+                &[("error", describe(&e))],
+            )
+        })?;
     let result = (|| {
         if let Ok(meta) = fs::metadata(&target) {
             fs::set_permissions(&tmp, meta.permissions()).map_err(|e| describe(&e).to_string())?;
@@ -161,7 +173,7 @@ pub fn write_atomic(
     })();
     result.map_err(|e| {
         let _ = fs::remove_file(&tmp);
-        format!("Kunne ikke lagre bildet: {e}")
+        tr_fmt("Kunne ikke lagre bildet: {error}", &[("error", &e)])
     })
 }
 

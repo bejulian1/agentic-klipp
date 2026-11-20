@@ -2,6 +2,7 @@
 //! Alt her kjøres utenfor UI-tråden.
 
 use crate::capture::geometry::{Pt, Rect};
+use klipp_system::i18n::{tr, tr_fmt};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::Path;
@@ -25,7 +26,12 @@ impl Image {
 }
 
 pub fn decode_png(path: &Path) -> Result<Image, String> {
-    let file = File::open(path).map_err(|e| format!("Kunne ikke åpne bildet: {e}"))?;
+    let file = File::open(path).map_err(|e| {
+        tr_fmt(
+            "Kunne ikke åpne bildet: {error}",
+            &[("error", &e.to_string())],
+        )
+    })?;
     let mut dec = png::Decoder::new(BufReader::new(file));
     dec.set_transformations(
         png::Transformations::normalize_to_color8() | png::Transformations::ALPHA,
@@ -43,14 +49,16 @@ pub fn decode_png_bytes(bytes: &[u8]) -> Result<Image, String> {
 }
 
 fn decode<R: std::io::BufRead + std::io::Seek>(dec: png::Decoder<R>) -> Result<Image, String> {
-    let mut reader = dec.read_info().map_err(|e| format!("Ugyldig PNG: {e}"))?;
+    let mut reader = dec
+        .read_info()
+        .map_err(|e| tr_fmt("Ugyldig PNG: {error}", &[("error", &e.to_string())]))?;
     let size = reader
         .output_buffer_size()
-        .ok_or_else(|| "PNG-en er for stor".to_string())?;
+        .ok_or_else(|| tr("PNG-en er for stor").to_string())?;
     let mut buf = vec![0; size];
     let info = reader
         .next_frame(&mut buf)
-        .map_err(|e| format!("Ugyldig PNG: {e}"))?;
+        .map_err(|e| tr_fmt("Ugyldig PNG: {error}", &[("error", &e.to_string())]))?;
     let rgba = match info.color_type {
         png::ColorType::Rgba => buf,
         png::ColorType::GrayscaleAlpha => {
@@ -60,7 +68,12 @@ fn decode<R: std::io::BufRead + std::io::Seek>(dec: png::Decoder<R>) -> Result<I
             }
             out
         }
-        other => return Err(format!("Ukjent PNG-format: {other:?}")),
+        other => {
+            return Err(tr_fmt(
+                "Ukjent PNG-format: {format}",
+                &[("format", &format!("{other:?}"))],
+            ));
+        }
     };
     let mut rgba = rgba;
     rgba.truncate(info.width as usize * info.height as usize * 4);
@@ -73,7 +86,9 @@ fn decode<R: std::io::BufRead + std::io::Seek>(dec: png::Decoder<R>) -> Result<I
 
 /// Skriv PNG. Uten alfa lagres RGB, som gir mindre filer og raskere koding.
 pub fn encode_png<W: Write>(img: &Image, alpha: bool, out: W) -> Result<(), String> {
-    let err = |e: png::EncodingError| format!("Kunne ikke kode PNG: {e}");
+    let err = |e: png::EncodingError| {
+        tr_fmt("Kunne ikke kode PNG: {error}", &[("error", &e.to_string())])
+    };
     let mut enc = png::Encoder::new(out, img.w, img.h);
     enc.set_color(if alpha {
         png::ColorType::Rgba
@@ -98,8 +113,12 @@ pub fn encode_png<W: Write>(img: &Image, alpha: bool, out: W) -> Result<(), Stri
 pub fn encode_png_file(img: &Image, alpha: bool, file: File) -> Result<(), String> {
     let mut w = BufWriter::with_capacity(1 << 18, file);
     encode_png(img, alpha, &mut w)?;
-    w.flush()
-        .map_err(|e| format!("Kunne ikke skrive bildet: {e}"))
+    w.flush().map_err(|e| {
+        tr_fmt(
+            "Kunne ikke skrive bildet: {error}",
+            &[("error", &e.to_string())],
+        )
+    })
 }
 
 pub fn encode_png_bytes(img: &Image, alpha: bool) -> Result<Vec<u8>, String> {

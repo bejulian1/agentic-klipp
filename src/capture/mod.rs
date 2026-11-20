@@ -14,6 +14,7 @@ use crate::trace;
 use geometry::{Mode, Pt, Rect};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
+use klipp_system::i18n::tr;
 use portal::Outcome;
 use std::cell::{Cell, RefCell};
 use std::path::{Path, PathBuf};
@@ -30,7 +31,6 @@ const PORTAL_TIMEOUT: Duration = Duration::from_secs(15);
 /// GNOMEs velger venter på brukeren, men ikke for alltid: uten svar ville Klipp stå
 /// som opptatt, og hurtigtasten ville ikke reagert før appen ble startet på nytt.
 const PICKER_TIMEOUT: Duration = Duration::from_secs(300);
-const NO_ACCESS: &str = "Klipp har ikke tilgang til skjermbilder";
 
 /// Det frosne skjermbildet. Deles uten kopi mellom overlegg og lagring.
 pub struct Frozen {
@@ -170,7 +170,7 @@ async fn load_portal_file(k: &Rc<Klipp>, path: PathBuf) -> Result<Frozen, String
         })
     })
     .await
-    .unwrap_or_else(|_| Err("Bildet kunne ikke leses".to_string()))
+    .unwrap_or_else(|_| Err(tr("Bildet kunne ikke leses").to_string()))
 }
 
 /// Første gang må brukeren svare på GNOMEs tilgangsdialog, og den vises bare for
@@ -185,13 +185,13 @@ async fn ask_permission(k: &Rc<Klipp>) -> Result<Option<PathBuf>, String> {
             let _ = storage::remove_portal_file(&p, &own);
         }
         Outcome::Cancelled => return Ok(None),
-        Outcome::Denied(_) => return Err(NO_ACCESS.to_string()),
+        Outcome::Denied(_) => return Err(tr("Klipp har ikke tilgang til skjermbilder").to_string()),
     }
     hide_windows(k).await;
     match portal::take(false, Some(PORTAL_TIMEOUT)).await? {
         Outcome::File(p) => Ok(Some(p)),
         Outcome::Cancelled => Ok(None),
-        Outcome::Denied(_) => Err(NO_ACCESS.to_string()),
+        Outcome::Denied(_) => Err(tr("Klipp har ikke tilgang til skjermbilder").to_string()),
     }
 }
 
@@ -351,7 +351,7 @@ fn deliver(k: Rc<Klipp>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
                 if let Some(s) = &slot {
                     s.replace(Source::Failed);
                 }
-                k.ui.toast("Bildet kunne ikke lagres");
+                k.ui.toast(tr("Bildet kunne ikke lagres"));
                 return finish(&k);
             }
         };
@@ -376,16 +376,16 @@ fn deliver(k: Rc<Klipp>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
 
         if let Some(tex) = tex {
             let status = match (want_copy, copied) {
-                (true, true) => "Kopiert!".to_string(),
-                (true, false) => "Ikke kopiert".to_string(),
+                (true, true) => tr("Kopiert!").to_string(),
+                (true, false) => tr("Ikke kopiert").to_string(),
                 _ => shelf::fmt_time(ts),
             };
             k.ui.show_reveal(&tex, &dims, &status, &path, alpha);
         } else if want_copy {
             k.ui.toast(if copied {
-                "Kopiert!"
+                tr("Kopiert!")
             } else {
-                "Lagret, men ikke kopiert. Shift+høyreklikk på bildet."
+                tr("Lagret, men ikke kopiert. Shift+høyreklikk på bildet.")
             });
         }
         k.capture.mark("ferdig");

@@ -9,6 +9,7 @@ use crate::keys;
 use crate::shelf::Shelf;
 use adw::prelude::*;
 use gtk::{gdk, glib};
+use klipp_system::i18n::{tr, tr_fmt, trc, trn};
 use klipp_system::{Action, Config};
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -35,9 +36,8 @@ pub struct MainUi {
     content: gtk::Box,
     body: gtk::Box,
     stack: gtk::Stack,
-    empty_key: gtk::Label,
     empty_plain: gtk::Label,
-    empty_keyed: gtk::Box,
+    empty_keyed: gtk::Label,
     bottom: gtk::Box,
     bar_stack: gtk::Stack,
     shelf_count: gtk::Label,
@@ -69,7 +69,11 @@ fn strip_height() -> i32 {
 
 fn clear_tip(cfg: &Config) -> String {
     let dir = klipp_system::pretty_dir(&cfg.save_dir());
-    format!("Tøm hylla\nFilene blir liggende i {dir}")
+    // Oversettere: {path} is the screenshot folder, where the files stay after clearing the shelf.
+    tr_fmt(
+        "Tøm hylla\nFilene blir liggende i {path}",
+        &[("path", &dir)],
+    )
 }
 
 fn icon_button(icon: &str, tip: &str) -> gtk::Button {
@@ -118,16 +122,17 @@ impl MainUi {
         popover.set_child(Some(&rows_box));
 
         let split = adw::SplitButton::builder()
-            .label("Ny")
+            // Oversettere: Keep the narrow header button label short. It starts a new screenshot.
+            .label(trc("new-screenshot-button", "Ny"))
             .popover(&popover)
-            .dropdown_tooltip("Velg modus")
+            .dropdown_tooltip(tr("Velg modus"))
             .valign(gtk::Align::Center)
             .css_classes(["suggested-action"])
             .build();
         split.connect_clicked(|_| capture::start(&Klipp::get(), None));
 
         let ny = gtk::Button::builder()
-            .label("Ny")
+            .label(trc("new-screenshot-button", "Ny"))
             .css_classes(["suggested-action"])
             .build();
         ny.connect_clicked(|_| capture::start(&Klipp::get(), None));
@@ -142,13 +147,13 @@ impl MainUi {
             );
         }
 
-        let compact_btn = icon_button("klipp-shelf-symbolic", "Skjul hylla");
+        let compact_btn = icon_button("klipp-shelf-symbolic", tr("Skjul hylla"));
         compact_btn.connect_clicked(|_| {
             let k = Klipp::get();
             let on = !k.config.borrow().compact;
             k.set_compact(on);
         });
-        let settings_btn = icon_button("klipp-gear-symbolic", "Innstillinger");
+        let settings_btn = icon_button("klipp-gear-symbolic", tr("Innstillinger"));
         settings_btn.connect_clicked(|_| Klipp::get().open_settings());
 
         // Ekte vinduskontroller: minimer, og lukk som skjuler til systemfeltet.
@@ -201,11 +206,12 @@ impl MainUi {
         rev_text.append(&rev_dims);
         rev_text.append(&rev_status);
         let rev_annotate = gtk::Button::builder()
-            .label("Annoter")
+            // Oversettere: Opens the compact preview screenshot for annotation.
+            .label(trc("annotate-button", "Annoter"))
             .valign(gtk::Align::Center)
             .build();
         let rev_shelf = gtk::Button::builder()
-            .label("Vis hylla")
+            .label(tr("Vis hylla"))
             .valign(gtk::Align::Center)
             .build();
         let rev_box = gtk::Box::builder()
@@ -239,21 +245,12 @@ impl MainUi {
         });
 
         // Tom tilstand.
-        let empty_key = gtk::Label::builder().css_classes(["klipp-kbd"]).build();
-        let keyed_row = gtk::Box::builder()
-            .halign(gtk::Align::Center)
-            .spacing(6)
+        let empty_keyed = gtk::Label::builder()
+            .wrap(true)
+            .justify(gtk::Justification::Center)
             .build();
-        keyed_row.append(&gtk::Label::new(Some("Trykk")));
-        keyed_row.append(&empty_key);
-        let empty_keyed = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .spacing(4)
-            .build();
-        empty_keyed.append(&keyed_row);
-        empty_keyed.append(&gtk::Label::new(Some("for å ta et skjermbilde")));
         let empty_plain = gtk::Label::builder()
-            .label("Trykk Ny for å ta et skjermbilde")
+            .label(tr("Trykk Ny for å ta et skjermbilde"))
             .wrap(true)
             .justify(gtk::Justification::Center)
             .build();
@@ -262,7 +259,7 @@ impl MainUi {
         empty_child.append(&empty_plain);
         let empty = adw::StatusPage::builder()
             .icon_name("klipp-shelf-symbolic")
-            .title("Hylla er tom")
+            .title(tr("Hylla er tom"))
             .child(&empty_child)
             .css_classes(["compact"])
             .build();
@@ -280,9 +277,9 @@ impl MainUi {
         clear_btn.connect_clicked(|_| Klipp::get().clear_shelf());
         let select_btn = icon_button(
             "selection-mode-symbolic",
-            "Velg flere bilder (Ctrl+A)\nCtrl+klikk på et bilde gjør det samme",
+            tr("Velg flere bilder (Ctrl+A)\nCtrl+klikk på et bilde gjør det samme"),
         );
-        select_btn.update_property(&[gtk::accessible::Property::Label("Velg flere bilder")]);
+        select_btn.update_property(&[gtk::accessible::Property::Label(tr("Velg flere bilder"))]);
         select_btn.connect_clicked(|_| Klipp::get().shelf.set_selecting(true));
         let shelf_count = gtk::Label::builder()
             .xalign(0.0)
@@ -298,8 +295,11 @@ impl MainUi {
         normal_bar.append(&select_btn);
         normal_bar.append(&clear_btn);
 
-        let sel_cancel = icon_button("window-close-symbolic", "Avbryt (Esc)");
-        sel_cancel.update_property(&[gtk::accessible::Property::Label("Avbryt")]);
+        let sel_cancel = icon_button("window-close-symbolic", tr("Avbryt (Esc)"));
+        sel_cancel.update_property(&[gtk::accessible::Property::Label(trc(
+            "selection-cancel",
+            "Avbryt",
+        ))]);
         sel_cancel.connect_clicked(|_| Klipp::get().shelf.set_selecting(false));
         let sel_count = gtk::Label::builder()
             .xalign(0.0)
@@ -307,13 +307,14 @@ impl MainUi {
             .ellipsize(gtk::pango::EllipsizeMode::End)
             .css_classes(["klipp-bar-label", "klipp-sel-count"])
             .build();
-        let sel_trash = icon_button("user-trash-symbolic", "Legg i papirkurven (Delete)");
+        let sel_trash = icon_button("user-trash-symbolic", tr("Legg i papirkurven (Delete)"));
         sel_trash.add_css_class("klipp-bar-trash");
-        sel_trash.update_property(&[gtk::accessible::Property::Label("Legg i papirkurven")]);
+        sel_trash.update_property(&[gtk::accessible::Property::Label(tr("Legg i papirkurven"))]);
         sel_trash.connect_clicked(|_| Klipp::get().trash_selected());
         let sel_copy = gtk::Button::builder()
-            .label("Kopier")
-            .tooltip_text("Kopier de valgte bildene (Ctrl+C)")
+            // Oversettere: Keep the button short. It copies all selected screenshots.
+            .label(trc("shelf-copy", "Kopier"))
+            .tooltip_text(tr("Kopier de valgte bildene (Ctrl+C)"))
             .css_classes(["suggested-action", "klipp-bar-copy"])
             .build();
         sel_copy.connect_clicked(|_| Klipp::get().copy_selected());
@@ -387,7 +388,6 @@ impl MainUi {
             content,
             body,
             stack,
-            empty_key,
             empty_plain,
             empty_keyed,
             bottom,
@@ -534,7 +534,11 @@ impl MainUi {
             self.window.set_default_size(STRIP_W, h);
             self.window.set_resizable(true);
         }
-        let label = if on { "Vis hylla" } else { "Skjul hylla" };
+        let label = if on {
+            tr("Vis hylla")
+        } else {
+            tr("Skjul hylla")
+        };
         self.compact_btn
             .update_property(&[gtk::accessible::Property::Label(label)]);
     }
@@ -558,22 +562,21 @@ impl MainUi {
         self.inline.set_active_name(Some(cur.id()));
         for m in Mode::ALL {
             if let Some(t) = self.inline.toggle_by_name(m.id()) {
-                let hint = keys::hint(cfg, Action::for_mode(m));
-                t.set_tooltip(&format!("{}{hint}", mode_label(m)));
+                t.set_tooltip(&keys::hint(cfg, Action::for_mode(m), mode_label(m)));
             }
         }
         self.syncing.set(false);
-        let tip = format!("Ta skjermbilde: {}", mode_label(cur));
+        // Oversettere: {mode} is a capture mode such as Area or Window.
+        let tip = tr_fmt("Ta skjermbilde: {mode}", &[("mode", mode_label(cur))]);
         self.split.set_tooltip_text(Some(&tip));
         self.ny.set_tooltip_text(Some(&tip));
         let base = if cfg.compact {
-            "Vis hylla"
+            tr("Vis hylla")
         } else {
-            "Skjul hylla"
+            tr("Skjul hylla")
         };
-        let hint = keys::hint(cfg, Action::ToggleShelf);
         self.compact_btn
-            .set_tooltip_text(Some(&format!("{base}{hint}")));
+            .set_tooltip_text(Some(&keys::hint(cfg, Action::ToggleShelf, base)));
     }
 
     pub fn sync_shelf(&self, shelf: &Shelf, cfg: &Config) {
@@ -585,7 +588,14 @@ impl MainUi {
         let key = keys::label(cfg, Action::Capture);
         self.empty_keyed.set_visible(key.is_some());
         self.empty_plain.set_visible(key.is_none());
-        self.empty_key.set_label(key.as_deref().unwrap_or(""));
+        if let Some(key) = key {
+            // Oversettere: {key} is the capture shortcut. Keep the <b> and </b> markup around it.
+            let hint = tr_fmt(
+                "Trykk <b>{key}</b>\nfor å ta et skjermbilde",
+                &[("key", &glib::markup_escape_text(&key))],
+            );
+            self.empty_keyed.set_markup(&hint);
+        }
     }
 
     /// Bunnlinja følger valgmodus: glir opp til handlingene og ned igjen.
@@ -594,9 +604,10 @@ impl MainUi {
         self.shelf_count
             .set_label(&count_text(shelf.store.n_items() as usize));
         self.sel_count.set_label(&if n == 0 {
-            "Velg bilder".to_string()
+            tr("Velg bilder").to_string()
         } else {
-            format!("{n} valgt")
+            // Oversettere: Number of selected screenshots. Both forms are the same in Norwegian.
+            trn("{n} valgt", "{n} valgt", n)
         });
         if n == 0 {
             self.sel_count.add_css_class("dim-label");
@@ -711,7 +722,7 @@ fn set_control_tooltips(controls: &gtk::WindowControls, minimized: &Rc<Cell<bool
     fn walk(w: gtk::Widget, minimized: &Rc<Cell<bool>>) {
         if let Some(b) = w.downcast_ref::<gtk::Button>() {
             let (tip, label) = if b.has_css_class("close") {
-                ("Skjul til systemfeltet", "Lukk vinduet")
+                (tr("Skjul til systemfeltet"), tr("Lukk vinduet"))
             } else if b.has_css_class("minimize") {
                 // Kontrollene går gjennom knappene igjen ved hver endring.
                 if !b.has_css_class("klipp-hooked") {
@@ -722,7 +733,7 @@ fn set_control_tooltips(controls: &gtk::WindowControls, minimized: &Rc<Cell<bool
                         Klipp::get().sync_tray();
                     });
                 }
-                ("Minimer", "Minimer")
+                (tr("Minimer"), tr("Minimer"))
             } else {
                 return;
             };

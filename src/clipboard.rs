@@ -6,6 +6,7 @@ use gtk::gdk::subclass::prelude::*;
 use gtk::prelude::*;
 
 use gtk::{gdk, gio, glib};
+use klipp_system::i18n::tr;
 use std::cell::RefCell;
 use std::future::Future;
 use std::path::PathBuf;
@@ -60,18 +61,18 @@ mod imp {
                 let fail = |m: &str| glib::Error::new(gio::IOErrorEnum::Failed, m);
                 let slot = slot
                     .filter(|_| is_png)
-                    .ok_or_else(|| fail("ukjent format"))?;
+                    .ok_or_else(|| fail(tr("ukjent format")))?;
                 let bytes = loop {
                     let src = slot.borrow().clone();
                     match src {
                         Source::Pending => glib::timeout_future(Duration::from_millis(10)).await,
                         Source::Bytes(b) => break b,
-                        Source::Failed => return Err(fail("bildet ble ikke lagret")),
+                        Source::Failed => return Err(fail(tr("bildet ble ikke lagret"))),
                         Source::File(p) => {
                             let read = gio::spawn_blocking(move || std::fs::read(p)).await;
                             match read {
                                 Ok(Ok(v)) => break glib::Bytes::from_owned(v),
-                                _ => return Err(fail("kunne ikke lese bildet")),
+                                _ => return Err(fail(tr("kunne ikke lese bildet"))),
                             }
                         }
                     }

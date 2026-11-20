@@ -1,5 +1,6 @@
 //! Den samme versjonsloggen som følger kildekoden, vist fra nyest til eldst.
 
+use crate::i18n::{tr, tr_fmt};
 use adw::prelude::*;
 use gtk::{gdk, glib};
 use std::cell::RefCell;
@@ -174,9 +175,9 @@ pub(crate) fn open(parent: &adw::Window, about: About) {
         .margin_start(24)
         .margin_end(24)
         .build();
-    let version = label(&format!("Klipp {}", about.version));
+    let version = label(&tr_fmt("Klipp {version}", &[("version", about.version)]));
     version.add_css_class("title-1");
-    let build = label(&format!("Bygg {}", about.build));
+    let build = label(&tr_fmt("Bygg {build}", &[("build", about.build)]));
     build.add_css_class("dim-label");
     current.append(&version);
     current.append(&build);
@@ -187,13 +188,13 @@ pub(crate) fn open(parent: &adw::Window, about: About) {
     content.append(&scroll);
 
     let header = adw::HeaderBar::new();
-    header.set_title_widget(Some(&adw::WindowTitle::new("Versjonslogg", "")));
+    header.set_title_widget(Some(&adw::WindowTitle::new(tr("Versjonslogg"), "")));
     let toolbar = adw::ToolbarView::new();
     toolbar.add_top_bar(&header);
     toolbar.set_content(Some(&content));
 
     let window = adw::Window::builder()
-        .title("Versjonslogg")
+        .title(tr("Versjonslogg"))
         .transient_for(parent)
         .modal(true)
         .destroy_with_parent(true)

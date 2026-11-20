@@ -11,6 +11,7 @@ use crate::config::{CaptureMethod, Config, Theme, default_save_dir, pretty_dir};
 use crate::extension::{ExtensionState, enable_extension, extension_state};
 use crate::history;
 use crate::hotkeys::{self, Action, KeyInput, Mods};
+use crate::i18n::{Language, active_language, tr, tr_fmt, trc};
 use crate::portal;
 use crate::theme::apply_theme;
 
@@ -34,7 +35,6 @@ row.klipp-key-error .subtitle {
 ";
 /// Navnet på byggeserien appene hører til, likt i Agentic Desktop.
 pub const SIGNATURE: &str = "Code Pro";
-const LISTEN_HINT: &str = "Esc avbryter · Backspace fjerner";
 
 /// Endringer fra innstillingsvinduet. `Config` er allerede oppdatert og lagret.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -42,6 +42,7 @@ pub enum SettingsChange {
     Theme,
     Capture,
     Shortcuts,
+    Restart,
 }
 
 /// Det innstillingene viser om selve appen.
@@ -101,9 +102,9 @@ impl State {
                     row.add_css_class("klipp-key-error");
                     row.set_subtitle(message);
                 }
-                None => row.set_subtitle(LISTEN_HINT),
+                None => row.set_subtitle(tr("Esc avbryter · Backspace fjerner")),
             }
-            plain.set_label("Trykk ny snarvei …");
+            plain.set_label(tr("Trykk ny snarvei …"));
             plain.add_css_class("accent");
             plain.add_css_class("heading");
             plain.set_visible(true);
@@ -122,7 +123,7 @@ impl State {
                 plain.set_visible(false);
             }
             None => {
-                plain.set_label("Ingen");
+                plain.set_label(trc("shortcut-unassigned", "Ingen"));
                 plain.add_css_class("dim-label");
                 plain.set_visible(true);
                 keys.set_visible(false);
@@ -137,14 +138,16 @@ impl State {
         }
     }
 
-    fn persist(&self) {
+    fn persist(&self) -> bool {
         let saved = self.config.borrow().save();
         if let Err(message) = saved {
             eprintln!("klipp: {message}");
             if let Some(toasts) = &*self.toasts.borrow() {
-                toasts.add_toast(adw::Toast::new("Kunne ikke lagre innstillingene"));
+                toasts.add_toast(adw::Toast::new(tr("Kunne ikke lagre innstillingene")));
             }
+            return false;
         }
+        true
     }
 
     fn store_key(&self, action: Action, combo: Option<String>) {
@@ -276,8 +279,19 @@ pub fn open_settings(
         error: RefCell::new(None),
     });
 
+    let restart = adw::Banner::new(tr("Språket tas i bruk når Klipp startes på nytt"));
+    // Oversettere: Keep this settings banner button short.
+    restart.set_button_label(Some(tr("Start på nytt")));
+    restart.set_revealed(state.config.borrow().language.resolve() != active_language());
+    let on_restart = Rc::downgrade(&state);
+    restart.connect_button_clicked(move |_| {
+        if let Some(state) = on_restart.upgrade() {
+            (state.on_change)(SettingsChange::Restart);
+        }
+    });
+
     let page = adw::PreferencesPage::new();
-    page.add(&appearance_group(&state));
+    page.add(&appearance_group(&state, &restart));
     page.add(&capture_group(&state, about));
     page.add(&shortcuts_group(&state));
     page.add(&about_group(about));
@@ -285,6 +299,7 @@ pub fn open_settings(
     let toolbar = adw::ToolbarView::new();
     toolbar.add_top_bar(&adw::HeaderBar::new());
     toolbar.set_content(Some(&page));
+    toolbar.add_bottom_bar(&restart);
 
     let toasts = adw::ToastOverlay::new();
     toasts.set_child(Some(&toolbar));
@@ -292,7 +307,7 @@ pub fn open_settings(
 
     let window = adw::Window::builder()
         .application(app)
-        .title("Innstillinger")
+        .title(tr("Innstillinger"))
         .default_width(540)
         .default_height(660)
         .width_request(360)
@@ -364,8 +379,10 @@ fn connect_window(window: &adw::Window, state: &Rc<State>) {
     });
 }
 
-fn appearance_group(state: &Rc<State>) -> adw::PreferencesGroup {
-    let group = adw::PreferencesGroup::builder().title("Utseende").build();
+fn appearance_group(state: &Rc<State>, restart: &adw::Banner) -> adw::PreferencesGroup {
+    let group = adw::PreferencesGroup::builder()
+        .title(tr("Utseende"))
+        .build();
     let toggles = adw::ToggleGroup::builder()
         .valign(gtk::Align::Center)
         .build();
@@ -379,34 +396,77 @@ fn appearance_group(state: &Rc<State>) -> adw::PreferencesGroup {
     }
     toggles.set_active_name(Some(state.config.borrow().theme.id()));
 
-    let state = state.clone();
+    let on_theme = state.clone();
     toggles.connect_active_name_notify(move |toggles| {
         let Some(theme) = toggles.active_name().and_then(|n| Theme::from_id(&n)) else {
             return;
         };
-        if std::mem::replace(&mut state.config.borrow_mut().theme, theme) == theme {
+        if std::mem::replace(&mut on_theme.config.borrow_mut().theme, theme) == theme {
             return;
         }
         apply_theme(theme);
-        state.persist();
-        (state.on_change)(SettingsChange::Theme);
+        on_theme.persist();
+        (on_theme.on_change)(SettingsChange::Theme);
     });
 
-    let row = adw::ActionRow::builder().title("Tema").build();
+    let row = adw::ActionRow::builder().title(tr("Tema")).build();
     row.add_suffix(&toggles);
     group.add(&row);
+    group.add(&language_row(state, restart));
     group
+}
+
+fn language_row(state: &Rc<State>, restart: &adw::Banner) -> adw::ComboRow {
+    let labels = gtk::StringList::new(&[]);
+    // Oversettere: {language} is the system language's endonym, e.g. Norsk bokmål.
+    labels.append(&tr_fmt(
+        "Systemspråk ({language})",
+        &[("language", Language::System.endonym())],
+    ));
+    for language in Language::ALL.into_iter().skip(1) {
+        labels.append(language.endonym());
+    }
+    let selected = Language::ALL
+        .iter()
+        .position(|&language| language == state.config.borrow().language);
+    let row = adw::ComboRow::builder()
+        .title(tr("Språk"))
+        .model(&labels)
+        .selected(selected.unwrap_or_default() as u32)
+        .build();
+    let (state, restart) = (state.clone(), restart.clone());
+    row.connect_selected_notify(move |row| {
+        let Some(&language) = Language::ALL.get(row.selected() as usize) else {
+            return;
+        };
+        let previous = std::mem::replace(&mut state.config.borrow_mut().language, language);
+        if previous == language {
+            return;
+        }
+        if state.persist() {
+            restart.set_revealed(true);
+        } else {
+            state.config.borrow_mut().language = previous;
+            if let Some(idx) = Language::ALL
+                .iter()
+                .position(|&language| language == previous)
+            {
+                row.set_selected(idx as u32);
+            }
+        }
+    });
+    row
 }
 
 /// Stille opptak krever utvidelsen, så blitsen må kunne forklares og fjernes her.
 fn extension_row(about: About) -> adw::ActionRow {
     let current = extension_state(about.silent_capture);
     let row = adw::ActionRow::builder()
-        .title("Klipp-utvidelsen")
+        .title(tr("Klipp-utvidelsen"))
         .subtitle(current.text())
         .build();
     let enable = gtk::Button::builder()
-        .label("Slå på")
+        .label(tr("Slå på"))
         .valign(gtk::Align::Center)
         .css_classes(["suggested-action"])
         .visible(current == ExtensionState::Off)
@@ -417,7 +477,7 @@ fn extension_row(about: About) -> adw::ActionRow {
             shown.set_subtitle(ExtensionState::NeedsLogin.text());
             button.set_visible(false);
         } else {
-            shown.set_subtitle("GNOME godtok ikke endringen");
+            shown.set_subtitle(tr("GNOME godtok ikke endringen"));
         }
     });
     row.add_suffix(&enable);
@@ -439,7 +499,7 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
     }
     toggles.set_active_name(Some(method.id()));
     let row = adw::ActionRow::builder()
-        .title("Opptaksmåte")
+        .title(tr("Opptaksmåte"))
         .subtitle(method.hint())
         .build();
     row.add_suffix(&toggles);
@@ -448,15 +508,15 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
     let silent = method == CaptureMethod::Silent;
     let flash_row = switch_row(
         state,
-        "Blits",
-        "Lyser opp området når bildet er tatt",
+        tr("Blits"),
+        tr("Lyser opp området når bildet er tatt"),
         flash,
         |config, on| config.flash = on,
     );
     let sound_row = switch_row(
         state,
-        "Lukkerlyd",
-        "Spiller GNOMEs lyd når bildet er tatt",
+        tr("Lukkerlyd"),
+        tr("Spiller GNOMEs lyd når bildet er tatt"),
         sound,
         |config, on| config.sound = on,
     );
@@ -485,18 +545,18 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
 
 fn save_dir_row(state: &Rc<State>) -> adw::ActionRow {
     let row = adw::ActionRow::builder()
-        .title("Lagre skjermbilder i")
+        .title(tr("Lagre skjermbilder i"))
         .subtitle(pretty_dir(&state.config.borrow().save_dir()))
         .subtitle_selectable(true)
         .build();
     let reset = gtk::Button::builder()
-        .label("Standard")
+        .label(trc("save-folder-reset", "Standard"))
         .valign(gtk::Align::Center)
         .css_classes(["flat"])
         .visible(state.config.borrow().custom_save_dir.is_some())
         .build();
     let choose = gtk::Button::builder()
-        .label("Velg mappe")
+        .label(tr("Velg mappe"))
         .valign(gtk::Align::Center)
         .build();
 
@@ -516,8 +576,8 @@ fn save_dir_row(state: &Rc<State>) -> adw::ActionRow {
     let (config, shown) = (state.config.clone(), state.clone());
     choose.connect_clicked(move |button| {
         let dialog = gtk::FileDialog::builder()
-            .title("Velg mappe for skjermbilder")
-            .accept_label("Velg")
+            .title(tr("Velg mappe for skjermbilder"))
+            .accept_label(trc("folder-chooser", "Velg"))
             .modal(true)
             .build();
         let start = config.borrow().save_dir();
@@ -535,7 +595,7 @@ fn save_dir_row(state: &Rc<State>) -> adw::ActionRow {
             // Innstillingene lagres linje for linje, så stien må være vanlig tekst.
             if dir.to_str().is_none_or(|d| d.contains('\n')) {
                 if let Some(toasts) = &*shown.toasts.borrow() {
-                    toasts.add_toast(adw::Toast::new("Klipp kan ikke bruke den mappen"));
+                    toasts.add_toast(adw::Toast::new(tr("Klipp kan ikke bruke den mappen")));
                 }
                 return;
             }
@@ -548,8 +608,10 @@ fn save_dir_row(state: &Rc<State>) -> adw::ActionRow {
 }
 
 fn about_group(about: About) -> adw::PreferencesGroup {
-    let group = adw::PreferencesGroup::builder().title("Om Klipp").build();
-    for (title, value) in [("Versjon", about.version), ("Bygg", about.build)] {
+    let group = adw::PreferencesGroup::builder()
+        .title(tr("Om Klipp"))
+        .build();
+    for (title, value) in [(tr("Versjon"), about.version), (tr("Bygg"), about.build)] {
         let label = gtk::Label::builder()
             .label(value)
             .selectable(true)
@@ -560,8 +622,8 @@ fn about_group(about: About) -> adw::PreferencesGroup {
         group.add(&row);
     }
     let history = adw::ActionRow::builder()
-        .title("Versjonslogg")
-        .subtitle("Endringer fra første til nyeste versjon")
+        .title(tr("Versjonslogg"))
+        .subtitle(tr("Endringer fra første til nyeste versjon"))
         .activatable(true)
         .build();
     history.add_suffix(&gtk::Image::from_icon_name("go-next-symbolic"));
@@ -581,7 +643,7 @@ fn signature() -> gtk::Box {
         .css_classes(["klipp-signature-name"])
         .build();
     let note = gtk::Label::builder()
-        .label("Navnet på byggeserien denne versjonen hører til")
+        .label(tr("Navnet på byggeserien denne versjonen hører til"))
         .wrap(true)
         .justify(gtk::Justification::Center)
         .css_classes(["caption", "klipp-signature-note"])
@@ -599,7 +661,7 @@ fn signature() -> gtk::Box {
 
 fn capture_group(state: &Rc<State>, about: About) -> adw::PreferencesGroup {
     let group = adw::PreferencesGroup::builder()
-        .title("Skjermbilde")
+        .title(tr("Skjermbilde"))
         .build();
     method_rows(state, &group);
     group.add(&extension_row(about));
@@ -610,15 +672,15 @@ fn capture_group(state: &Rc<State>, about: About) -> adw::PreferencesGroup {
     };
     group.add(&switch_row(
         state,
-        "Ta bildet med en gang",
-        "Bildet tas når du slipper musa, uten bekreftelse",
+        tr("Ta bildet med en gang"),
+        tr("Bildet tas når du slipper musa, uten bekreftelse"),
         instant,
         |config, on| config.instant_capture = on,
     ));
     group.add(&switch_row(
         state,
-        "Kopier automatisk",
-        "Legger hvert nye bilde på utklippstavlen",
+        tr("Kopier automatisk"),
+        tr("Legger hvert nye bilde på utklippstavlen"),
         auto_copy,
         |config, on| config.auto_copy = on,
     ));
@@ -648,11 +710,11 @@ fn switch_row(
 
 fn shortcuts_group(state: &Rc<State>) -> adw::PreferencesGroup {
     let group = adw::PreferencesGroup::builder()
-        .title("Hurtigtaster")
+        .title(tr("Hurtigtaster"))
         .build();
 
     let reset = gtk::Button::builder()
-        .label("Tilbakestill")
+        .label(tr("Tilbakestill"))
         .valign(gtk::Align::Center)
         .build();
     let on_reset = state.clone();

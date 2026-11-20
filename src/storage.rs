@@ -3,6 +3,7 @@
 use crate::imaging::{self, Image};
 use futures_channel::oneshot;
 use gtk::{gio, glib};
+use klipp_system::i18n::tr_fmt;
 use std::fs::{self, File, OpenOptions};
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -104,7 +105,13 @@ impl ShotMeta {
             .unwrap_or_default()
     }
     pub fn dims(&self) -> String {
-        format!("{} × {} px", self.w, self.h)
+        tr_fmt(
+            "{width} × {height} px",
+            &[
+                ("width", &self.w.to_string()),
+                ("height", &self.h.to_string()),
+            ],
+        )
     }
 }
 
@@ -372,8 +379,15 @@ pub fn save_new_shot(
     max_w: u32,
     max_h: u32,
 ) -> Result<(ShotMeta, Image), String> {
-    let (path, file) = create_unique(dir, &file_stem(Stamp::now()))
-        .map_err(|e| format!("Kunne ikke lagre i {}: {e}", klipp_system::pretty_dir(dir)))?;
+    let (path, file) = create_unique(dir, &file_stem(Stamp::now())).map_err(|e| {
+        tr_fmt(
+            "Kunne ikke lagre i {path}: {error}",
+            &[
+                ("path", &klipp_system::pretty_dir(dir)),
+                ("error", &e.to_string()),
+            ],
+        )
+    })?;
     if let Err(e) = imaging::encode_png_file(img, alpha, file) {
         let _ = fs::remove_file(&path);
         return Err(e);
