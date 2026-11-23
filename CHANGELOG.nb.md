@@ -1,5 +1,17 @@
 # Versjonslogg
 
+## 2.0.1 — 2026-11-23
+
+- Vinduet åpner midt på skjermen igjen når du henter det frem. Etter at minimer-knappen var brukt én gang, havnet vinduet oppe i venstre hjørne når det ble åpnet fra appoversikten, og fra systemfeltet kom det ikke frem i det hele tatt.
+- Innstillinger og tegnevinduet kommer ikke lenger tilbake minimert etter et skjermbilde bare fordi de har vært minimert én gang før.
+- Når Agentic Screenshot-utvidelsen er slått på, men GNOME ikke har lastet den ennå, sier appen fra én gang om at GNOME tok bildet med blits og lyd, og at stille opptak virker når du har logget ut og inn. Innstillinger sier det samme under Opptaksmåte, og Blits og Lukkerlyd er grå til utvidelsen kjører.
+- Hurtigtasten tar ikke lenger det første bildet med blits og lyd når den må starte appen først.
+- Ctrl+A, Delete og de andre snarveiene i hovedvinduet gjør ingenting mens Innstillinger eller tegnevinduet er åpent.
+- Søppelbøtta på et bilde er skjult også for skjermlesere mens du velger flere bilder.
+- Et frihåndsklipp som bare er en strek, avvises som for lite i stedet for å lagre et tomt bilde.
+- Tegnevinduet får plass på små skjermer og på halve skjermen. Verktøylinja ruller sidelengs når det ikke er plass til hele.
+- Lagring i tegnevinduet beholder de utvidede rettighetene (ACL) på filen.
+
 ## 2.0.0 — 2026-11-23
 
 - Agentic Klipp heter nå Agentic Screenshot. Binæren heter `agentic-screenshot`, app-ID-en `io.github.AgenticScreenshot` og Shell-utvidelsen `agentic-screenshot@bejulian1.github.io`.

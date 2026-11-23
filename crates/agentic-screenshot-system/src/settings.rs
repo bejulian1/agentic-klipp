@@ -491,9 +491,19 @@ fn full_toggle(name: &str, label: &str) -> adw::Toggle {
         .build()
 }
 
+/// Teksten under Opptaksmåte. Uten utvidelsen tar GNOME bildet uansett valg, og da
+/// skal ikke Stille love noe den ikke holder.
+fn method_hint(method: CaptureMethod, extension_active: bool) -> &'static str {
+    if method == CaptureMethod::Silent && !extension_active {
+        tr("Krever utvidelsen under. Til den kjører, tar GNOME bildet med blits og lukkerlyd")
+    } else {
+        method.hint()
+    }
+}
+
 /// Opptaksmåte, med blits og lyd som bare betyr noe for stille opptak. GNOMEs vei har
-/// dem alltid, så der er bryterne ute av spill.
-fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
+/// dem alltid, så der er bryterne ute av spill. Det samme gjelder til utvidelsen kjører.
+fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup, extension_active: bool) {
     let (method, flash, sound) = {
         let config = state.config.borrow();
         (config.capture_method, config.flash, config.sound)
@@ -507,12 +517,12 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
     toggles.set_active_name(Some(method.id()));
     let row = adw::ActionRow::builder()
         .title(tr("Opptaksmåte"))
-        .subtitle(method.hint())
+        .subtitle(method_hint(method, extension_active))
         .build();
     row.add_suffix(&toggles);
     group.add(&row);
 
-    let silent = method == CaptureMethod::Silent;
+    let silent = method == CaptureMethod::Silent && extension_active;
     let flash_row = switch_row(
         state,
         tr("Blits"),
@@ -541,8 +551,8 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup) {
             return;
         };
         state.config.borrow_mut().capture_method = method;
-        row.set_subtitle(method.hint());
-        let silent = method == CaptureMethod::Silent;
+        row.set_subtitle(method_hint(method, extension_active));
+        let silent = method == CaptureMethod::Silent && extension_active;
         flash_row.set_sensitive(silent);
         sound_row.set_sensitive(silent);
         state.persist();
@@ -672,7 +682,7 @@ fn capture_group(state: &Rc<State>, about: About) -> adw::PreferencesGroup {
     let group = adw::PreferencesGroup::builder()
         .title(tr("Skjermbilde"))
         .build();
-    method_rows(state, &group);
+    method_rows(state, &group, about.silent_capture);
     group.add(&extension_row(about));
     group.add(&save_dir_row(state));
     let (instant, auto_copy) = {

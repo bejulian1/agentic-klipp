@@ -8,109 +8,109 @@ msgstr ""
 "Language: sv\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/app.rs:282
+#: src/app.rs:283
 msgid "Åpne den igjen fra ikonet i systemfeltet."
 msgstr "Öppna den igen från ikonen i systemfältet."
 
-#: src/app.rs:284
+#: src/app.rs:285
 msgid "Kjør agentic-screenshot for å åpne den igjen."
 msgstr "Kör agentic-screenshot för att öppna den igen."
 
-#: src/app.rs:286
+#: src/app.rs:287
 msgid "Agentic Screenshot kjører i bakgrunnen"
 msgstr "Agentic Screenshot körs i bakgrunden"
 
-#: src/app.rs:295
-#: src/capture/mod.rs:386
-#: src/capture/mod.rs:393
-#: crates/agentic-screenshot-annotate/src/window.rs:654
+#: src/app.rs:296
+#: src/capture/mod.rs:424
+#: src/capture/mod.rs:431
+#: crates/agentic-screenshot-annotate/src/window.rs:666
 msgid "Kopiert!"
 msgstr "Kopierat!"
 
-#: src/app.rs:298
-#: src/app.rs:308
-#: src/app.rs:342
+#: src/app.rs:299
+#: src/app.rs:309
+#: src/app.rs:343
 msgid "Ikke kopiert. Agentic Screenshot mangler fokus."
 msgstr "Kunde inte kopiera. Agentic Screenshot saknar fokus."
 
-#: src/app.rs:305
+#: src/app.rs:306
 msgid "Filsti kopiert"
 msgstr "Filsökväg kopierad"
 
-#: src/app.rs:331
+#: src/app.rs:332
 msgid "Filene er utilgjengelige"
 msgstr "Filerna är inte tillgängliga"
 
-#: src/app.rs:333
+#: src/app.rs:334
 msgid "Filene finnes ikke lenger"
 msgstr "Filerna finns inte längre"
 
 #. Keep these placeholders where they occur: {n}.
-#: src/app.rs:339
+#: src/app.rs:340
 msgid "{n} bilde kopiert"
 msgid_plural "{n} bilder kopiert"
 msgstr[0] "{n} bild kopierad"
 msgstr[1] "{n} bilder kopierade"
 
-#: src/app.rs:439
-#: src/app.rs:553
+#: src/app.rs:440
+#: src/app.rs:566
 msgid "Filen finnes ikke lenger"
 msgstr "Filen finns inte längre"
 
-#: src/app.rs:441
+#: src/app.rs:442
 msgid "Filen er utilgjengelig"
 msgstr "Filen är inte tillgänglig"
 
-#: src/app.rs:482
+#: src/app.rs:483
 msgid "Kunne ikke starte Agentic Screenshot på nytt"
 msgstr "Kunde inte starta om Agentic Screenshot"
 
-#: src/app.rs:485
+#: src/app.rs:486
 msgctxt "error-dialog"
 msgid "Lukk"
 msgstr "Stäng"
 
-#: src/app.rs:520
+#: src/app.rs:521
 msgid "Tømt. Filene er beholdt."
 msgstr "Hyllan tömd. Filerna ligger kvar på disken."
 
-#: src/app.rs:521
+#: src/app.rs:522
 msgctxt "shelf-clear"
 msgid "Angre"
 msgstr "Ångra"
 
 #. Image count at the bottom of the shelf.
 #. Keep these placeholders where they occur: {n}.
-#: src/app.rs:537
+#: src/app.rs:550
 msgid "{n} bilde"
 msgid_plural "{n} bilder"
 msgstr[0] "{n} bild"
 msgstr[1] "{n} bilder"
 
-#: src/app.rs:552
+#: src/app.rs:565
 msgid "Lagt i papirkurven"
 msgstr "Flyttad till papperskorgen"
 
-#: src/app.rs:554
+#: src/app.rs:567
 msgid "Kunne ikke legge i papirkurven"
 msgstr "Kunde inte flytta till papperskorgen"
 
 #. Keep these placeholders where they occur: {n}.
-#: src/app.rs:559
+#: src/app.rs:572
 msgid "{n} bilde lagt i papirkurven"
 msgid_plural "{n} bilder lagt i papirkurven"
 msgstr[0] "{n} bild flyttad till papperskorgen"
 msgstr[1] "{n} bilder flyttade till papperskorgen"
 
 #. Keep these placeholders where they occur: {n}.
-#: src/app.rs:566
+#: src/app.rs:579
 msgid "{n} bilde fantes ikke lenger"
 msgid_plural "{n} bilder fantes ikke lenger"
 msgstr[0] "{n} bild fanns inte längre"
 msgstr[1] "{n} bilder fanns inte längre"
 
 #. Keep these placeholders where they occur: {n}.
-#: src/app.rs:573
+#: src/app.rs:586
 msgid "{n} bilde kunne ikke flyttes"
 msgid_plural "{n} bilder kunne ikke flyttes"
 msgstr[0] "{n} bild kunde inte flyttas"
@@ -151,25 +151,33 @@ msgstr "Rita en sluten form · Esc stänger"
 msgid "Klikk på et vindu · Esc lukker"
 msgstr "Klicka på ett fönster · Esc stänger"
 
-#: src/capture/mod.rs:176
+#: src/capture/mod.rs:162
+msgid "GNOME tok bildet, med blits og lyd"
+msgstr "GNOME tog skärmbilden, med blixt och ljud"
+
+#: src/capture/mod.rs:163
+msgid "Stille opptak virker når du har logget ut og inn én gang."
+msgstr "Tyst tagning fungerar när du har loggat ut och in igen en gång."
+
+#: src/capture/mod.rs:210
 #: crates/agentic-screenshot-annotate/src/lib.rs:65
 msgid "Bildet kunne ikke leses"
 msgstr "Kunde inte läsa bilden"
 
-#: src/capture/mod.rs:192
-#: src/capture/mod.rs:200
+#: src/capture/mod.rs:226
+#: src/capture/mod.rs:234
 msgid "Agentic Screenshot har ikke tilgang til skjermbilder"
 msgstr "Agentic Screenshot har inte behörighet att ta skärmbilder"
 
-#: src/capture/mod.rs:361
+#: src/capture/mod.rs:399
 msgid "Bildet kunne ikke lagres"
 msgstr "Kunde inte spara bilden"
 
-#: src/capture/mod.rs:387
+#: src/capture/mod.rs:425
 msgid "Ikke kopiert"
 msgstr "Inte kopierad"
 
-#: src/capture/mod.rs:395
+#: src/capture/mod.rs:433
 msgid "Lagret, men ikke kopiert. Shift+høyreklikk på bildet."
 msgstr "Sparad utan att kopieras. Shift+högerklicka på bilden för att kopiera."
 
@@ -337,8 +345,8 @@ msgstr "Kunde inte skriva bilden: {error}"
 #. {label} is an annotation tool and {key} is its fixed shortcut.
 #. {label} is the action name and {key} is its configured shortcut.
 #: src/keys.rs:59
-#: crates/agentic-screenshot-annotate/src/window.rs:221
-#: crates/agentic-screenshot-annotate/src/window.rs:258
+#: crates/agentic-screenshot-annotate/src/window.rs:223
+#: crates/agentic-screenshot-annotate/src/window.rs:260
 msgid "{label} ({key})"
 msgstr "{label} ({key})"
 
@@ -426,8 +434,8 @@ msgid "Velg modus"
 msgstr "Välj läge"
 
 #: src/window.rs:150
-#: src/window.rs:540
-#: src/window.rs:576
+#: src/window.rs:560
+#: src/window.rs:596
 msgid "Skjul hylla"
 msgstr "Dölj hyllan"
 
@@ -443,8 +451,8 @@ msgid "Annoter"
 msgstr "Annotera"
 
 #: src/window.rs:214
-#: src/window.rs:538
-#: src/window.rs:574
+#: src/window.rs:558
+#: src/window.rs:594
 msgid "Vis hylla"
 msgstr "Visa hyllan"
 
@@ -469,7 +477,7 @@ msgid "Velg flere bilder"
 msgstr "Välj flera bilder"
 
 #: src/window.rs:298
-#: crates/agentic-screenshot-annotate/src/window.rs:120
+#: crates/agentic-screenshot-annotate/src/window.rs:122
 msgid "Avbryt (Esc)"
 msgstr "Avbryt (Esc)"
 
@@ -494,13 +502,13 @@ msgstr "Kopiera de valda bilderna (Ctrl+C)"
 
 #. Keep these placeholders where they occur: {mode}.
 #. {mode} is a capture mode such as Area or Window.
-#: src/window.rs:570
+#: src/window.rs:590
 msgid "Ta skjermbilde: {mode}"
 msgstr "Ta skärmbild: {mode}"
 
 #. Keep these placeholders where they occur: {key}.
 #. {key} is the capture shortcut. Keep the <b> and </b> markup around it.
-#: src/window.rs:593
+#: src/window.rs:613
 msgid ""
 "Trykk <b>{key}</b>\n"
 "for å ta et skjermbilde"
@@ -508,32 +516,32 @@ msgstr ""
 "Tryck <b>{key}</b>\n"
 "för att ta en skärmbild"
 
-#: src/window.rs:607
+#: src/window.rs:627
 msgid "Velg bilder"
 msgstr "Välj bilder"
 
 #. Keep these placeholders where they occur: {n}.
 #. Number of selected screenshots. Both forms are the same in Norwegian.
-#: src/window.rs:610
+#: src/window.rs:630
 msgid "{n} valgt"
 msgid_plural "{n} valgt"
 msgstr[0] "{n} vald"
 msgstr[1] "{n} valda"
 
-#: src/window.rs:725
+#: src/window.rs:745
 msgid "Skjul til systemfeltet"
 msgstr "Dölj till systemfältet"
 
-#: src/window.rs:725
+#: src/window.rs:745
 msgid "Lukk vinduet"
 msgstr "Stäng fönstret"
 
-#: src/window.rs:736
+#: src/window.rs:756
 msgid "Minimer"
 msgstr "Minimera"
 
 #: crates/agentic-screenshot-annotate/src/canvas.rs:141
-#: crates/agentic-screenshot-annotate/src/window.rs:820
+#: crates/agentic-screenshot-annotate/src/window.rs:831
 msgid "Annoter skjermbilde"
 msgstr "Annotera skärmbild"
 
@@ -546,47 +554,47 @@ msgid "Ukjent format"
 msgstr "Okänt format"
 
 #: crates/agentic-screenshot-annotate/src/clipboard.rs:75
-#: crates/agentic-screenshot-annotate/src/file.rs:36
+#: crates/agentic-screenshot-annotate/src/file.rs:37
 msgid "Bildet kunne ikke kodes som PNG"
 msgstr "Kunde inte koda bilden som PNG"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:19
+#: crates/agentic-screenshot-annotate/src/file.rs:20
 msgid "Filen eller mappen finnes ikke"
 msgstr "Filen eller mappen finns inte"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:20
+#: crates/agentic-screenshot-annotate/src/file.rs:21
 msgid "Ingen tilgang"
 msgstr "Åtkomst nekad"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:21
+#: crates/agentic-screenshot-annotate/src/file.rs:22
 msgid "Disken er full"
 msgstr "Disken är full"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:22
+#: crates/agentic-screenshot-annotate/src/file.rs:23
 msgid "Ukjent feil ved lesing eller skriving"
 msgstr "Okänt läs- eller skrivfel"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:29
-#: crates/agentic-screenshot-annotate/src/file.rs:87
+#: crates/agentic-screenshot-annotate/src/file.rs:30
+#: crates/agentic-screenshot-annotate/src/file.rs:88
 msgid "Filen er ikke en gyldig PNG"
 msgstr "Filen är inte en giltig PNG"
 
 #. Keep these placeholders where they occur: {height}, {width}.
-#: crates/agentic-screenshot-annotate/src/file.rs:64
+#: crates/agentic-screenshot-annotate/src/file.rs:65
 msgid "Bildet er for stort: {width}×{height}"
 msgstr "Bilden är för stor: {width}×{height}"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:74
+#: crates/agentic-screenshot-annotate/src/file.rs:75
 msgid "Bildet er for stort"
 msgstr "Bilden är för stor"
 
-#: crates/agentic-screenshot-annotate/src/file.rs:151
+#: crates/agentic-screenshot-annotate/src/file.rs:188
 msgid "Ugyldig filsti"
 msgstr "Ogiltig filsökväg"
 
 #. Keep these placeholders where they occur: {error}.
-#: crates/agentic-screenshot-annotate/src/file.rs:157
-#: crates/agentic-screenshot-annotate/src/file.rs:176
+#: crates/agentic-screenshot-annotate/src/file.rs:194
+#: crates/agentic-screenshot-annotate/src/file.rs:214
 msgid "Kunne ikke lagre bildet: {error}"
 msgstr "Kunde inte spara bilden: {error}"
 
@@ -595,8 +603,8 @@ msgid "Kunne ikke åpne bildet"
 msgstr "Kunde inte öppna bilden"
 
 #: crates/agentic-screenshot-annotate/src/lib.rs:97
-#: crates/agentic-screenshot-annotate/src/window.rs:116
-#: crates/agentic-screenshot-annotate/src/window.rs:802
+#: crates/agentic-screenshot-annotate/src/window.rs:118
+#: crates/agentic-screenshot-annotate/src/window.rs:814
 msgctxt "annotation-title"
 msgid "Annoter"
 msgstr "Annotera"
@@ -716,92 +724,92 @@ msgctxt "annotation-thickness"
 msgid "Ekstra tykk"
 msgstr "Extra tjock"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:120
+#: crates/agentic-screenshot-annotate/src/window.rs:122
 msgctxt "annotation-cancel"
 msgid "Avbryt"
 msgstr "Avbryt"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:128
+#: crates/agentic-screenshot-annotate/src/window.rs:130
 msgctxt "annotation-undo"
 msgid "Angre (Ctrl+Z)"
 msgstr "Ångra (Ctrl+Z)"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:129
+#: crates/agentic-screenshot-annotate/src/window.rs:131
 msgctxt "annotation-undo"
 msgid "Angre"
 msgstr "Ångra"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:138
+#: crates/agentic-screenshot-annotate/src/window.rs:140
 msgid "Gjør om (Ctrl+Shift+Z)"
 msgstr "Gör om (Ctrl+Shift+Z)"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:139
+#: crates/agentic-screenshot-annotate/src/window.rs:141
 msgctxt "annotation-redo"
 msgid "Gjør om"
 msgstr "Gör om"
 
 #. Saves annotations and closes the editor. Keep the header button short.
-#: crates/agentic-screenshot-annotate/src/window.rs:151
+#: crates/agentic-screenshot-annotate/src/window.rs:153
 msgctxt "annotation-save"
 msgid "Ferdig"
 msgstr "Klar"
 
 #. Saves annotations and closes the editor. Keep the header button short.
-#: crates/agentic-screenshot-annotate/src/window.rs:151
+#: crates/agentic-screenshot-annotate/src/window.rs:153
 msgid "Ferdig (Ctrl+Enter)"
 msgstr "Klar (Ctrl+Enter)"
 
 #. Copies the annotated image. Keep the header button short.
-#: crates/agentic-screenshot-annotate/src/window.rs:159
+#: crates/agentic-screenshot-annotate/src/window.rs:161
 msgctxt "annotation-copy"
 msgid "Kopier"
 msgstr "Kopiera"
 
 #. Copies the annotated image. Keep the header button short.
-#: crates/agentic-screenshot-annotate/src/window.rs:159
+#: crates/agentic-screenshot-annotate/src/window.rs:161
 msgid "Kopier (Ctrl+C)"
 msgstr "Kopiera (Ctrl+C)"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:216
+#: crates/agentic-screenshot-annotate/src/window.rs:218
 msgid "Annoteringsverktøy"
 msgstr "Annoteringsverktyg"
 
 #. Accessible label for a color swatch.
 #. Keep these placeholders where they occur: {color}.
-#: crates/agentic-screenshot-annotate/src/window.rs:263
+#: crates/agentic-screenshot-annotate/src/window.rs:265
 msgid "Farge: {color}"
 msgstr "Färg: {color}"
 
 #. Keep these placeholders where they occur: {key}.
 #. The fixed number key opens the custom color picker.
-#: crates/agentic-screenshot-annotate/src/window.rs:305
+#: crates/agentic-screenshot-annotate/src/window.rs:317
 msgid "Egen farge ({key})"
 msgstr "Anpassad färg ({key})"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:309
-#: crates/agentic-screenshot-annotate/src/window.rs:351
+#: crates/agentic-screenshot-annotate/src/window.rs:321
+#: crates/agentic-screenshot-annotate/src/window.rs:363
 msgid "Egen farge"
 msgstr "Anpassad färg"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:416
+#: crates/agentic-screenshot-annotate/src/window.rs:428
 msgid "Størrelse (+ / −)"
 msgstr "Storlek (+ / −)"
 
 #. Keep these placeholders where they occur: {size}.
-#: crates/agentic-screenshot-annotate/src/window.rs:450
-#: crates/agentic-screenshot-annotate/src/window.rs:468
+#: crates/agentic-screenshot-annotate/src/window.rs:462
+#: crates/agentic-screenshot-annotate/src/window.rs:480
 msgid "Størrelse: {size}"
 msgstr "Storlek: {size}"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:462
+#: crates/agentic-screenshot-annotate/src/window.rs:474
 msgid "+ og − bytter størrelse"
 msgstr "Tryck på + eller − för att ändra storlek"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:623
+#: crates/agentic-screenshot-annotate/src/window.rs:635
 msgid "Kunne ikke lagre bildet"
 msgstr "Kunde inte spara bilden"
 
-#: crates/agentic-screenshot-annotate/src/window.rs:656
+#: crates/agentic-screenshot-annotate/src/window.rs:668
 msgid "Kunne ikke kopiere bildet"
 msgstr "Kunde inte kopiera bilden"
 
@@ -862,7 +870,7 @@ msgstr "Bygge {build}"
 
 #: crates/agentic-screenshot-system/src/history.rs:203
 #: crates/agentic-screenshot-system/src/history.rs:209
-#: crates/agentic-screenshot-system/src/settings.rs:634
+#: crates/agentic-screenshot-system/src/settings.rs:644
 msgid "Versjonslogg"
 msgstr "Versionshistorik"
 
@@ -1044,97 +1052,101 @@ msgstr "Slå på"
 msgid "GNOME godtok ikke endringen"
 msgstr "GNOME godkände inte ändringen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:509
+#: crates/agentic-screenshot-system/src/settings.rs:498
+msgid "Krever utvidelsen under. Til den kjører, tar GNOME bildet med blits og lukkerlyd"
+msgstr "Kräver tillägget nedan. Tills det körs tar GNOME skärmbilden med blixt och slutarljud"
+
+#: crates/agentic-screenshot-system/src/settings.rs:519
 msgid "Opptaksmåte"
 msgstr "Tagningsmetod"
 
-#: crates/agentic-screenshot-system/src/settings.rs:518
+#: crates/agentic-screenshot-system/src/settings.rs:528
 msgid "Blits"
 msgstr "Blixt"
 
-#: crates/agentic-screenshot-system/src/settings.rs:519
+#: crates/agentic-screenshot-system/src/settings.rs:529
 msgid "Lyser opp området når bildet er tatt"
 msgstr "Lyser upp området efter tagning"
 
-#: crates/agentic-screenshot-system/src/settings.rs:525
+#: crates/agentic-screenshot-system/src/settings.rs:535
 msgid "Lukkerlyd"
 msgstr "Slutarljud"
 
-#: crates/agentic-screenshot-system/src/settings.rs:526
+#: crates/agentic-screenshot-system/src/settings.rs:536
 msgid "Spiller GNOMEs lyd når bildet er tatt"
 msgstr "Spelar GNOMEs slutarljud efter tagning"
 
-#: crates/agentic-screenshot-system/src/settings.rs:555
+#: crates/agentic-screenshot-system/src/settings.rs:565
 msgid "Lagre skjermbilder i"
 msgstr "Spara skärmbilder i"
 
-#: crates/agentic-screenshot-system/src/settings.rs:560
+#: crates/agentic-screenshot-system/src/settings.rs:570
 msgctxt "save-folder-reset"
 msgid "Standard"
 msgstr "Standard"
 
-#: crates/agentic-screenshot-system/src/settings.rs:566
+#: crates/agentic-screenshot-system/src/settings.rs:576
 msgid "Velg mappe"
 msgstr "Välj mapp"
 
-#: crates/agentic-screenshot-system/src/settings.rs:586
+#: crates/agentic-screenshot-system/src/settings.rs:596
 msgid "Velg mappe for skjermbilder"
 msgstr "Välj mapp för skärmbilder"
 
-#: crates/agentic-screenshot-system/src/settings.rs:587
+#: crates/agentic-screenshot-system/src/settings.rs:597
 msgctxt "folder-chooser"
 msgid "Velg"
 msgstr "Välj"
 
-#: crates/agentic-screenshot-system/src/settings.rs:605
+#: crates/agentic-screenshot-system/src/settings.rs:615
 msgid "Agentic Screenshot kan ikke bruke den mappen"
 msgstr "Agentic Screenshot kan inte använda den här mappen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:621
+#: crates/agentic-screenshot-system/src/settings.rs:631
 msgid "Om Agentic Screenshot"
 msgstr "Om Agentic Screenshot"
 
-#: crates/agentic-screenshot-system/src/settings.rs:623
+#: crates/agentic-screenshot-system/src/settings.rs:633
 msgid "Versjon"
 msgstr "Version"
 
-#: crates/agentic-screenshot-system/src/settings.rs:623
+#: crates/agentic-screenshot-system/src/settings.rs:633
 msgid "Bygg"
 msgstr "Bygge"
 
-#: crates/agentic-screenshot-system/src/settings.rs:635
+#: crates/agentic-screenshot-system/src/settings.rs:645
 msgid "Endringer fra første til nyeste versjon"
 msgstr "Ändringar från första till senaste versionen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:655
+#: crates/agentic-screenshot-system/src/settings.rs:665
 msgid "Navnet på byggeserien denne versjonen hører til"
 msgstr "Namnet på byggserien som den här versionen tillhör"
 
-#: crates/agentic-screenshot-system/src/settings.rs:673
+#: crates/agentic-screenshot-system/src/settings.rs:683
 msgid "Skjermbilde"
 msgstr "Skärmbild"
 
-#: crates/agentic-screenshot-system/src/settings.rs:684
+#: crates/agentic-screenshot-system/src/settings.rs:694
 msgid "Ta bildet med en gang"
 msgstr "Ta bilden direkt"
 
-#: crates/agentic-screenshot-system/src/settings.rs:685
+#: crates/agentic-screenshot-system/src/settings.rs:695
 msgid "Bildet tas når du slipper musa, uten bekreftelse"
 msgstr "Tar skärmbilden när du släpper musknappen, utan bekräftelse"
 
-#: crates/agentic-screenshot-system/src/settings.rs:691
+#: crates/agentic-screenshot-system/src/settings.rs:701
 msgid "Kopier automatisk"
 msgstr "Kopiera automatiskt"
 
-#: crates/agentic-screenshot-system/src/settings.rs:692
+#: crates/agentic-screenshot-system/src/settings.rs:702
 msgid "Legger hvert nye bilde på utklippstavlen"
 msgstr "Kopierar varje ny skärmbild till urklipp"
 
-#: crates/agentic-screenshot-system/src/settings.rs:722
+#: crates/agentic-screenshot-system/src/settings.rs:732
 msgid "Hurtigtaster"
 msgstr "Tangentbordsgenvägar"
 
-#: crates/agentic-screenshot-system/src/settings.rs:726
+#: crates/agentic-screenshot-system/src/settings.rs:736
 msgid "Tilbakestill"
 msgstr "Återställ"
 

@@ -2,9 +2,10 @@
 
 use crate::pixels;
 use agentic_screenshot_system::i18n::{tr, tr_fmt};
-use std::ffi::OsString;
+use std::ffi::{CStr, CString, OsString};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, BufWriter, ErrorKind, Write};
+use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU32, Ordering};
 
@@ -141,6 +142,42 @@ fn temp_path(target: &Path) -> Option<PathBuf> {
     Some(target.with_file_name(tmp))
 }
 
+/// Utvidede rettigheter (POSIX-ACL) ligger i dette attributtet.
+const ACL: &CStr = c"system.posix_acl_access";
+
+/// Ta med ACL-en fra `from` til `to`. `rename` bytter ut hele fila, så uten dette
+/// mister et bilde i en delt mappe tilgangene det hadde. Uten ACL, eller på et
+/// filsystem uten støtte, skjer ingenting.
+fn copy_acl(from: &Path, to: &Path) {
+    let c = |p: &Path| CString::new(p.as_os_str().as_bytes());
+    let (Ok(from), Ok(to)) = (c(from), c(to)) else {
+        return;
+    };
+    let mut acl = [0u8; 4096];
+    // SAFETY: Stiene og navnet er nullterminerte, og bufferen har lengden vi oppgir.
+    let len = unsafe {
+        libc::getxattr(
+            from.as_ptr(),
+            ACL.as_ptr(),
+            acl.as_mut_ptr().cast(),
+            acl.len(),
+        )
+    };
+    if len <= 0 {
+        return;
+    }
+    // SAFETY: Som over. Bare de `len` bytene som ble lest, skrives.
+    unsafe {
+        libc::setxattr(
+            to.as_ptr(),
+            ACL.as_ptr(),
+            acl.as_ptr().cast(),
+            len as usize,
+            0,
+        )
+    };
+}
+
 /// Skriv med `write` til en temp-fil i samme mappe og erstatt `path` atomisk. Enten står den
 /// gamle filen urørt, eller så står hele den nye. En symbolsk lenke beholdes.
 pub fn write_atomic(
@@ -162,6 +199,7 @@ pub fn write_atomic(
     let result = (|| {
         if let Ok(meta) = fs::metadata(&target) {
             fs::set_permissions(&tmp, meta.permissions()).map_err(|e| describe(&e).to_string())?;
+            copy_acl(&target, &tmp);
         }
         let mut w = BufWriter::with_capacity(1 << 18, file);
         write(&mut w)?;
@@ -294,6 +332,62 @@ mod tests {
         assert_eq!(entries(&d), vec!["a.png".to_string()]);
         let mode = fs::metadata(&p).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o640);
+        let _ = fs::remove_dir_all(&d);
+    }
+
+    /// ACL slik `setfacl -m u:12345:r` ville laget den, i kjernens format: versjon,
+    /// så (type, rettigheter, id) per oppføring.
+    fn acl_with_named_user() -> Vec<u8> {
+        let entry = |tag: u16, perm: u16, id: u32| {
+            let mut e = Vec::new();
+            e.extend(tag.to_le_bytes());
+            e.extend(perm.to_le_bytes());
+            e.extend(id.to_le_bytes());
+            e
+        };
+        let none = u32::MAX;
+        let mut acl = 2u32.to_le_bytes().to_vec();
+        acl.extend(entry(0x01, 6, none)); // eier: rw
+        acl.extend(entry(0x02, 4, 12345)); // navngitt bruker: r
+        acl.extend(entry(0x04, 4, none)); // gruppe: r
+        acl.extend(entry(0x10, 4, none)); // maske: r
+        acl.extend(entry(0x20, 0, none)); // andre: ingenting
+        acl
+    }
+
+    fn acl_of(path: &Path) -> Option<Vec<u8>> {
+        let path = CString::new(path.as_os_str().as_bytes()).unwrap();
+        let mut buf = [0u8; 256];
+        // SAFETY: Nullterminerte strenger og en buffer med oppgitt lengde.
+        let len = unsafe {
+            libc::getxattr(
+                path.as_ptr(),
+                ACL.as_ptr(),
+                buf.as_mut_ptr().cast(),
+                buf.len(),
+            )
+        };
+        (len > 0).then(|| buf[..len as usize].to_vec())
+    }
+
+    #[test]
+    fn atomic_write_keeps_the_acl() {
+        let d = dir("acl");
+        let p = d.join("a.png");
+        fs::write(&p, b"gammel").unwrap();
+        let acl = acl_with_named_user();
+        let c = CString::new(p.as_os_str().as_bytes()).unwrap();
+        // SAFETY: Nullterminerte strenger og en buffer med oppgitt lengde.
+        let set =
+            unsafe { libc::setxattr(c.as_ptr(), ACL.as_ptr(), acl.as_ptr().cast(), acl.len(), 0) };
+        if set != 0 {
+            // Filsystemet har ikke ACL-er. Da er det ingenting å miste.
+            let _ = fs::remove_dir_all(&d);
+            return;
+        }
+        write_atomic(&p, |w| w.write_all(b"ny").map_err(|e| e.to_string())).unwrap();
+        assert_eq!(fs::read(&p).unwrap(), b"ny");
+        assert_eq!(acl_of(&p), Some(acl));
         let _ = fs::remove_dir_all(&d);
     }
 

@@ -355,9 +355,9 @@ impl Tile {
     fn set_selection(&self, selecting: bool, selected: bool) {
         if self.has_css_class("selecting") != selecting {
             self.set_tooltip_text(Some(tile_tip(selecting)));
+            // Skjult helt, så verken mus, Tab eller skjermleser når den.
             if let Some(trash) = self.imp().trash.borrow().as_ref() {
-                trash.set_can_target(!selecting);
-                trash.set_focusable(!selecting);
+                trash.set_visible(!selecting);
             }
         }
         for (class, on) in [("selecting", selecting), ("selected", selected)] {

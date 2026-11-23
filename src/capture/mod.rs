@@ -12,6 +12,7 @@ use crate::shelf;
 use crate::storage::{self, ShotMeta};
 use crate::trace;
 use agentic_screenshot_system::i18n::tr;
+use agentic_screenshot_system::{CaptureMethod, Config};
 use geometry::{Mode, Pt, Rect};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
@@ -52,6 +53,10 @@ pub struct Controller {
     hidden: RefCell<Vec<gtk::Window>>,
     pub session: RefCell<Option<Rc<overlay::Session>>>,
     started: Cell<Option<Instant>>,
+    /// GNOME tok dette bildet selv om brukeren har valgt stille opptak.
+    loud: Cell<bool>,
+    /// Beskjeden om det er gitt. Én gang per kjøring holder.
+    loud_told: Cell<bool>,
 }
 
 impl Controller {
@@ -76,6 +81,7 @@ pub fn start(k: &Rc<App>, mode: Option<Mode>) {
     k.ui.hide_reveal();
     let k = k.clone();
     glib::spawn_future_local(async move {
+        shell::settled().await;
         let mode = k.config.borrow().last_mode;
         if mode == Mode::Window {
             hide_windows(&k).await;
@@ -123,6 +129,10 @@ fn restore_windows(k: &Rc<App>, show_main: bool) {
     let mut wins = k.capture.hidden.take();
     let main: gtk::Window = k.ui.window.clone().upcast();
     if show_main && !wins.contains(&main) {
+        // Et lukket vindu skal frem, ikke gjenta en gammel minimering.
+        if !main.is_visible() {
+            k.ui.forget_minimize();
+        }
         wins.insert(0, main);
     }
     for w in &wins {
@@ -131,7 +141,31 @@ fn restore_windows(k: &Rc<App>, show_main: bool) {
     k.sync_tray();
 }
 
+/// Skulle bildet vært stille, men GNOME måtte ta det med blits og lyd? Bare når
+/// brukeren har valgt bort minst én av dem, ellers er det ingen forskjell å merke.
+fn unexpectedly_loud(config: &Config, ready: bool) -> bool {
+    !ready && config.capture_method == CaptureMethod::Silent && !(config.flash && config.sound)
+}
+
+/// Si fra én gang når utvidelsen er slått på, men GNOME ikke har lastet den ennå.
+/// Det er slik etter installasjon og oppgradering, til brukeren har logget inn på
+/// nytt. Uten beskjed ser det ut som om Blits og Lukkerlyd ikke virker.
+fn tell_if_loud(k: &Rc<App>) {
+    if !k.capture.loud.replace(false) || k.capture.loud_told.get() {
+        return;
+    }
+    if !agentic_screenshot_system::silent_capture_awaits_login() {
+        return;
+    }
+    k.capture.loud_told.set(true);
+    crate::app::notify(
+        tr("GNOME tok bildet, med blits og lyd"),
+        tr("Stille opptak virker når du har logget ut og inn én gang."),
+    );
+}
+
 fn finish(k: &Rc<App>) {
+    tell_if_loud(k);
     k.capture.busy.set(false);
     k.capture.started.set(None);
     glib::timeout_add_local_once(Duration::from_millis(200), || {
@@ -226,7 +260,11 @@ async fn frozen_capture(k: Rc<App>, mode: Mode) {
     let path = match silent {
         Some(p) => p,
         None => match portal_shot(&k).await {
-            Ok(Some(p)) => p,
+            Ok(Some(p)) => {
+                let loud = unexpectedly_loud(&k.config.borrow(), shell::ready());
+                k.capture.loud.set(loud);
+                p
+            }
             Ok(None) => return abort(&k),
             Err(e) => return fail(&k, &e),
         },
@@ -398,4 +436,32 @@ fn deliver(k: Rc<App>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
         k.capture.mark("ferdig");
         finish(&k);
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gnome_capture_is_only_a_surprise_when_silence_was_chosen() {
+        let config = |method, flash, sound| {
+            let mut c = Config::default();
+            (c.capture_method, c.flash, c.sound) = (method, flash, sound);
+            c
+        };
+        let silent = CaptureMethod::Silent;
+        // Utvidelsen kjører ikke, og brukeren har valgt bort blits og lyd.
+        assert!(unexpectedly_loud(&Config::default(), false));
+        assert!(unexpectedly_loud(&config(silent, true, false), false));
+        assert!(unexpectedly_loud(&config(silent, false, true), false));
+        // Utvidelsen kjører: bildet tas stille, eller GNOME tok over etter en feil.
+        assert!(!unexpectedly_loud(&Config::default(), true));
+        // Med både blits og lyd på er GNOMEs vei ikke til å skille fra den stille.
+        assert!(!unexpectedly_loud(&config(silent, true, true), false));
+        // GNOMEs vei er valgt med vilje.
+        assert!(!unexpectedly_loud(
+            &config(CaptureMethod::Gnome, false, false),
+            false
+        ));
+    }
 }
