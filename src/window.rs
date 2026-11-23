@@ -368,7 +368,9 @@ impl MainUi {
         window.connect_is_active_notify(|w| {
             if w.is_active() {
                 let k = App::get();
-                if k.ui.minimized.replace(false) {
+                // Et aktivt vindu er hentet frem igjen, for eksempel fra Dash.
+                if k.ui.minimized.get() {
+                    k.ui.forget_minimize();
                     k.sync_tray();
                 }
                 let (shelf, ui) = (k.shelf.clone(), k.ui.clone());
@@ -469,6 +471,10 @@ impl MainUi {
                 return glib::Propagation::Proceed;
             };
             let k = App::get();
+            // Et grått vindu bak Innstillinger eller tegnevinduet tar ingen taster.
+            if k.ui.blocked() {
+                return glib::Propagation::Proceed;
+            }
             let action =
                 keys::action_for(&k.config.borrow(), &display, key, code, c.group(), state);
             // Egne snarveier først. Valgtastene virker uansett hvor fokus står.
@@ -495,6 +501,20 @@ impl MainUi {
 
     pub fn set_blocked(&self, blocked: bool) {
         self.content.set_sensitive(!blocked);
+    }
+
+    /// Et annet vindu er åpent, og hovedvinduet er grått og tar ikke imot noe.
+    pub fn blocked(&self) -> bool {
+        !self.content.is_sensitive()
+    }
+
+    /// Glem minimeringen fra knappen i vinduet. GTK husker den og minimerer
+    /// vinduet igjen neste gang det vises, og Wayland sier aldri fra om at det er
+    /// hentet frem. Et vindu som åpnes minimert, får heller ingen plass av GNOME
+    /// og havner oppe i hjørnet når det hentes frem.
+    pub fn forget_minimize(&self) {
+        self.minimized.set(false);
+        self.window.unminimize();
     }
 
     pub fn apply_compact(&self, on: bool) {

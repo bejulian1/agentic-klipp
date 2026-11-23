@@ -35,6 +35,12 @@ pub fn window_size(img: (f64, f64), monitor: (f64, f64), device_scale: f64) -> (
     (w as i32, h as i32)
 }
 
+/// Vinduet åpner bredt nok til at hele verktøylinja synes, så langt skjermen rekker.
+/// På en smalere skjerm ruller verktøylinja sidelengs.
+pub fn fit_toolbar(width: i32, toolbar: i32, monitor_width: f64) -> i32 {
+    width.max(toolbar.min((monitor_width - MONITOR_MARGIN) as i32))
+}
+
 /// Plassen bildet skal få i widgeten.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Stage {
@@ -231,5 +237,14 @@ mod tests {
             window_size((1920.0, 1080.0), (1920.0, 1080.0), 2.0),
             (992, 665)
         );
+    }
+
+    #[test]
+    fn window_shows_the_whole_toolbar_when_the_monitor_has_room() {
+        assert_eq!(fit_toolbar(720, 790, 1920.0), 790);
+        assert_eq!(fit_toolbar(1538, 790, 1920.0), 1538);
+        // Smal skjerm: vinduet holder seg innenfor, og verktøylinja ruller.
+        assert_eq!(fit_toolbar(600, 790, 640.0), 600);
+        assert_eq!(fit_toolbar(500, 790, 640.0), 600);
     }
 }

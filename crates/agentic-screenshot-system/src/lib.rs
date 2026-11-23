@@ -30,6 +30,7 @@ pub fn user_state_dir() -> std::path::PathBuf {
 }
 
 pub use config::{CaptureMethod, Config, Mode, Theme, default_save_dir, pretty_dir};
+pub use extension::silent_capture_awaits_login;
 pub use hotkeys::Action;
 pub use legacy::migrate_legacy;
 pub use portal::{HotkeyStatus, hotkey_handed_over, start_hotkey};

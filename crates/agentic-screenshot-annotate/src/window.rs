@@ -68,6 +68,8 @@ mod imp {
         pub colors: RefCell<Vec<gtk::ToggleButton>>,
         pub thick: RefCell<Vec<gtk::ToggleButton>>,
         pub palette: OnceCell<gtk::Box>,
+        /// Bredden verktøylinja ønsker seg, til vindusstørrelsen.
+        pub toolbar_width: Cell<i32>,
         pub size_menu: OnceCell<gtk::MenuButton>,
         /// Fargen brukeren har valgt selv. Delt med tegningen av knappen.
         pub custom: Rc<Cell<Option<Color>>>,
@@ -209,7 +211,7 @@ mod imp {
             self.sync_undo();
         }
 
-        fn build_toolbar(&self, canvas: &Canvas) -> gtk::Box {
+        fn build_toolbar(&self, canvas: &Canvas) -> gtk::ScrolledWindow {
             let bar = gtk::Box::new(gtk::Orientation::Horizontal, 2);
             bar.set_halign(gtk::Align::Center);
             bar.set_height_request(TOOLBAR_HEIGHT);
@@ -286,7 +288,17 @@ mod imp {
             let menu = self.size_menu(canvas);
             bar.append(&menu);
             self.size_menu.set(menu).ok();
-            bar
+            let (_, natural, _, _) = bar.measure(gtk::Orientation::Horizontal, -1);
+            self.toolbar_width.set(natural);
+            // Verktøylinja er bredere enn en liten skjerm og et vindu på halve
+            // skjermen. Der ruller den sidelengs i stedet for å holde vinduet bredt.
+            gtk::ScrolledWindow::builder()
+                .hscrollbar_policy(gtk::PolicyType::Automatic)
+                .vscrollbar_policy(gtk::PolicyType::Never)
+                .propagate_natural_width(true)
+                .propagate_natural_height(true)
+                .child(&bar)
+                .build()
         }
 
         /// Den siste fargeknappen: egen farge fra GNOMEs fargevelger. Står den allerede
@@ -808,15 +820,14 @@ impl AnnotateWindow {
         let size = (f64::from(image.width), f64::from(image.height));
         let display = WidgetExt::display(&obj);
         install_css(&display);
-        let (width, height) = default_size(app, &display, size);
-        obj.set_default_size(width, height);
-
         let name = path
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_default();
         let canvas = Canvas::new(image);
         imp.build(canvas.clone(), &name);
+        let (width, height) = default_size(app, &display, size, imp.toolbar_width.get());
+        obj.set_default_size(width, height);
         obj.update_property(&[gtk::accessible::Property::Label(tr("Annoter skjermbilde"))]);
         gtk::prelude::GtkWindowExt::set_focus(&obj, Some(&canvas));
         obj
@@ -832,7 +843,12 @@ impl AnnotateWindow {
 }
 
 /// Størrelsen ut fra skjermen vinduet trolig havner på. Lerretet tilpasser seg uansett.
-fn default_size(app: &adw::Application, display: &gdk::Display, img: (f64, f64)) -> (i32, i32) {
+fn default_size(
+    app: &adw::Application,
+    display: &gdk::Display,
+    img: (f64, f64),
+    toolbar: i32,
+) -> (i32, i32) {
     let monitor = app
         .active_window()
         .and_then(|w| w.surface())
@@ -847,9 +863,11 @@ fn default_size(app: &adw::Application, display: &gdk::Display, img: (f64, f64))
         return (1000, 700);
     };
     let geometry = monitor.geometry();
-    view::window_size(
+    let (width, height) = view::window_size(
         img,
         (f64::from(geometry.width()), f64::from(geometry.height())),
         monitor.scale(),
-    )
+    );
+    let width = view::fit_toolbar(width, toolbar, f64::from(geometry.width()));
+    (width, height)
 }

@@ -59,6 +59,12 @@ pub(crate) fn extension_state(active: bool) -> ExtensionState {
     ExtensionState::of(active, installed, enabled)
 }
 
+/// Utvidelsen er installert og slått på, men GNOME har ikke lastet den ennå. Det
+/// skjer først ved neste innlogging, og til da tar GNOME bildene med blits og lyd.
+pub fn silent_capture_awaits_login() -> bool {
+    extension_state(false) == ExtensionState::NeedsLogin
+}
+
 /// Slår på utvidelsen fra neste innlogging. Kalles bare når brukeren ber om det.
 pub(crate) fn enable_extension() -> bool {
     let Some(settings) = shell_settings() else {

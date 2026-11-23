@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.1 — 2026-11-23
+
+- The window opens in the middle of the screen again when you reopen it. After the minimize button had been used once, reopening from the app overview put the window in the top-left corner, and reopening from the system tray did not show it at all.
+- Settings and the drawing window no longer come back minimized after a screenshot just because they had been minimized once before.
+- When the Agentic Screenshot extension is turned on but GNOME has not loaded it yet, the app tells you once that GNOME took the screenshot with flash and sound, and that silent capture works after you log out and back in. Settings says the same under Capture Method, and Flash and Shutter Sound are grayed out until the extension is running.
+- The shortcut no longer takes the first screenshot with flash and sound when it has to start the app first.
+- Ctrl+A, Delete, and the other shortcuts in the main window do nothing while Settings or the drawing window is open.
+- The trash button on an image is hidden from screen readers too while you select several images.
+- A freehand capture that is only a line is rejected as too small, instead of saving an empty image.
+- The drawing window fits on small screens and in half a screen. The toolbar scrolls sideways when there is not room for all of it.
+- Saving in the drawing window keeps the extended permissions (ACL) of the file.
+
 ## 2.0.0 — 2026-11-23
 
 - Agentic Klipp is now called Agentic Screenshot. The binary is `agentic-screenshot`, the app ID is `io.github.AgenticScreenshot`, and the Shell extension is `agentic-screenshot@bejulian1.github.io`.

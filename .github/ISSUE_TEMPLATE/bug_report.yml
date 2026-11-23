@@ -33,7 +33,7 @@ body:
     attributes:
       label: Agentic Screenshot version
       description: Output of `agentic-screenshot --version`
-      placeholder: "agentic-screenshot 2.0.0 (build ...)"
+      placeholder: "agentic-screenshot 2.0.1 (build ...)"
     validations:
       required: true
 

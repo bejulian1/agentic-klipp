@@ -8,17 +8,32 @@ use gtk::{gio, glib};
 use std::cell::Cell;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::time::{Duration, Instant};
 
 const BUS_NAME: &str = "io.github.AgenticScreenshot.Shell";
 const OBJECT_PATH: &str = "/io/github/AgenticScreenshot/Shell";
 const CALL_TIMEOUT_MS: i32 = 3000;
+/// Bussen svarer på noen millisekunder. Uten svar tar GNOME bildet.
+const SETTLE_LIMIT: Duration = Duration::from_secs(1);
 
 thread_local! {
     static READY: Cell<bool> = const { Cell::new(false) };
+    /// Bussen har svart på om utvidelsen kjører.
+    static KNOWN: Cell<bool> = const { Cell::new(false) };
 }
 
 pub fn ready() -> bool {
     READY.get()
+}
+
+/// Vent til vi vet om utvidelsen kjører. Et opptak rett etter oppstart, som når
+/// hurtigtasten starter appen, ville ellers gått GNOMEs vei med blits og lyd selv
+/// om utvidelsen er klar.
+pub async fn settled() {
+    let start = Instant::now();
+    while !KNOWN.get() && start.elapsed() < SETTLE_LIMIT {
+        glib::timeout_future(Duration::from_millis(5)).await;
+    }
 }
 
 /// Følg med på utvidelsen. `on_change` kalles med en gang og når den slås av eller på.
@@ -32,10 +47,12 @@ pub fn watch(on_change: impl Fn(bool) + 'static) {
         gio::BusNameWatcherFlags::NONE,
         move |_, _, _| {
             READY.set(true);
+            KNOWN.set(true);
             appeared(true);
         },
         move |_, _| {
             READY.set(false);
+            KNOWN.set(true);
             vanished(false);
         },
     );

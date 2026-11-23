@@ -189,6 +189,46 @@ pub fn bbox_of(pts: &[Pt]) -> Rect {
     Rect::new(x0, y0, x1 - x0, y1 - y0)
 }
 
+/// Arealet frihåndsformen dekker, med samme ikke-null-regel som masken som
+/// klipper bildet. En strek frem og tilbake dekker ingenting.
+pub fn covered_area(pts: &[Pt]) -> f64 {
+    if pts.len() < 3 {
+        return 0.0;
+    }
+    let b = bbox_of(pts);
+    let mut area = 0.0;
+    let mut xs: Vec<(f64, i32)> = Vec::new();
+    for y in b.y..b.bottom() {
+        let sy = f64::from(y) + 0.5;
+        xs.clear();
+        for (i, p) in pts.iter().enumerate() {
+            let q = pts[(i + 1) % pts.len()];
+            let (y0, y1) = (f64::from(p.y), f64::from(q.y));
+            if (y0 <= sy) != (y1 <= sy) {
+                let t = (sy - y0) / (y1 - y0);
+                let x = f64::from(p.x) + t * f64::from(q.x - p.x);
+                xs.push((x, if y1 > y0 { 1 } else { -1 }));
+            }
+        }
+        xs.sort_by(|a, b| a.0.total_cmp(&b.0));
+        let mut wind = 0;
+        for pair in xs.windows(2) {
+            wind += pair[0].1;
+            if wind != 0 {
+                area += pair[1].0 - pair[0].0;
+            }
+        }
+    }
+    area
+}
+
+/// En frihåndsform må dekke noe. En rett eller nesten rett strek har stort nok
+/// omriss, men bildet ville blitt tomt. Kravet er `MIN_SIZE` piksler i snitt på
+/// tvers av den lengste siden.
+fn too_thin(pts: &[Pt], bbox: Rect) -> bool {
+    covered_area(pts) < f64::from(MIN_SIZE * bbox.w.max(bbox.h))
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
     Idle,
@@ -349,7 +389,7 @@ impl Selector {
             Some(s) => {
                 s.w < MIN_SIZE
                     || s.h < MIN_SIZE
-                    || (self.mode == Mode::Freehand && self.pts.len() < 3)
+                    || (self.mode == Mode::Freehand && too_thin(&self.pts, s))
             }
             None => true,
         };
@@ -638,6 +678,53 @@ mod tests {
         assert_eq!(s.release(), Released::NewSelection);
         assert_eq!(s.sel, Some(Rect::new(10, 10, 90, 90)));
         assert_eq!(s.pts.len(), 4);
+    }
+
+    #[test]
+    fn freehand_line_that_covers_nothing_is_too_small() {
+        // Rett strek på skrå: omrisset er stort nok, men formen har ikke noe areal.
+        let mut s = Selector::new(1000, 800, Mode::Freehand);
+        s.press(Pt { x: 10, y: 10 }, 1.0);
+        for i in 1..=30 {
+            s.motion(Pt {
+                x: 10 + i * 10,
+                y: 10 + i * 5,
+            });
+        }
+        assert_eq!(s.pts.len(), 31);
+        assert_eq!(s.release(), Released::TooSmall);
+        assert!(s.warn);
+        assert_eq!(s.sel, None);
+
+        // Samme strek med litt skjelving er fortsatt bare en strek.
+        s.press(Pt { x: 10, y: 10 }, 1.0);
+        for i in 1..=30 {
+            s.motion(Pt {
+                x: 10 + i * 10,
+                y: 10 + i * 5 + (i % 2) * 2,
+            });
+        }
+        assert_eq!(s.release(), Released::TooSmall);
+    }
+
+    #[test]
+    fn covered_area_follows_the_mask_rule() {
+        let pt = |x, y| Pt { x, y };
+        let square = [pt(0, 0), pt(10, 0), pt(10, 10), pt(0, 10)];
+        assert_eq!(covered_area(&square), 100.0);
+        // Frem og tilbake langs samme linje. Avrunding gir noe i nærheten av null.
+        assert!(covered_area(&[pt(0, 0), pt(50, 50), pt(100, 100)]) < 1e-6);
+        assert_eq!(covered_area(&[pt(0, 0), pt(100, 0)]), 0.0);
+        // Et åttetall har to halvdeler med motsatt omløp. Begge teller.
+        let eight = [pt(0, 0), pt(10, 0), pt(0, 10), pt(10, 10)];
+        assert_eq!(covered_area(&eight), 50.0);
+        // En smal, men ekte form godtas.
+        let mut s = Selector::new(1000, 800, Mode::Freehand);
+        s.press(pt(10, 10), 1.0);
+        for p in [pt(200, 10), pt(200, 20), pt(10, 20)] {
+            s.motion(p);
+        }
+        assert_eq!(s.release(), Released::NewSelection);
     }
 
     #[test]

@@ -54,6 +54,18 @@ The screenshots are taken from the app with demo images in an isolated profile.
 
 <!-- BEGIN VERSION HISTORY -->
 
+### 2.0.1 — 2026-11-23
+
+- The window opens in the middle of the screen again when you reopen it. After the minimize button had been used once, reopening from the app overview put the window in the top-left corner, and reopening from the system tray did not show it at all.
+- Settings and the drawing window no longer come back minimized after a screenshot just because they had been minimized once before.
+- When the Agentic Screenshot extension is turned on but GNOME has not loaded it yet, the app tells you once that GNOME took the screenshot with flash and sound, and that silent capture works after you log out and back in. Settings says the same under Capture Method, and Flash and Shutter Sound are grayed out until the extension is running.
+- The shortcut no longer takes the first screenshot with flash and sound when it has to start the app first.
+- Ctrl+A, Delete, and the other shortcuts in the main window do nothing while Settings or the drawing window is open.
+- The trash button on an image is hidden from screen readers too while you select several images.
+- A freehand capture that is only a line is rejected as too small, instead of saving an empty image.
+- The drawing window fits on small screens and in half a screen. The toolbar scrolls sideways when there is not room for all of it.
+- Saving in the drawing window keeps the extended permissions (ACL) of the file.
+
 ### 2.0.0 — 2026-11-23
 
 - Agentic Klipp is now called Agentic Screenshot. The binary is `agentic-screenshot`, the app ID is `io.github.AgenticScreenshot`, and the Shell extension is `agentic-screenshot@bejulian1.github.io`.
@@ -251,7 +263,8 @@ Extension** row. Then
 log out and back in once. GNOME on Wayland only discovers new extensions at login, so the
 flash remains until you do. The row always shows your current setup status. Whenever you
 update Agentic Screenshot to a new version of the extension, you also need to log out and back in before
-it takes effect.
+it takes effect. While the extension is turned on but not loaded yet, the app tells you once
+after a screenshot that GNOME took it with flash and sound.
 
 | | With extension | Without |
 | --- | --- | --- |
@@ -357,7 +370,8 @@ Choose under **Settings > Screenshot > Capture Method**:
 - **Silent** captures through the extension. It is the fastest option, and you can
   choose whether to enable **Flash** and **Shutter Sound**. Both are
   off by default. They trigger after the screenshot is taken, and the flash only covers the
-  selected region. Without the extension, the app falls back to GNOME's method.
+  selected region. Without the extension, the app falls back to GNOME's method, and the
+  two toggles are grayed out until the extension is running.
 - **GNOME** uses GNOME's standard screenshot flow, with a full-screen flash and shutter
   sound before you select an area. These cannot be disabled there, so the toggles are
   grayed out.
@@ -444,8 +458,9 @@ wrong.
 
 Other things to check:
 
-- **White flash on capture:** The extension is not enabled. Check with
-  `gnome-extensions list --enabled | grep agentic-screenshot`.
+- **White flash on capture:** The extension is not enabled, or GNOME has not loaded it yet.
+  Check with `gnome-extensions list --enabled | grep agentic-screenshot`. If it is listed,
+  log out and back in once.
 - **Status says Active, but the key does nothing:** Without the extension, this can happen
   if `xdg-desktop-portal` has crashed. Log out and back in.
 - **No system tray icon:** Check the extension with
@@ -498,7 +513,7 @@ cargo clippy --workspace --all-targets
 | `data/` | Icons, CSS, and GResource |
 | `prototype/` | HTML prototype used as the visual reference |
 
-Version **2.0.0**. The version is declared in all three
+Version **2.0.1**. The version is declared in all three
 `Cargo.toml` files. The build number is the build timestamp in `Europe/Oslo`, and can be
 pinned for a release with `AGENTIC_SCREENSHOT_BUILD_NUMBER=YYYYMMDD.HHMM`. Both are shown under
 **Settings > About Agentic Screenshot** and via `agentic-screenshot --version`.
@@ -539,6 +554,7 @@ Contributions — bug reports, features, translations, and documentation — are
 | **Julian / [bejulian1](https://github.com/bejulian1)** | | Project owner, product decisions, and testing |
 | **Anthropic Claude Opus 5.5** | Claude Code | Initial implementation and development through 1.1.1, and the 2.0.0 rebrand to Agentic Screenshot |
 | **OpenAI GPT 6.1 Sol** | Codex | Version history, 1.2 series, documentation, and release packaging |
+| **Anthropic Claude Fable 5.2** | Claude Code | The 2.0.1 fixes for window placement, silent capture, and accessibility |
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md) for full attribution. GitHub's automatic Contributors
 list is based on commit authors and linked GitHub accounts; see

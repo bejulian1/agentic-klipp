@@ -145,7 +145,10 @@ impl App {
         // Vinduer som er åpne ved siden av hovedvinduet gjør det inaktivt.
         let toplevels = gtk::Window::toplevels();
         let model = toplevels.clone();
-        toplevels.connect_items_changed(move |_, _, _, _| {
+        toplevels.connect_items_changed(move |_, at, _, added| {
+            for w in (at..at + added).filter_map(|i| model.item(i).and_downcast::<gtk::Window>()) {
+                forget_minimize_when_active(&w);
+            }
             let blocked = (0..model.n_items())
                 .filter_map(|i| model.item(i).and_downcast::<gtk::Window>())
                 .any(|w| !w.has_css_class("shot-main") && !w.has_css_class("shot-overlay"));
@@ -210,12 +213,10 @@ impl App {
     pub fn show_main(&self) {
         if self.ui.window.is_visible() && !self.main_shown() {
             // Minimert eller dekket: vist på nytt havner det øverst. `present`
-            // alene gjenoppretter ikke uten aktiveringstoken på Wayland, og GTK
-            // minimerer igjen ved neste visning til `unminimize` er kalt.
-            self.ui.window.unminimize();
+            // alene gjenoppretter ikke uten aktiveringstoken på Wayland.
             self.ui.window.set_visible(false);
-            self.ui.minimized.set(false);
         }
+        self.ui.forget_minimize();
         if let Some(token) = self.activation.borrow_mut().take() {
             self.ui.window.set_startup_id(&token);
         }
@@ -239,7 +240,7 @@ impl App {
     }
 
     pub fn hide_main(&self) {
-        self.ui.minimized.set(false);
+        self.ui.forget_minimize();
         // Et gammelt utvalg skal ikke vente når vinduet åpnes igjen.
         self.shelf.set_selecting(false);
         self.ui.window.set_visible(false);
@@ -394,7 +395,7 @@ impl App {
 
     /// Tastene i valgmodus, og Ctrl+A som starter den. Sann når tasten er brukt.
     pub fn selection_key(&self, key: gdk::Key, state: gdk::ModifierType) -> bool {
-        if self.config.borrow().compact || self.shelf.is_empty() {
+        if self.ui.blocked() || self.config.borrow().compact || self.shelf.is_empty() {
             return false;
         }
         let mods = state
@@ -531,6 +532,18 @@ impl App {
     }
 }
 
+/// Innstillinger og tegnevinduet har også minimer-knapp, og GTK gjentar en gammel
+/// minimering neste gang vinduet vises, for eksempel etter et opptak. Et aktivt
+/// vindu er hentet frem igjen, så da skal minimeringen glemmes. Hovedvinduet
+/// følger med selv, se `MainUi::forget_minimize`.
+fn forget_minimize_when_active(window: &gtk::Window) {
+    window.connect_is_active_notify(|w| {
+        if w.is_active() && !w.has_css_class("shot-main") && !w.has_css_class("shot-overlay") {
+            w.unminimize();
+        }
+    });
+}
+
 /// «1 bilde», «3 bilder».
 pub fn count_text(n: usize) -> String {
     // Oversettere: Image count at the bottom of the shelf.
@@ -582,7 +595,7 @@ impl TrashTally {
 
 /// Vanlig skrivebordsvarsel. `org.gtk.Notifications` krever en installert
 /// .desktop-fil, så vi går rett på freedesktop-grensesnittet.
-fn notify(summary: &str, body: &str) {
+pub(crate) fn notify(summary: &str, body: &str) {
     let actions: Vec<String> = Vec::new();
     let hints = std::collections::HashMap::<String, glib::Variant>::new();
     let args = (
