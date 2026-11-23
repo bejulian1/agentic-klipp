@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/AgenticScreenshot">
+    <file>style.css</file>
+    <file alias="icons/scalable/apps/io.github.AgenticScreenshot.svg">icons/hicolor/scalable/apps/io.github.AgenticScreenshot.svg</file>
+    <file alias="icons/symbolic/apps/io.github.AgenticScreenshot-symbolic.svg">icons/hicolor/symbolic/apps/io.github.AgenticScreenshot-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-area-symbolic.svg">symbolic/scalable/actions/shot-area-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-lasso-symbolic.svg">symbolic/scalable/actions/shot-lasso-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-window-symbolic.svg">symbolic/scalable/actions/shot-window-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-full-symbolic.svg">symbolic/scalable/actions/shot-full-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-shelf-symbolic.svg">symbolic/scalable/actions/shot-shelf-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-gear-symbolic.svg">symbolic/scalable/actions/shot-gear-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-clear-symbolic.svg">symbolic/scalable/actions/shot-clear-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-chevron-symbolic.svg">symbolic/scalable/actions/shot-chevron-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-arrow-symbolic.svg">symbolic/scalable/actions/shot-arrow-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-rect-symbolic.svg">symbolic/scalable/actions/shot-rect-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-free-symbolic.svg">symbolic/scalable/actions/shot-free-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-text-symbolic.svg">symbolic/scalable/actions/shot-text-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-marker-symbolic.svg">symbolic/scalable/actions/shot-marker-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-redact-symbolic.svg">symbolic/scalable/actions/shot-redact-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-undo-symbolic.svg">symbolic/scalable/actions/shot-undo-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-redo-symbolic.svg">symbolic/scalable/actions/shot-redo-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-line-symbolic.svg">symbolic/scalable/actions/shot-line-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-ellipse-symbolic.svg">symbolic/scalable/actions/shot-ellipse-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-highlight-symbolic.svg">symbolic/scalable/actions/shot-highlight-symbolic.svg</file>
+    <file alias="icons/scalable/actions/shot-eraser-symbolic.svg">symbolic/scalable/actions/shot-eraser-symbolic.svg</file>
+  </gresource>
+</gresources>

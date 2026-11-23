@@ -5,16 +5,16 @@ pub mod overlay;
 pub mod portal;
 pub mod shell;
 
-use crate::app::Klipp;
+use crate::app::App;
 use crate::clipboard::{self, Slot, Source};
 use crate::imaging;
 use crate::shelf;
 use crate::storage::{self, ShotMeta};
 use crate::trace;
+use agentic_screenshot_system::i18n::tr;
 use geometry::{Mode, Pt, Rect};
 use gtk::prelude::*;
 use gtk::{gdk, gio, glib};
-use klipp_system::i18n::tr;
 use portal::Outcome;
 use std::cell::{Cell, RefCell};
 use std::path::{Path, PathBuf};
@@ -28,7 +28,7 @@ const CLOSE_ANIMATION: Duration = Duration::from_millis(185);
 const ONE_FRAME: Duration = Duration::from_millis(17);
 /// Uten dialog svarer portalen på under et sekund. Vinduene skal ikke bli borte for godt.
 const PORTAL_TIMEOUT: Duration = Duration::from_secs(15);
-/// GNOMEs velger venter på brukeren, men ikke for alltid: uten svar ville Klipp stå
+/// GNOMEs velger venter på brukeren, men ikke for alltid: uten svar ville Agentic Screenshot stå
 /// som opptatt, og hurtigtasten ville ikke reagert før appen ble startet på nytt.
 const PICKER_TIMEOUT: Duration = Duration::from_secs(300);
 
@@ -65,7 +65,7 @@ impl Controller {
     }
 }
 
-pub fn start(k: &Rc<Klipp>, mode: Option<Mode>) {
+pub fn start(k: &Rc<App>, mode: Option<Mode>) {
     if k.capture.busy.replace(true) {
         return;
     }
@@ -90,7 +90,7 @@ pub fn start(k: &Rc<Klipp>, mode: Option<Mode>) {
 /// bort et vindu med en animasjon, så med animasjoner på må vi vente den ut, med
 /// mindre utvidelsen vår har slått den av. Er ingen av vinduene våre synlige, tar
 /// vi bildet med en gang.
-async fn hide_windows(k: &Rc<Klipp>) {
+async fn hide_windows(k: &Rc<App>) {
     let mut wins: Vec<gtk::Window> = gtk::Window::list_toplevels()
         .into_iter()
         .filter_map(|w| w.downcast::<gtk::Window>().ok())
@@ -100,7 +100,7 @@ async fn hide_windows(k: &Rc<Klipp>) {
         return;
     }
     // Hovedvinduet først, så vises dialogene over det igjen etterpå.
-    wins.sort_by_key(|w| !w.has_css_class("klipp-main"));
+    wins.sort_by_key(|w| !w.has_css_class("shot-main"));
     for w in &wins {
         w.set_visible(false);
     }
@@ -119,7 +119,7 @@ async fn hide_windows(k: &Rc<Klipp>) {
     k.sync_tray();
 }
 
-fn restore_windows(k: &Rc<Klipp>, show_main: bool) {
+fn restore_windows(k: &Rc<App>, show_main: bool) {
     let mut wins = k.capture.hidden.take();
     let main: gtk::Window = k.ui.window.clone().upcast();
     if show_main && !wins.contains(&main) {
@@ -131,7 +131,7 @@ fn restore_windows(k: &Rc<Klipp>, show_main: bool) {
     k.sync_tray();
 }
 
-fn finish(k: &Rc<Klipp>) {
+fn finish(k: &Rc<App>) {
     k.capture.busy.set(false);
     k.capture.started.set(None);
     glib::timeout_add_local_once(Duration::from_millis(200), || {
@@ -143,25 +143,28 @@ fn finish(k: &Rc<Klipp>) {
 }
 
 /// Avbrutt: vinduene tilbake slik de var, uten å kreve noe mer.
-fn abort(k: &Rc<Klipp>) {
+fn abort(k: &Rc<App>) {
     restore_windows(k, false);
     finish(k);
 }
 
-fn fail(k: &Rc<Klipp>, msg: &str) {
-    eprintln!("klipp: {msg}");
+fn fail(k: &Rc<App>, msg: &str) {
+    eprintln!("agentic-screenshot: {msg}");
     restore_windows(k, true);
     k.ui.toast(msg);
     finish(k);
 }
 
 /// Les fila fra portalen, og fjern den så vi ikke etterlater duplikater.
-async fn load_portal_file(k: &Rc<Klipp>, path: PathBuf) -> Result<Frozen, String> {
+async fn load_portal_file(k: &Rc<App>, path: PathBuf) -> Result<Frozen, String> {
     let own = k.config.borrow().save_dir();
     gio::spawn_blocking(move || {
         let img = imaging::decode_png(&path)?;
         if let Err(e) = storage::remove_portal_file(&path, &own) {
-            eprintln!("klipp: kunne ikke fjerne {}: {e}", path.display());
+            eprintln!(
+                "agentic-screenshot: kunne ikke fjerne {}: {e}",
+                path.display()
+            );
         }
         Ok(Frozen {
             w: img.w,
@@ -175,28 +178,32 @@ async fn load_portal_file(k: &Rc<Klipp>, path: PathBuf) -> Result<Frozen, String
 
 /// Første gang må brukeren svare på GNOMEs tilgangsdialog, og den vises bare for
 /// appen som har fokus. Da viser vi vinduet, spør, og tar det ekte bildet etterpå.
-async fn ask_permission(k: &Rc<Klipp>) -> Result<Option<PathBuf>, String> {
+async fn ask_permission(k: &Rc<App>) -> Result<Option<PathBuf>, String> {
     restore_windows(k, true);
     wait_for_focus().await;
     match portal::take(false, Some(PICKER_TIMEOUT)).await? {
         Outcome::File(p) => {
-            // Dette bildet viser Klipp selv og brukes ikke.
+            // Dette bildet viser Agentic Screenshot selv og brukes ikke.
             let own = k.config.borrow().save_dir();
             let _ = storage::remove_portal_file(&p, &own);
         }
         Outcome::Cancelled => return Ok(None),
-        Outcome::Denied(_) => return Err(tr("Klipp har ikke tilgang til skjermbilder").to_string()),
+        Outcome::Denied(_) => {
+            return Err(tr("Agentic Screenshot har ikke tilgang til skjermbilder").to_string());
+        }
     }
     hide_windows(k).await;
     match portal::take(false, Some(PORTAL_TIMEOUT)).await? {
         Outcome::File(p) => Ok(Some(p)),
         Outcome::Cancelled => Ok(None),
-        Outcome::Denied(_) => Err(tr("Klipp har ikke tilgang til skjermbilder").to_string()),
+        Outcome::Denied(_) => {
+            Err(tr("Agentic Screenshot har ikke tilgang til skjermbilder").to_string())
+        }
     }
 }
 
 /// Portalen ser hele skjermen, så vinduene våre må være borte først.
-async fn portal_shot(k: &Rc<Klipp>) -> Result<Option<PathBuf>, String> {
+async fn portal_shot(k: &Rc<App>) -> Result<Option<PathBuf>, String> {
     hide_windows(k).await;
     k.capture.mark("vinduer skjult");
     match portal::take(false, Some(PORTAL_TIMEOUT)).await? {
@@ -209,7 +216,7 @@ async fn portal_shot(k: &Rc<Klipp>) -> Result<Option<PathBuf>, String> {
     }
 }
 
-async fn frozen_capture(k: Rc<Klipp>, mode: Mode) {
+async fn frozen_capture(k: Rc<App>, mode: Mode) {
     let use_shell = shell::silent(&k.config.borrow());
     let silent = if use_shell {
         shell::capture().await
@@ -240,7 +247,7 @@ async fn frozen_capture(k: Rc<Klipp>, mode: Mode) {
 }
 
 /// Vindu-modus: GNOMEs egen velger, resultatet behandles som ethvert annet bilde.
-pub(crate) async fn window_capture(k: Rc<Klipp>) {
+pub(crate) async fn window_capture(k: Rc<App>) {
     let path = match portal::take(true, Some(PICKER_TIMEOUT)).await {
         Ok(Outcome::File(p)) => p,
         // GNOMEs velger svarer «nei» også når brukeren trykker Esc.
@@ -256,13 +263,13 @@ pub(crate) async fn window_capture(k: Rc<Klipp>) {
 }
 
 /// Overlegget lukket uten bilde.
-pub(crate) fn overlay_cancelled(k: &Rc<Klipp>) {
+pub(crate) fn overlay_cancelled(k: &Rc<App>) {
     k.capture.session.replace(None);
     abort(k);
 }
 
 /// Brukeren valgte Vindu i overlegget.
-pub(crate) fn overlay_to_window(k: &Rc<Klipp>) {
+pub(crate) fn overlay_to_window(k: &Rc<App>) {
     k.capture.session.replace(None);
     let k = k.clone();
     glib::spawn_future_local(async move {
@@ -277,7 +284,7 @@ pub(crate) fn overlay_to_window(k: &Rc<Klipp>) {
 
 /// Overlegget tok et bilde. Kopieringen er allerede satt i gang mens det hadde fokus.
 pub(crate) fn overlay_taken(
-    k: &Rc<Klipp>,
+    k: &Rc<App>,
     frozen: Frozen,
     cut: Cut,
     slot: Option<Slot>,
@@ -322,7 +329,7 @@ fn work(
     storage::save_new_shot(dir, &img, alpha, bx.0, bx.1)
 }
 
-/// Vent til et av Klipps vinduer har fokus, ellers nekter Wayland kopiering.
+/// Vent til et av Agentic Screenshots vinduer har fokus, ellers nekter Wayland kopiering.
 async fn wait_for_focus() -> bool {
     let start = Instant::now();
     while !clipboard::has_focus() && start.elapsed() < FOCUS_WAIT {
@@ -331,7 +338,7 @@ async fn wait_for_focus() -> bool {
     clipboard::has_focus()
 }
 
-fn deliver(k: Rc<Klipp>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
+fn deliver(k: Rc<App>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
     let dir = k.config.borrow().save_dir();
     let bx = k.shelf.thumb_box();
     glib::spawn_future_local(async move {
@@ -344,7 +351,7 @@ fn deliver(k: Rc<Klipp>, frozen: Frozen, cut: Cut, slot: Option<Slot>) {
                     s.replace(Source::Failed);
                 }
                 k.ui.toast(&e);
-                eprintln!("klipp: {e}");
+                eprintln!("agentic-screenshot: {e}");
                 return finish(&k);
             }
             Err(_) => {

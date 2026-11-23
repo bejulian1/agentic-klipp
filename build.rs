@@ -1,11 +1,15 @@
 use std::process::Command;
 
 fn main() {
-    glib_build_tools::compile_resources(&["data"], "data/klipp.gresource.xml", "klipp.gresource");
+    glib_build_tools::compile_resources(
+        &["data"],
+        "data/agentic-screenshot.gresource.xml",
+        "agentic-screenshot.gresource",
+    );
 
     // Byggnummeret er tidspunktet, så et nyere bygg alltid har et høyere nummer.
-    println!("cargo:rerun-if-env-changed=KLIPP_BUILD_NUMBER");
-    let stamp = std::env::var("KLIPP_BUILD_NUMBER").unwrap_or_else(|_| {
+    println!("cargo:rerun-if-env-changed=AGENTIC_SCREENSHOT_BUILD_NUMBER");
+    let stamp = std::env::var("AGENTIC_SCREENSHOT_BUILD_NUMBER").unwrap_or_else(|_| {
         Command::new("date")
             .env("TZ", "Europe/Oslo")
             .arg("+%Y%m%d.%H%M")
@@ -23,15 +27,16 @@ fn main() {
                 .bytes()
                 .enumerate()
                 .all(|(i, c)| i == 8 || c.is_ascii_digit()),
-        "KLIPP_BUILD_NUMBER må ha formatet YYYYMMDD.HHMM"
+        "AGENTIC_SCREENSHOT_BUILD_NUMBER må ha formatet YYYYMMDD.HHMM"
     );
-    println!("cargo:rustc-env=KLIPP_BUILD={}", stamp.trim());
+    println!("cargo:rustc-env=AGENTIC_SCREENSHOT_BUILD={}", stamp.trim());
     for path in [
         "src",
         "crates",
         "data",
         "Cargo.toml",
         "CHANGELOG.md",
+        "CHANGELOG.nb.md",
         "build.rs",
     ] {
         println!("cargo:rerun-if-changed={path}");

@@ -1,13 +1,13 @@
 //! Skjermbilde-portalen via ashpd, og registrering av appens identitet.
 
 use crate::trace;
+use agentic_screenshot_system::APP_ID;
+use agentic_screenshot_system::i18n::{tr, tr_fmt};
 use ashpd::desktop::ResponseError;
 use ashpd::desktop::screenshot::Screenshot;
 use futures_util::FutureExt;
 use futures_util::future::{LocalBoxFuture, Shared};
 use gtk::glib;
-use klipp_system::APP_ID;
-use klipp_system::i18n::{tr, tr_fmt};
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -59,7 +59,7 @@ async fn ensure_registered() -> bool {
 /// den tiden hen trenger. Ellers gir vi opp etter `limit`.
 pub async fn take(interactive: bool, limit: Option<Duration>) -> Result<Outcome, String> {
     #[cfg(debug_assertions)]
-    if let Some(src) = std::env::var_os("KLIPP_TEST_SCREENSHOT") {
+    if let Some(src) = std::env::var_os("AGENTIC_SCREENSHOT_TEST_SCREENSHOT") {
         return test_source(src.into());
     }
     match limit {
@@ -105,7 +105,10 @@ async fn request(interactive: bool) -> Result<Outcome, String> {
 /// Testkilde for debug-bygg: en kopi av et PNG, slik portalen ville gitt en egen fil.
 #[cfg(debug_assertions)]
 fn test_source(src: PathBuf) -> Result<Outcome, String> {
-    let tmp = std::env::temp_dir().join(format!("klipp-test-portal-{}.png", std::process::id()));
+    let tmp = std::env::temp_dir().join(format!(
+        "agentic-screenshot-test-portal-{}.png",
+        std::process::id()
+    ));
     std::fs::copy(&src, &tmp)
         .map_err(|e| tr_fmt("Testkilde: {error}", &[("error", &e.to_string())]))?;
     Ok(Outcome::File(tmp))

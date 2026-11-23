@@ -1,6 +1,6 @@
-# Contributing to Agentic Klipp
+# Contributing to Agentic Screenshot
 
-Thanks for your interest in contributing to Agentic Klipp! Contributions of all kinds are welcome:
+Thanks for your interest in contributing to Agentic Screenshot! Contributions of all kinds are welcome:
 
 - **Bug reports** — clear reproduction steps help a lot.
 - **Features and fixes** — code improvements, polish, and bug fixes.
@@ -13,13 +13,13 @@ When opening a bug report, please include:
 
 - Your Ubuntu and GNOME version
 - Session type (Wayland or X11)
-- Whether the Klipp GNOME Shell extension is enabled (`gnome-extensions list --enabled | grep klipp`)
-- Output of `klipp --version`
+- Whether the Agentic Screenshot GNOME Shell extension is enabled (`gnome-extensions list --enabled | grep agentic-screenshot`)
+- Output of `agentic-screenshot --version`
 - Steps to reproduce the issue (and screenshots if relevant)
 
 ## Development setup
 
-Agentic Klipp targets **Ubuntu 26.04** with **GNOME 50** (GTK 4.22 and libadwaita 1.9). Install the build dependencies with:
+Agentic Screenshot targets **Ubuntu 26.04** with **GNOME 50** (GTK 4.22 and libadwaita 1.9). Install the build dependencies with:
 
 ```sh
 sudo apt install cargo rustc mold pkgconf libgtk-4-dev libadwaita-1-dev
@@ -40,12 +40,12 @@ cargo fmt --all
 
 ### Running component examples
 
-You can run standalone examples for parts of `klipp-system`. Pass a throwaway `XDG_CONFIG_HOME` so your real settings are untouched:
+You can run standalone examples for parts of `agentic-screenshot-system`. Pass a throwaway `XDG_CONFIG_HOME` so your real settings are untouched:
 
 ```sh
-XDG_CONFIG_HOME=$(mktemp -d) cargo run -p klipp-system --example settings -- --hotkey
-cargo run -p klipp-system --example tray
-cargo run -p klipp-system --example hotkey
+XDG_CONFIG_HOME=$(mktemp -d) cargo run -p agentic-screenshot-system --example settings -- --hotkey
+cargo run -p agentic-screenshot-system --example tray
+cargo run -p agentic-screenshot-system --example hotkey
 ```
 
 ### Testing the GNOME Shell extension
@@ -57,8 +57,8 @@ On Wayland, GNOME Shell only reloads extensions at login. After modifying files 
 | Directory | Contents |
 | --- | --- |
 | `src/` | The app itself: window, shelf, capture, clipboard, and storage |
-| `crates/klipp-annotate/` | Annotation window and drawing tools |
-| `crates/klipp-system/` | Settings, hotkeys, system tray, and configuration |
+| `crates/agentic-screenshot-annotate/` | Annotation window and drawing tools |
+| `crates/agentic-screenshot-system/` | Settings, hotkeys, system tray, and configuration |
 | `shell-extension/` | GNOME Shell extension for silent capture and Alt+K |
 | `data/` | Icons, CSS, and GResource |
 | `prototype/` | HTML prototype used as the visual reference |
@@ -66,23 +66,23 @@ On Wayland, GNOME Shell only reloads extensions at login. After modifying files 
 ## Translations
 
 Norwegian Bokmål strings in Rust are the source messages. Use the functions in
-`klipp_system::i18n` for UI strings and add `// Oversettere:` comments where
+`agentic_screenshot_system::i18n` for UI strings and add `// Oversettere:` comments where
 translators need context. Run `python3 -I scripts/update-po.py` to regenerate
-`po/klipp.pot` and merge changes into the language catalogs.
+`po/agentic-screenshot.pot` and merge changes into the language catalogs.
 
 Edit `po/<language>.po` in a text editor or Poedit. Keep the same named
 placeholders, such as `{name}` and `{n}`, in each translation and its source
 form. You can move them within the sentence. Blank entries fall back to English.
 
 To add a language, add its code and endonym to `Language` in
-`crates/klipp-system/src/i18n.rs`, configure locale matching and plural rules,
+`crates/agentic-screenshot-system/src/i18n.rs`, configure locale matching and plural rules,
 then create and embed `po/<language>.po`. Add the corresponding PO header rule
 in `scripts/update-po.py` and run the script again. Once the catalog is complete,
 add the language to `COMPLETE_LANGUAGES` in the i18n tests.
 
 ## Changelog and versioning
 
-- **Changelog:** For user-visible changes, add an entry to [CHANGELOG.md](CHANGELOG.md) (in Norwegian, or in English for the maintainer to translate) and update the embedded section in `README.md` by running:
+- **Changelog:** For user-visible changes, add an entry to [CHANGELOG.md](CHANGELOG.md) (English) and to [CHANGELOG.nb.md](CHANGELOG.nb.md) (Norwegian Bokmål, or leave it for the maintainer to translate). Both files must list the same versions; the app shows the Norwegian one when its language is Norwegian Bokmål and the English one otherwise. Update the embedded section in `README.md` by running:
   ```sh
   python3 scripts/update-readme-history.py
   ```
@@ -97,8 +97,8 @@ add the language to `COMPLETE_LANGUAGES` in the i18n tests.
 
 ### AI-assisted contributions
 
-AI-assisted contributions are welcome — Agentic Klipp itself is built with AI coding agents. However, you are responsible for what you submit: please make sure you have read, built, and tested every change yourself before opening a PR.
+AI-assisted contributions are welcome — Agentic Screenshot itself is built with AI coding agents. However, you are responsible for what you submit: please make sure you have read, built, and tested every change yourself before opening a PR.
 
 ## License
 
-By contributing to Agentic Klipp, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to Agentic Screenshot, you agree that your contributions will be licensed under the [MIT License](LICENSE).

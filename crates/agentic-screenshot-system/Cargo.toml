@@ -1,0 +1,15 @@
+[package]
+name = "agentic-screenshot-system"
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.92"
+license = "MIT"
+repository = "https://github.com/bejulian1/agentic-screenshot"
+
+[dependencies]
+gtk.workspace = true
+adw.workspace = true
+ashpd.workspace = true
+ksni.workspace = true
+futures-util.workspace = true
+futures-channel = { version = "0.3", default-features = false, features = ["std"] }

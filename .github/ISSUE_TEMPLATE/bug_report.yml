@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a bug or unexpected behavior in Agentic Klipp
+description: Report a bug or unexpected behavior in Agentic Screenshot
 labels: ["bug"]
 body:
   - type: textarea
@@ -29,11 +29,11 @@ body:
       description: What did you expect to happen instead?
 
   - type: input
-    id: klipp_version
+    id: app_version
     attributes:
-      label: Klipp version
-      description: Output of `klipp --version`
-      placeholder: "klipp 1.2.1 (bygg ...)"
+      label: Agentic Screenshot version
+      description: Output of `agentic-screenshot --version`
+      placeholder: "agentic-screenshot 2.0.0 (build ...)"
     validations:
       required: true
 
@@ -60,8 +60,8 @@ body:
   - type: dropdown
     id: extension
     attributes:
-      label: Is the Klipp GNOME Shell extension enabled?
-      description: Check with `gnome-extensions list --enabled | grep klipp`
+      label: Is the Agentic Screenshot GNOME Shell extension enabled?
+      description: Check with `gnome-extensions list --enabled | grep agentic-screenshot`
       options:
         - "Yes"
         - "No"

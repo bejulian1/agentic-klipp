@@ -1,12 +1,12 @@
 //! Kopiering. På Wayland må en klient ha tastaturfokus for å sette utklippstavla,
-//! så kopiering lykkes bare mens et av Klipps vinduer er aktivt. Alt her svarer ærlig
+//! så kopiering lykkes bare mens et av Agentic Screenshots vinduer er aktivt. Alt her svarer ærlig
 //! på om det skjedde, og bildet tilbys som `image/png` uten å ligge i minnet.
 
 use gtk::gdk::subclass::prelude::*;
 use gtk::prelude::*;
 
+use agentic_screenshot_system::i18n::tr;
 use gtk::{gdk, gio, glib};
-use klipp_system::i18n::tr;
 use std::cell::RefCell;
 use std::future::Future;
 use std::path::PathBuf;
@@ -36,7 +36,7 @@ mod imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for LazyPng {
-        const NAME: &'static str = "KlippLazyPng";
+        const NAME: &'static str = "ShotLazyPng";
         type Type = super::LazyPng;
         type ParentType = gdk::ContentProvider;
     }
@@ -97,7 +97,7 @@ fn provider(slot: &Slot) -> LazyPng {
     p
 }
 
-/// Sann når et av Klipps vinduer har fokus, altså når Wayland godtar kopiering.
+/// Sann når et av Agentic Screenshots vinduer har fokus, altså når Wayland godtar kopiering.
 pub fn has_focus() -> bool {
     gtk::Window::list_toplevels()
         .into_iter()
@@ -207,8 +207,8 @@ mod tests {
 
     fn uris() -> Vec<String> {
         vec![
-            "file:///home/a/Bilder/Klipp/en.png".into(),
-            "file:///home/a/Bilder/Klipp/to%20b.png".into(),
+            "file:///home/a/Bilder/Agentic%20Screenshot/en.png".into(),
+            "file:///home/a/Bilder/Agentic%20Screenshot/to%20b.png".into(),
         ]
     }
 
@@ -216,7 +216,7 @@ mod tests {
     fn uri_list_ends_every_line_with_crlf() {
         assert_eq!(
             uri_list(&uris()),
-            "file:///home/a/Bilder/Klipp/en.png\r\nfile:///home/a/Bilder/Klipp/to%20b.png\r\n"
+            "file:///home/a/Bilder/Agentic%20Screenshot/en.png\r\nfile:///home/a/Bilder/Agentic%20Screenshot/to%20b.png\r\n"
         );
         assert_eq!(uri_list(&[]), "");
     }
@@ -225,7 +225,7 @@ mod tests {
     fn gnome_copied_files_matches_nautilus() {
         assert_eq!(
             gnome_copied_files(&uris()),
-            "copy\nfile:///home/a/Bilder/Klipp/en.png\nfile:///home/a/Bilder/Klipp/to%20b.png"
+            "copy\nfile:///home/a/Bilder/Agentic%20Screenshot/en.png\nfile:///home/a/Bilder/Agentic%20Screenshot/to%20b.png"
         );
     }
 

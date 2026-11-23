@@ -1,9 +1,9 @@
 //! Filer: bildemappen, filnavn, tilstandsfila for hylla og thumbnail-cachen.
 
 use crate::imaging::{self, Image};
+use agentic_screenshot_system::i18n::tr_fmt;
 use futures_channel::oneshot;
 use gtk::{gio, glib};
-use klipp_system::i18n::tr_fmt;
 use std::fs::{self, File, OpenOptions};
 use std::hash::{Hash, Hasher};
 use std::io;
@@ -58,7 +58,7 @@ impl Stamp {
 
 pub fn file_stem(s: Stamp) -> String {
     format!(
-        "klipp-{:04}-{:02}-{:02}_{:02}-{:02}-{:02}",
+        "screenshot-{:04}-{:02}-{:02}_{:02}-{:02}-{:02}",
         s.year, s.month, s.day, s.hour, s.minute, s.second
     )
 }
@@ -140,7 +140,7 @@ fn unescape(s: &str) -> String {
 }
 
 pub fn serialize_shelf(shots: &[ShotMeta]) -> String {
-    let mut s = String::from("# klipp 1\n");
+    let mut s = String::from("# agentic-screenshot 1\n");
     for m in shots {
         s.push_str(&format!(
             "{}\t{}\t{}\t{}\t{}\n",
@@ -176,13 +176,8 @@ pub fn parse_shelf(text: &str) -> Vec<ShotMeta> {
     out
 }
 
-/// XDG state. Bindingene har ikke `g_get_user_state_dir` på vår GLib-funksjon.
 pub fn state_dir() -> PathBuf {
-    std::env::var_os("XDG_STATE_HOME")
-        .map(PathBuf::from)
-        .filter(|p| p.is_absolute())
-        .unwrap_or_else(|| glib::home_dir().join(".local").join("state"))
-        .join("klipp")
+    agentic_screenshot_system::user_state_dir().join(agentic_screenshot_system::DIR_NAME)
 }
 
 pub fn shelf_path() -> PathBuf {
@@ -265,18 +260,18 @@ impl ShelfStorage {
                 Err(e) if e.kind() == io::ErrorKind::InvalidData => {
                     let backup = path.with_extension("tsv.ugyldig");
                     eprintln!(
-                        "klipp: hylla var ødelagt og er flyttet til {}: {e}",
+                        "agentic-screenshot: hylla var ødelagt og er flyttet til {}: {e}",
                         backup.display()
                     );
                     if let Err(e) = fs::rename(&path, &backup) {
-                        eprintln!("klipp: kunne ikke flytte den ødelagte hylla: {e}");
+                        eprintln!("agentic-screenshot: kunne ikke flytte den ødelagte hylla: {e}");
                         return;
                     }
                     Vec::new()
                 }
                 // Utilgjengelig fil: skriv ingenting, så historikken kan leses neste gang.
                 Err(e) => {
-                    eprintln!("klipp: kunne ikke lese hylla: {e}");
+                    eprintln!("agentic-screenshot: kunne ikke lese hylla: {e}");
                     return;
                 }
             };
@@ -297,7 +292,7 @@ impl ShelfStorage {
                 retry = match save_shelf(&path, &shots) {
                     Ok(()) => None,
                     Err(e) => {
-                        eprintln!("klipp: kunne ikke lagre hylla: {e}");
+                        eprintln!("agentic-screenshot: kunne ikke lagre hylla: {e}");
                         Some(shots)
                     }
                 };
@@ -306,7 +301,7 @@ impl ShelfStorage {
             if let Some(shots) = retry
                 && let Err(e) = save_shelf(&path, &shots)
             {
-                eprintln!("klipp: kunne ikke lagre hylla ved avslutning: {e}");
+                eprintln!("agentic-screenshot: kunne ikke lagre hylla ved avslutning: {e}");
             }
         });
         (Self { snapshots, worker }, history)
@@ -319,13 +314,15 @@ impl ShelfStorage {
     pub fn finish(self) {
         drop(self.snapshots);
         if self.worker.join().is_err() {
-            eprintln!("klipp: lagringstråden for hylla stoppet uventet");
+            eprintln!("agentic-screenshot: lagringstråden for hylla stoppet uventet");
         }
     }
 }
 
 fn cache_dir() -> PathBuf {
-    glib::user_cache_dir().join("klipp").join("thumbs")
+    glib::user_cache_dir()
+        .join(agentic_screenshot_system::DIR_NAME)
+        .join("thumbs")
 }
 
 fn thumb_cache_path(path: &Path, max_w: u32, max_h: u32) -> Option<PathBuf> {
@@ -383,7 +380,7 @@ pub fn save_new_shot(
         tr_fmt(
             "Kunne ikke lagre i {path}: {error}",
             &[
-                ("path", &klipp_system::pretty_dir(dir)),
+                ("path", &agentic_screenshot_system::pretty_dir(dir)),
                 ("error", &e.to_string()),
             ],
         )
@@ -416,7 +413,7 @@ pub fn local_path_of_uri(uri: &str) -> Option<PathBuf> {
     gio::File::for_uri(uri).path()
 }
 
-/// Slett bare fila portalen ga oss, og aldri noe i Klipp-mappa vår.
+/// Slett bare fila portalen ga oss, og aldri noe i bildemappa vår.
 pub fn remove_portal_file(path: &Path, own_dir: &Path) -> io::Result<()> {
     if path.starts_with(own_dir) {
         return Ok(());
@@ -439,7 +436,10 @@ mod tests {
     }
 
     fn tmp(name: &str) -> PathBuf {
-        let d = std::env::temp_dir().join(format!("klipp-st-{}-{name}", std::process::id()));
+        let d = std::env::temp_dir().join(format!(
+            "agentic-screenshot-st-{}-{name}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&d);
         fs::create_dir_all(&d).unwrap();
         d
@@ -456,9 +456,9 @@ mod tests {
 
     #[test]
     fn file_name_format() {
-        assert_eq!(file_stem(S), "klipp-2026-03-07_09-05-02");
-        assert_eq!(numbered_name("klipp-x", 1), "klipp-x.png");
-        assert_eq!(numbered_name("klipp-x", 2), "klipp-x-2.png");
+        assert_eq!(file_stem(S), "screenshot-2026-03-07_09-05-02");
+        assert_eq!(numbered_name("screenshot-x", 1), "screenshot-x.png");
+        assert_eq!(numbered_name("screenshot-x", 2), "screenshot-x-2.png");
     }
 
     #[test]
@@ -468,9 +468,9 @@ mod tests {
         let (a, _f1) = create_unique(&d, &stem).unwrap();
         let (b, _f2) = create_unique(&d, &stem).unwrap();
         let (c, _f3) = create_unique(&d, &stem).unwrap();
-        assert!(a.ends_with("klipp-2026-03-07_09-05-02.png"));
-        assert!(b.ends_with("klipp-2026-03-07_09-05-02-2.png"));
-        assert!(c.ends_with("klipp-2026-03-07_09-05-02-3.png"));
+        assert!(a.ends_with("screenshot-2026-03-07_09-05-02.png"));
+        assert!(b.ends_with("screenshot-2026-03-07_09-05-02-2.png"));
+        assert!(c.ends_with("screenshot-2026-03-07_09-05-02-3.png"));
         let _ = fs::remove_dir_all(d);
     }
 
@@ -508,9 +508,16 @@ mod tests {
 
     #[test]
     fn bad_shelf_lines_are_skipped() {
-        let got = parse_shelf("# klipp 1\nsøppel\n1\t2\n5\t1\t1\t0\t/ok.png\n");
+        let got = parse_shelf("# agentic-screenshot 1\nsøppel\n1\t2\n5\t1\t1\t0\t/ok.png\n");
         assert_eq!(got.len(), 1);
         assert_eq!(got[0].path, PathBuf::from("/ok.png"));
+    }
+
+    #[test]
+    fn shelf_from_agentic_klipp_is_read() {
+        let got = parse_shelf("# klipp 1\n5\t1\t1\t0\t/Bilder/Klipp/klipp-1.png\n");
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].path, PathBuf::from("/Bilder/Klipp/klipp-1.png"));
     }
 
     #[test]
@@ -546,7 +553,7 @@ mod tests {
     fn clear_and_undo_survive_restart() {
         let dir = tmp("angre");
         let state = dir.join("shelf.tsv");
-        let original = shot(dir.join("klipp.png"), 1);
+        let original = shot(dir.join("bilde.png"), 1);
         fs::write(&original.path, b"x").unwrap();
         save_shelf(&state, std::slice::from_ref(&original)).unwrap();
 
@@ -595,7 +602,7 @@ mod tests {
         let pictures = dir.join("Bilder");
         let offline = dir.join("Frakoblet");
         fs::create_dir(&pictures).unwrap();
-        let remote = shot(pictures.join("klipp.png"), 1);
+        let remote = shot(pictures.join("bilde.png"), 1);
         fs::write(&remote.path, b"x").unwrap();
         save_shelf(&state, std::slice::from_ref(&remote)).unwrap();
 
@@ -629,7 +636,7 @@ mod tests {
         let state = dir.join("shelf.tsv");
         let parent = dir.join("Bilder");
         fs::write(&parent, b"x").unwrap();
-        let image = shot(parent.join("klipp.png"), 1);
+        let image = shot(parent.join("bilde.png"), 1);
         save_shelf(&state, std::slice::from_ref(&image)).unwrap();
 
         assert!(matches!(shot_file(&image.path), ShotFile::Unavailable));
@@ -683,9 +690,9 @@ mod tests {
     #[test]
     fn portal_cleanup_never_touches_our_folder() {
         let d = tmp("port");
-        let own = d.join("Klipp");
+        let own = d.join("Agentic Screenshot");
         fs::create_dir_all(&own).unwrap();
-        let ours = own.join("klipp-1.png");
+        let ours = own.join("screenshot-1.png");
         let theirs = d.join("Skjermbilde.png");
         let other = d.join("annet.png");
         for f in [&ours, &theirs, &other] {

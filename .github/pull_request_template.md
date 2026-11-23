@@ -15,5 +15,5 @@
 - [ ] `cargo fmt --all -- --check` passes
 - [ ] `cargo clippy --workspace --all-targets -- -D warnings` passes
 - [ ] `cargo test --workspace` passes
-- [ ] Updated `CHANGELOG.md` and ran `python3 scripts/update-readme-history.py` (if user-visible)
+- [ ] Updated `CHANGELOG.md` and `CHANGELOG.nb.md`, and ran `python3 scripts/update-readme-history.py` (if user-visible)
 - [ ] Added screenshots (if UI changed)

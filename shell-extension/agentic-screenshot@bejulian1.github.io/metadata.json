@@ -1,0 +1,9 @@
+{
+  "uuid": "agentic-screenshot@bejulian1.github.io",
+  "name": "Agentic Screenshot",
+  "description": "Lar Agentic Screenshot ta skjermbilder uten blits og lukkerlyd, og åpne overlegget uten GNOMEs vindusanimasjon.",
+  "shell-version": [
+    "50"
+  ],
+  "url": "https://github.com/bejulian1/agentic-screenshot"
+}

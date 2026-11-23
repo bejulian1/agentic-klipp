@@ -3,7 +3,7 @@
 //! Utvalget ligger alltid i ekte bildepiksler for skjermen det hører til. `f` er
 //! CSS-piksler (GTK-koordinater) per bildepiksel, som i prototypen.
 
-use klipp_system::i18n::{tr, trc};
+use agentic_screenshot_system::i18n::{tr, trc};
 
 pub const MIN_SIZE: i32 = 4;
 /// Håndtakets radius i CSS-piksler.
@@ -35,7 +35,7 @@ pub struct Pt {
     pub y: i32,
 }
 
-pub use klipp_system::Mode;
+pub use agentic_screenshot_system::Mode;
 
 pub fn mode_label(m: Mode) -> &'static str {
     match m {
@@ -57,10 +57,10 @@ pub fn mode_hint(m: Mode) -> &'static str {
 
 pub fn mode_icon(m: Mode) -> &'static str {
     match m {
-        Mode::Area => "klipp-area-symbolic",
-        Mode::Freehand => "klipp-lasso-symbolic",
-        Mode::Window => "klipp-window-symbolic",
-        Mode::Screen => "klipp-full-symbolic",
+        Mode::Area => "shot-area-symbolic",
+        Mode::Freehand => "shot-lasso-symbolic",
+        Mode::Window => "shot-window-symbolic",
+        Mode::Screen => "shot-full-symbolic",
     }
 }
 

@@ -1,13 +1,13 @@
 //! Hylla: virtualisert liste med thumbnails som lastes utenfor UI-tråden.
 
-use crate::app::Klipp;
+use crate::app::App;
 use crate::clipboard;
 use crate::imaging::Image;
 use crate::storage::{self, ShelfSnapshot, ShelfStorage, ShotFile, ShotMeta};
+use agentic_screenshot_system::i18n::{tr, tr_fmt};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, gio, glib, graphene, gsk};
-use klipp_system::i18n::{tr, tr_fmt};
 use std::cell::{Cell, RefCell};
 use std::collections::{HashSet, VecDeque};
 use std::path::{Path, PathBuf};
@@ -15,7 +15,7 @@ use std::rc::Rc;
 use std::time::Duration;
 
 const MAX_TILE_H: f32 = 300.0;
-/// Samme radius som `klipp-tile` i style.css.
+/// Samme radius som `shot-tile` i style.css.
 const TILE_RADIUS: f32 = 9.0;
 /// Kanten rundt et nytt bilde og rundt et valgt bilde.
 const FRESH_RING: f32 = 2.0;
@@ -35,7 +35,7 @@ mod shot_imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for Shot {
-        const NAME: &'static str = "KlippShot";
+        const NAME: &'static str = "ShotItem";
         type Type = super::Shot;
     }
 
@@ -129,12 +129,12 @@ mod tile_imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for Tile {
-        const NAME: &'static str = "KlippTile";
+        const NAME: &'static str = "ShotTile";
         type Type = super::Tile;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("klipp-tile");
+            klass.set_css_name("shot-tile");
         }
     }
 
@@ -146,7 +146,7 @@ mod tile_imp {
             let osd = gtk::Label::builder()
                 .xalign(0.0)
                 .ellipsize(gtk::pango::EllipsizeMode::End)
-                .css_classes(["klipp-tile-osd"])
+                .css_classes(["shot-tile-osd"])
                 .valign(gtk::Align::End)
                 .can_target(false)
                 .build();
@@ -157,12 +157,12 @@ mod tile_imp {
                 .tooltip_text(tr("Legg i papirkurven"))
                 .halign(gtk::Align::End)
                 .valign(gtk::Align::Start)
-                .css_classes(["klipp-tile-trash"])
+                .css_classes(["shot-tile-trash"])
                 .build();
             let tile = w.downgrade();
             trash.connect_clicked(move |_| {
                 if let Some(shot) = tile.upgrade().and_then(|t| t.current()) {
-                    Klipp::get().trash_shot(&shot);
+                    App::get().trash_shot(&shot);
                 }
             });
             trash.set_parent(&*w);
@@ -173,7 +173,7 @@ mod tile_imp {
                 .halign(gtk::Align::Start)
                 .valign(gtk::Align::Start)
                 .can_target(false)
-                .css_classes(["klipp-tile-check"])
+                .css_classes(["shot-tile-check"])
                 .build();
             check.set_parent(&*w);
             *self.check.borrow_mut() = Some(check);
@@ -391,7 +391,7 @@ impl Tile {
             let state = g.current_event_state();
             let shift = state.contains(gdk::ModifierType::SHIFT_MASK);
             let ctrl = state.contains(gdk::ModifierType::CONTROL_MASK);
-            let k = Klipp::get();
+            let k = App::get();
             if k.shelf.selecting() {
                 // Hvert klikk teller, også det andre i et raskt dobbeltklikk.
                 if shift {
@@ -417,7 +417,7 @@ impl Tile {
                 .current_event_state()
                 .contains(gdk::ModifierType::SHIFT_MASK);
             if shift && let Some(shot) = tile.upgrade().and_then(|t| t.current()) {
-                Klipp::get().copy_shot(&shot);
+                App::get().copy_shot(&shot);
             }
         });
         self.add_controller(secondary);
@@ -429,7 +429,7 @@ impl Tile {
         drag.connect_prepare(move |_, _, _| {
             let shot = tile.upgrade()?.current()?;
             // Et valgt bilde tar med seg resten av utvalget.
-            let shelf = Klipp::get().shelf.clone();
+            let shelf = App::get().shelf.clone();
             let paths = if shelf.is_selected(&shot) {
                 shelf.selected().iter().map(|s| s.meta().path).collect()
             } else {
@@ -441,7 +441,7 @@ impl Tile {
         drag.connect_drag_begin(move |d, _| {
             let Some(t) = tile.upgrade() else { return };
             d.set_icon(Some(&gtk::WidgetPaintable::new(Some(&t))), 24, 24);
-            let shelf = Klipp::get().shelf.clone();
+            let shelf = App::get().shelf.clone();
             if t.current().is_some_and(|s| shelf.is_selected(&s)) {
                 shelf.set_dragging(true);
             } else {
@@ -453,7 +453,7 @@ impl Tile {
             if let Some(t) = tile.upgrade() {
                 t.remove_css_class("dragging");
             }
-            Klipp::get().shelf.set_dragging(false);
+            App::get().shelf.set_dragging(false);
         });
         self.add_controller(drag);
     }
@@ -638,7 +638,7 @@ impl Shelf {
         let list = gtk::ListView::builder()
             .model(&selection)
             .factory(&factory)
-            .css_classes(["klipp-strip"])
+            .css_classes(["shot-strip"])
             .build();
         let scroller = gtk::ScrolledWindow::builder()
             .hscrollbar_policy(gtk::PolicyType::Never)
@@ -652,7 +652,7 @@ impl Shelf {
         let st = store.clone();
         keys.connect_key_pressed(move |_, key, _, state| {
             // Lista har Ctrl+A selv, så valgtastene må tas før den ser dem.
-            let k = Klipp::get();
+            let k = App::get();
             if k.selection_key(key, state) {
                 return glib::Propagation::Stop;
             }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract Klipp's Rust messages and update the gettext template and catalogs."""
+"""Extract Agentic Screenshot's Rust messages and update the gettext template and catalogs."""
 
 import argparse
 import ast
@@ -10,7 +10,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 PO = ROOT / "po"
-SOURCES = ("src", "crates/klipp-annotate/src", "crates/klipp-system/src")
+SOURCES = ("src", "crates/agentic-screenshot-annotate/src", "crates/agentic-screenshot-system/src")
 CALLS = {"tr": 1, "trc": 2, "trn": 2, "tr_fmt": 1}
 
 # Recognize non-code tokens first, so examples in comments and strings are ignored.
@@ -138,7 +138,7 @@ def field(name, value):
 
 def header(language, old):
     headers = {
-        "Project-Id-Version": "Agentic Klipp",
+        "Project-Id-Version": "Agentic Screenshot",
         "MIME-Version": "1.0",
         "Content-Type": "text/plain; charset=UTF-8",
         "Content-Transfer-Encoding": "8bit",
@@ -178,7 +178,7 @@ def main():
     parser.add_argument("--check", action="store_true", help="check generated files without editing")
     args = parser.parse_args()
     messages = extract()
-    files = {PO / "klipp.pot": render(messages)}
+    files = {PO / "agentic-screenshot.pot": render(messages)}
     for path in sorted(PO.glob("*.po")):
         files[path] = render(messages, path.stem, read_catalog(path))
     stale = []

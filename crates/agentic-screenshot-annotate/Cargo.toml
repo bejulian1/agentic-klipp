@@ -1,0 +1,16 @@
+[package]
+name = "agentic-screenshot-annotate"
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.92"
+license = "MIT"
+repository = "https://github.com/bejulian1/agentic-screenshot"
+
+[dependencies]
+gtk.workspace = true
+adw.workspace = true
+futures-util.workspace = true
+png.workspace = true
+pangocairo = "0.22"
+agentic-screenshot-system = { path = "../agentic-screenshot-system" }
+libc = "0.2"

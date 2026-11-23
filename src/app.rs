@@ -6,10 +6,12 @@ use crate::storage::{self, ShotFile};
 use crate::window::MainUi;
 use crate::{cli, clipboard, trace};
 use adw::prelude::*;
+use agentic_screenshot_annotate::AnnotateEvent;
+use agentic_screenshot_system::i18n::{tr, trc, trn};
+use agentic_screenshot_system::{
+    APP_ID, About, Action, Config, HotkeyStatus, SettingsChange, Tray, TrayEvent,
+};
 use gtk::{gdk, gio, glib};
-use klipp_annotate::AnnotateEvent;
-use klipp_system::i18n::{tr, trc, trn};
-use klipp_system::{APP_ID, About, Action, Config, HotkeyStatus, SettingsChange, Tray, TrayEvent};
 use std::cell::{Cell, OnceCell, RefCell};
 use std::path::Path;
 use std::rc::Rc;
@@ -19,10 +21,10 @@ use std::time::{Duration, Instant};
 const TRASH_GUARD: Duration = Duration::from_millis(400);
 
 thread_local! {
-    static KLIPP: OnceCell<Rc<Klipp>> = const { OnceCell::new() };
+    static APP: OnceCell<Rc<App>> = const { OnceCell::new() };
 }
 
-pub struct Klipp {
+pub struct App {
     pub app: adw::Application,
     pub config: Rc<RefCell<Config>>,
     pub shelf: Rc<Shelf>,
@@ -41,11 +43,11 @@ pub fn build_application() -> adw::Application {
     let app = adw::Application::builder()
         .application_id(APP_ID)
         .flags(gio::ApplicationFlags::HANDLES_COMMAND_LINE)
-        .resource_base_path("/io/github/AgenticKlipp")
+        .resource_base_path("/io/github/AgenticScreenshot")
         .build();
-    app.connect_startup(Klipp::init);
+    app.connect_startup(App::init);
     app.connect_shutdown(|_| {
-        KLIPP.with(|k| {
+        APP.with(|k| {
             if let Some(k) = k.get() {
                 k.shelf.finish_saving();
             }
@@ -58,7 +60,7 @@ pub fn build_application() -> adw::Application {
             .skip(1)
             .map(|a| a.to_string_lossy().into_owned())
             .collect();
-        let k = Klipp::get();
+        let k = App::get();
         let token = line
             .getenv("XDG_ACTIVATION_TOKEN")
             .or_else(|| line.getenv("DESKTOP_STARTUP_ID"));
@@ -82,19 +84,19 @@ pub fn build_application() -> adw::Application {
     app
 }
 
-impl Klipp {
-    pub fn get() -> Rc<Klipp> {
-        KLIPP.with(|k| k.get().cloned()).expect("Klipp er startet")
+impl App {
+    pub fn get() -> Rc<App> {
+        APP.with(|k| k.get().cloned()).expect("appen er startet")
     }
 
     fn init(app: &adw::Application) {
         trace("startup");
         let config = Rc::new(RefCell::new(Config::load()));
-        klipp_system::apply_theme(config.borrow().theme);
+        agentic_screenshot_system::apply_theme(config.borrow().theme);
 
         if let Some(display) = gdk::Display::default() {
             let css = gtk::CssProvider::new();
-            css.load_from_resource("/io/github/AgenticKlipp/style.css");
+            css.load_from_resource("/io/github/AgenticScreenshot/style.css");
             gtk::style_context_add_provider_for_display(
                 &display,
                 &css,
@@ -104,7 +106,7 @@ impl Klipp {
 
         let shelf = Shelf::new();
         let ui = MainUi::build(app, &shelf, &config.borrow());
-        let k = Rc::new(Klipp {
+        let k = Rc::new(App {
             app: app.clone(),
             config,
             shelf: shelf.clone(),
@@ -117,7 +119,7 @@ impl Klipp {
             last_trash: Cell::new(None),
             _hold: app.hold(),
         });
-        KLIPP.with(|c| {
+        APP.with(|c| {
             let _ = c.set(k.clone());
         });
 
@@ -132,11 +134,11 @@ impl Klipp {
         // Systemfeltet sier «Vis vindu» når vinduet er minimert.
         k.ui.window.connect_realize(|w| {
             if let Some(t) = w.surface().and_downcast::<gdk::Toplevel>() {
-                t.connect_state_notify(|_| Klipp::get().sync_tray());
+                t.connect_state_notify(|_| App::get().sync_tray());
             }
         });
         k.shelf.connect_selection_changed(|| {
-            let k = Klipp::get();
+            let k = App::get();
             k.ui.sync_selection(&k.shelf);
         });
 
@@ -146,8 +148,8 @@ impl Klipp {
         toplevels.connect_items_changed(move |_, _, _, _| {
             let blocked = (0..model.n_items())
                 .filter_map(|i| model.item(i).and_downcast::<gtk::Window>())
-                .any(|w| !w.has_css_class("klipp-main") && !w.has_css_class("klipp-overlay"));
-            if let Some(k) = KLIPP.with(|k| k.get().cloned()) {
+                .any(|w| !w.has_css_class("shot-main") && !w.has_css_class("shot-overlay"));
+            if let Some(k) = APP.with(|k| k.get().cloned()) {
                 k.ui.set_blocked(blocked);
             }
         });
@@ -156,9 +158,9 @@ impl Klipp {
 
         // Tray og hurtigtast skal ikke forsinke første vindu.
         glib::idle_add_local_once(|| {
-            let k = Klipp::get();
+            let k = App::get();
             let tray = Tray::start(|e| {
-                let k = Klipp::get();
+                let k = App::get();
                 match e {
                     TrayEvent::Capture => capture::start(&k, None),
                     TrayEvent::ToggleWindow => k.toggle_main(),
@@ -167,7 +169,7 @@ impl Klipp {
             });
             k.tray.replace(tray);
             capture::shell::watch(|on| {
-                let k = Klipp::get();
+                let k = App::get();
                 if on {
                     k.give_key_to_shell();
                 } else {
@@ -183,13 +185,13 @@ impl Klipp {
         let config = self.config.borrow();
         let accel = config.accel(Action::Capture).unwrap_or_default();
         capture::shell::bind_shortcut(accel);
-        klipp_system::hotkey_handed_over(config.key(Action::Capture));
+        agentic_screenshot_system::hotkey_handed_over(config.key(Action::Capture));
     }
 
     fn give_key_to_portal(&self) {
-        klipp_system::start_hotkey(
+        agentic_screenshot_system::start_hotkey(
             self.config.clone(),
-            || capture::start(&Klipp::get(), Some(Mode::Area)),
+            || capture::start(&App::get(), Some(Mode::Area)),
             |status| match status {
                 HotkeyStatus::Active => trace("global hurtigtast aktiv"),
                 HotkeyStatus::Unavailable(why) => {
@@ -201,7 +203,7 @@ impl Klipp {
 
     pub fn save_config(&self) {
         if let Err(e) = self.config.borrow().save() {
-            eprintln!("klipp: kunne ikke lagre innstillingene: {e}");
+            eprintln!("agentic-screenshot: kunne ikke lagre innstillingene: {e}");
         }
     }
 
@@ -267,21 +269,21 @@ impl Klipp {
     }
 
     pub fn sync_tray(&self) {
-        klipp_system::tray_set_window_visible(self.main_shown());
+        agentic_screenshot_system::tray_set_window_visible(self.main_shown());
     }
 
-    /// Første gang vinduet lukkes sier vi fra om at Klipp kjører videre.
+    /// Første gang vinduet lukkes sier vi fra om at Agentic Screenshot kjører videre.
     fn show_close_hint(&self) {
         if std::mem::replace(&mut self.config.borrow_mut().close_hint_shown, true) {
             return;
         }
         self.save_config();
-        let body = if klipp_system::tray_online() {
+        let body = if agentic_screenshot_system::tray_online() {
             tr("Åpne den igjen fra ikonet i systemfeltet.")
         } else {
-            tr("Kjør klipp for å åpne den igjen.")
+            tr("Kjør agentic-screenshot for å åpne den igjen.")
         };
-        notify(tr("Klipp kjører i bakgrunnen"), body);
+        notify(tr("Agentic Screenshot kjører i bakgrunnen"), body);
     }
 
     pub fn copy_shot(&self, shot: &Shot) {
@@ -292,7 +294,8 @@ impl Klipp {
         if clipboard::copy_file(m.path) {
             self.ui.toast(tr("Kopiert!"));
         } else {
-            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
+            self.ui
+                .toast(tr("Ikke kopiert. Agentic Screenshot mangler fokus."));
         }
     }
 
@@ -301,7 +304,8 @@ impl Klipp {
         if clipboard::copy_text(&m.path.to_string_lossy()) {
             self.ui.toast(tr("Filsti kopiert"));
         } else {
-            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
+            self.ui
+                .toast(tr("Ikke kopiert. Agentic Screenshot mangler fokus."));
         }
     }
 
@@ -334,7 +338,8 @@ impl Klipp {
             self.ui
                 .toast(&trn("{n} bilde kopiert", "{n} bilder kopiert", paths.len()));
         } else {
-            self.ui.toast(tr("Ikke kopiert. Klipp mangler fokus."));
+            self.ui
+                .toast(tr("Ikke kopiert. Agentic Screenshot mangler fokus."));
         }
     }
 
@@ -356,7 +361,7 @@ impl Klipp {
         }
         self.last_trash.set(Some(now));
         glib::spawn_future_local(async move {
-            let k = Klipp::get();
+            let k = App::get();
             let mut tally = TrashTally::default();
             let mut removed = Vec::new();
             for shot in shots {
@@ -371,7 +376,7 @@ impl Klipp {
                         tally.gone += 1;
                     }
                     Err(e) => {
-                        eprintln!("klipp: kunne ikke legge i papirkurven: {e}");
+                        eprintln!("agentic-screenshot: kunne ikke legge i papirkurven: {e}");
                         tally.failed += 1;
                         continue;
                     }
@@ -416,8 +421,8 @@ impl Klipp {
             return;
         }
         let path = m.path.clone();
-        klipp_annotate::open(&self.app, &m.path, move |e| {
-            let k = Klipp::get();
+        agentic_screenshot_annotate::open(&self.app, &m.path, move |e| {
+            let k = App::get();
             if let AnnotateEvent::Saved(saved) = e {
                 k.shelf.replaced(&saved);
             }
@@ -444,10 +449,12 @@ impl Klipp {
             build: crate::BUILD,
             silent_capture: capture::shell::ready(),
         };
-        klipp_system::open_settings(&self.app, self.config.clone(), about, |change| {
-            let k = Klipp::get();
+        agentic_screenshot_system::open_settings(&self.app, self.config.clone(), about, |change| {
+            let k = App::get();
             match change {
-                SettingsChange::Theme => klipp_system::apply_theme(k.config.borrow().theme),
+                SettingsChange::Theme => {
+                    agentic_screenshot_system::apply_theme(k.config.borrow().theme)
+                }
                 SettingsChange::Shortcuts => {
                     k.ui.sync_all(&k.shelf, &k.config.borrow());
                     if capture::shell::ready() {
@@ -470,9 +477,11 @@ impl Klipp {
         match spawned {
             Ok(_) => self.app.quit(),
             Err(error) => {
-                eprintln!("klipp: kunne ikke starte på nytt: {error}");
-                let dialog =
-                    adw::AlertDialog::new(Some(tr("Kunne ikke starte Klipp på nytt")), None);
+                eprintln!("agentic-screenshot: kunne ikke starte på nytt: {error}");
+                let dialog = adw::AlertDialog::new(
+                    Some(tr("Kunne ikke starte Agentic Screenshot på nytt")),
+                    None,
+                );
                 dialog.add_response("close", trc("error-dialog", "Lukk"));
                 dialog.present(self.app.active_window().as_ref());
             }
@@ -512,7 +521,7 @@ impl Klipp {
             trc("shelf-clear", "Angre"),
             6,
             move || {
-                let k = Klipp::get();
+                let k = App::get();
                 if let Some(s) = saved.borrow_mut().take() {
                     k.shelf.restore(s);
                     k.ui.sync_shelf(&k.shelf, &k.config.borrow());
@@ -577,7 +586,14 @@ fn notify(summary: &str, body: &str) {
     let actions: Vec<String> = Vec::new();
     let hints = std::collections::HashMap::<String, glib::Variant>::new();
     let args = (
-        "Klipp", 0u32, APP_ID, summary, body, actions, hints, 5000i32,
+        "Agentic Screenshot",
+        0u32,
+        APP_ID,
+        summary,
+        body,
+        actions,
+        hints,
+        5000i32,
     )
         .to_variant();
     gio::bus_get(gio::BusType::Session, gio::Cancellable::NONE, move |bus| {

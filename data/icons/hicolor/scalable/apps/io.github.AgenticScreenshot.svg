@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128">
+  <title>Agentic Screenshot</title>
+  <defs>
+    <linearGradient id="face" x1="64" y1="12" x2="64" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#62a0ea"/>
+      <stop offset="1" stop-color="#3584e4"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="12" y1="0" x2="116" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1a5fb4"/>
+      <stop offset="0.5" stop-color="#1c71d8"/>
+      <stop offset="1" stop-color="#1a5fb4"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="16" width="104" height="100" rx="20" fill="url(#edge)"/>
+  <rect x="12" y="12" width="104" height="100" rx="20" fill="url(#face)"/>
+  <rect x="13" y="13" width="102" height="98" rx="19" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2"/>
+  <path d="M32 48V38a8 8 0 0 1 8-8h10M78 30h10a8 8 0 0 1 8 8v10M96 76v10a8 8 0 0 1-8 8H78M50 94H40a8 8 0 0 1-8-8V76" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 40Q66 60 86 62 66 64 64 84 62 64 42 62 62 60 64 40Z" fill="#f9f06b" stroke="#f9f06b" stroke-width="2" stroke-linejoin="round"/>
+</svg>

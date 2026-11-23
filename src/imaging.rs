@@ -2,7 +2,7 @@
 //! Alt her kjøres utenfor UI-tråden.
 
 use crate::capture::geometry::{Pt, Rect};
-use klipp_system::i18n::{tr, tr_fmt};
+use agentic_screenshot_system::i18n::{tr, tr_fmt};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::Path;

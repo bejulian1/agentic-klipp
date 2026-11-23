@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "crates/klipp-annotate", "crates/klipp-system"]
+members = [".", "crates/agentic-screenshot-annotate", "crates/agentic-screenshot-system"]
 resolver = "3"
 
 [workspace.dependencies]
@@ -11,17 +11,17 @@ png = "0.18"
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
 
 [package]
-name = "agentic-klipp"
-version = "1.3.0"
+name = "agentic-screenshot"
+version = "2.0.0"
 edition = "2024"
 rust-version = "1.92"
 description = "Screenshot tool for Ubuntu/GNOME built for AI coding agents"
 license = "MIT"
-repository = "https://github.com/bejulian1/agentic-klipp"
+repository = "https://github.com/bejulian1/agentic-screenshot"
 build = "build.rs"
 
 [[bin]]
-name = "klipp"
+name = "agentic-screenshot"
 path = "src/main.rs"
 
 [dependencies]
@@ -32,8 +32,8 @@ futures-channel = { version = "0.3", default-features = false, features = ["std"
 png.workspace = true
 libc = "0.2"
 futures-util.workspace = true
-klipp-annotate = { path = "crates/klipp-annotate" }
-klipp-system = { path = "crates/klipp-system" }
+agentic-screenshot-annotate = { path = "crates/agentic-screenshot-annotate" }
+agentic-screenshot-system = { path = "crates/agentic-screenshot-system" }
 
 [build-dependencies]
 glib-build-tools = "0.22"
