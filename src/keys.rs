@@ -1,11 +1,11 @@
 //! Lokale hurtigtaster: oversetter tastetrykk til handlingene i `Config`.
 
+use agentic_screenshot_system::i18n::tr_fmt;
+use agentic_screenshot_system::{Action, Config};
 use gtk::gdk;
 use gtk::prelude::*;
-use klipp_system::i18n::tr_fmt;
-use klipp_system::{Action, Config};
 
-/// Handlingene som virker inne i Klipp. Den globale hører ikke hjemme her.
+/// Handlingene som virker inne i Agentic Screenshot. Den globale hører ikke hjemme her.
 const LOCAL: [Action; 5] = [
     Action::ModeArea,
     Action::ModeFreehand,

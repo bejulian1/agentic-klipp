@@ -5,14 +5,14 @@ use super::geometry::{
     mode_icon, mode_label,
 };
 use super::{Cut, Frozen, shell};
-use crate::app::Klipp;
+use crate::app::App;
 use crate::clipboard::{self, Source};
 use crate::keys;
+use agentic_screenshot_system::Action;
+use agentic_screenshot_system::i18n::{tr, tr_fmt, trc};
 use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{cairo, gdk, glib, graphene, gsk};
-use klipp_system::Action;
-use klipp_system::i18n::{tr, tr_fmt, trc};
 use std::cell::{Cell, OnceCell, RefCell};
 use std::rc::{Rc, Weak};
 use std::time::Duration;
@@ -52,12 +52,12 @@ mod imp {
 
     #[glib::object_subclass]
     impl ObjectSubclass for Canvas {
-        const NAME: &'static str = "KlippOverlayCanvas";
+        const NAME: &'static str = "ShotOverlayCanvas";
         type Type = super::Canvas;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            klass.set_css_name("klipp-overlay");
+            klass.set_css_name("shot-overlay");
         }
     }
 
@@ -403,7 +403,7 @@ struct MonView {
 }
 
 pub struct Session {
-    k: Rc<Klipp>,
+    k: Rc<App>,
     frozen: RefCell<Option<Frozen>>,
     mons: RefCell<Vec<MonView>>,
     active: Cell<usize>,
@@ -501,15 +501,15 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
     });
     let bar = gtk::Box::builder()
         .spacing(4)
-        .css_classes(["klipp-ov-bar"])
+        .css_classes(["shot-ov-bar"])
         .build();
     bar.append(&toggles);
     let sep = gtk::Separator::new(gtk::Orientation::Vertical);
-    sep.add_css_class("klipp-ov-sep");
+    sep.add_css_class("shot-ov-sep");
     bar.append(&sep);
     bar.append(&close);
 
-    let dims = gtk::Label::builder().css_classes(["klipp-ov-dims"]).build();
+    let dims = gtk::Label::builder().css_classes(["shot-ov-dims"]).build();
     let undo = gtk::Button::builder()
         .label(trc("capture-selection", "Angre"))
         .tooltip_text(trc("capture-selection", "Angre (Ctrl+Z)"))
@@ -535,16 +535,16 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
     });
     let actions = gtk::Box::builder()
         .spacing(4)
-        .css_classes(["klipp-ov-bar"])
+        .css_classes(["shot-ov-bar"])
         .build();
     actions.append(&dims);
     actions.append(&undo);
     actions.append(&take);
     actions.set_visible(false);
 
-    let hint = gtk::Label::builder().css_classes(["klipp-pill"]).build();
+    let hint = gtk::Label::builder().css_classes(["shot-pill"]).build();
     let size = gtk::Label::builder()
-        .css_classes(["klipp-pill", "size"])
+        .css_classes(["shot-pill", "size"])
         .visible(false)
         .can_target(false)
         .build();
@@ -565,7 +565,7 @@ fn build_parts(canvas: &Canvas, session: &Rc<Session>, mode: Mode) -> imp::Parts
 }
 
 /// Åpne overlegget. Det frosne bildet flyttes hit og slippes når sesjonen slutter.
-pub fn open(k: &Rc<Klipp>, frozen: Frozen, mode: Mode) {
+pub fn open(k: &Rc<App>, frozen: Frozen, mode: Mode) {
     let mons = monitors();
     let logical_mons: Vec<_> = mons.iter().map(logical).collect();
     let regions = geometry::monitor_regions(&logical_mons, frozen.w as i32, frozen.h as i32);
@@ -600,11 +600,11 @@ pub fn open(k: &Rc<Klipp>, frozen: Frozen, mode: Mode) {
 
         let window = gtk::Window::builder()
             .application(&k.app)
-            .title("Klipp")
+            .title("Agentic Screenshot")
             .decorated(false)
             .child(&canvas)
             .build();
-        window.add_css_class("klipp-overlay");
+        window.add_css_class("shot-overlay");
         if let Some(t) = &token {
             window.set_startup_id(t);
         }

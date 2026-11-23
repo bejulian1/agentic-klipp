@@ -9,19 +9,44 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "agentic-klipp"
-version = "1.3.0"
+name = "agentic-screenshot"
+version = "2.0.0"
 dependencies = [
+ "agentic-screenshot-annotate",
+ "agentic-screenshot-system",
  "ashpd",
  "futures-channel",
  "futures-util",
  "glib-build-tools",
  "gtk4",
- "klipp-annotate",
- "klipp-system",
  "libadwaita",
  "libc",
  "png",
+]
+
+[[package]]
+name = "agentic-screenshot-annotate"
+version = "2.0.0"
+dependencies = [
+ "agentic-screenshot-system",
+ "futures-util",
+ "gtk4",
+ "libadwaita",
+ "libc",
+ "pangocairo",
+ "png",
+]
+
+[[package]]
+name = "agentic-screenshot-system"
+version = "2.0.0"
+dependencies = [
+ "ashpd",
+ "futures-channel",
+ "futures-util",
+ "gtk4",
+ "ksni",
+ "libadwaita",
 ]
 
 [[package]]
@@ -768,31 +793,6 @@ dependencies = [
  "cfg-if",
  "futures-util",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "klipp-annotate"
-version = "1.3.0"
-dependencies = [
- "futures-util",
- "gtk4",
- "klipp-system",
- "libadwaita",
- "libc",
- "pangocairo",
- "png",
-]
-
-[[package]]
-name = "klipp-system"
-version = "1.3.0"
-dependencies = [
- "ashpd",
- "futures-channel",
- "futures-util",
- "gtk4",
- "ksni",
- "libadwaita",
 ]
 
 [[package]]

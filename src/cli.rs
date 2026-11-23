@@ -1,21 +1,21 @@
 //! Kommandolinja. Ren parsing, slik at `--help` og `--version` aldri rører GTK.
 
 use crate::capture::geometry::Mode;
-use klipp_system::i18n::{tr, tr_fmt};
+use agentic_screenshot_system::i18n::{tr, tr_fmt};
 
 pub fn help() -> &'static str {
     // Oversettere: Keep the command name, flags and mode values unchanged.
     tr("\
-Agentic Klipp: skjermbilder til AI-kodeagenter
+Agentic Screenshot: skjermbilder til AI-kodeagenter
 
 Bruk:
-  klipp                  Vis vinduet (starter appen om den ikke kjører)
-  klipp --capture        Ta et skjermbilde med sist brukte modus
-  klipp --capture --mode omrade|frihand|vindu|skjerm
-  klipp --hidden         Start skjult, for autostart
-  klipp --quit           Avslutt appen
-  klipp --version        Vis versjonen
-  klipp --help           Vis denne hjelpen
+  agentic-screenshot            Vis vinduet (starter appen om den ikke kjører)
+  agentic-screenshot --capture  Ta et skjermbilde med sist brukte modus
+  agentic-screenshot --capture --mode omrade|frihand|vindu|skjerm
+  agentic-screenshot --hidden   Start skjult, for autostart
+  agentic-screenshot --quit     Avslutt appen
+  agentic-screenshot --version  Vis versjonen
+  agentic-screenshot --help     Vis denne hjelpen
 ")
 }
 
@@ -28,6 +28,17 @@ pub enum Command {
     Quit,
     Version,
     Help,
+}
+
+impl Command {
+    /// Kommandoer som starter appen. Bare de får flytte filer fra 1.x, så
+    /// `--version`, `--help` og `--quit` aldri endrer noe på disken.
+    pub fn starts_app(self) -> bool {
+        matches!(
+            self,
+            Command::Show | Command::RestartAfter(_) | Command::Capture(_) | Command::Hidden
+        )
+    }
 }
 
 pub fn mode_arg(s: &str) -> Option<Mode> {
@@ -164,6 +175,27 @@ mod tests {
     #[test]
     fn quit_flag() {
         assert_eq!(p(&["--quit"]), Ok(Command::Quit));
+    }
+
+    #[test]
+    fn only_commands_that_start_the_app_may_migrate() {
+        for args in [
+            &[][..],
+            &["--capture"],
+            &["--hidden"],
+            &["--after-pid", "1"],
+        ] {
+            assert!(p(args).unwrap().starts_app(), "{args:?}");
+        }
+        for args in [["--version"], ["--help"], ["--quit"]] {
+            assert!(!p(&args).unwrap().starts_app(), "{args:?}");
+        }
+    }
+
+    #[test]
+    fn help_names_the_binary() {
+        assert!(help().starts_with("Agentic Screenshot: "));
+        assert!(help().contains("  agentic-screenshot --capture  "));
     }
 
     #[test]

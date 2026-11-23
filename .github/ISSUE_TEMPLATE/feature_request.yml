@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement or new feature for Agentic Klipp
+description: Suggest an improvement or new feature for Agentic Screenshot
 labels: ["enhancement"]
 body:
   - type: textarea

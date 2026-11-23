@@ -1,6 +1,6 @@
 //! Hovedvinduet: variant C «Stripe», og kompaktmodus med raden etter capture.
 
-use crate::app::{Klipp, count_text};
+use crate::app::{App, count_text};
 use crate::capture::{
     self,
     geometry::{Mode, mode_icon, mode_label},
@@ -8,9 +8,9 @@ use crate::capture::{
 use crate::keys;
 use crate::shelf::Shelf;
 use adw::prelude::*;
+use agentic_screenshot_system::i18n::{tr, tr_fmt, trc, trn};
+use agentic_screenshot_system::{Action, Config};
 use gtk::{gdk, glib};
-use klipp_system::i18n::{tr, tr_fmt, trc, trn};
-use klipp_system::{Action, Config};
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
@@ -68,7 +68,7 @@ fn strip_height() -> i32 {
 }
 
 fn clear_tip(cfg: &Config) -> String {
-    let dir = klipp_system::pretty_dir(&cfg.save_dir());
+    let dir = agentic_screenshot_system::pretty_dir(&cfg.save_dir());
     // Oversettere: {path} is the screenshot folder, where the files stay after clearing the shelf.
     tr_fmt(
         "Tøm hylla\nFilene blir liggende i {path}",
@@ -104,7 +104,7 @@ impl MainUi {
             row.append(&accel);
             let b = gtk::ToggleButton::builder()
                 .child(&row)
-                .css_classes(["flat", "klipp-mode-row"])
+                .css_classes(["flat", "shot-mode-row"])
                 .build();
             if let Some(g) = &group {
                 b.set_group(Some(g));
@@ -113,7 +113,7 @@ impl MainUi {
             }
             let pop = popover.clone();
             b.connect_clicked(move |_| {
-                Klipp::get().set_mode(m);
+                App::get().set_mode(m);
                 pop.popdown();
             });
             rows_box.append(&b);
@@ -129,13 +129,13 @@ impl MainUi {
             .valign(gtk::Align::Center)
             .css_classes(["suggested-action"])
             .build();
-        split.connect_clicked(|_| capture::start(&Klipp::get(), None));
+        split.connect_clicked(|_| capture::start(&App::get(), None));
 
         let ny = gtk::Button::builder()
             .label(trc("new-screenshot-button", "Ny"))
             .css_classes(["suggested-action"])
             .build();
-        ny.connect_clicked(|_| capture::start(&Klipp::get(), None));
+        ny.connect_clicked(|_| capture::start(&App::get(), None));
 
         let inline = adw::ToggleGroup::new();
         for m in Mode::ALL {
@@ -147,14 +147,14 @@ impl MainUi {
             );
         }
 
-        let compact_btn = icon_button("klipp-shelf-symbolic", tr("Skjul hylla"));
+        let compact_btn = icon_button("shot-shelf-symbolic", tr("Skjul hylla"));
         compact_btn.connect_clicked(|_| {
-            let k = Klipp::get();
+            let k = App::get();
             let on = !k.config.borrow().compact;
             k.set_compact(on);
         });
-        let settings_btn = icon_button("klipp-gear-symbolic", tr("Innstillinger"));
-        settings_btn.connect_clicked(|_| Klipp::get().open_settings());
+        let settings_btn = icon_button("shot-gear-symbolic", tr("Innstillinger"));
+        settings_btn.connect_clicked(|_| App::get().open_settings());
 
         // Ekte vinduskontroller: minimer, og lukk som skjuler til systemfeltet.
         let controls = gtk::WindowControls::builder()
@@ -188,15 +188,15 @@ impl MainUi {
             .can_shrink(true)
             .overflow(gtk::Overflow::Hidden)
             .valign(gtk::Align::Center)
-            .css_classes(["klipp-reveal-thumb"])
+            .css_classes(["shot-reveal-thumb"])
             .build();
         let rev_dims = gtk::Label::builder()
             .xalign(0.0)
-            .css_classes(["klipp-reveal-dims"])
+            .css_classes(["shot-reveal-dims"])
             .build();
         let rev_status = gtk::Label::builder()
             .xalign(0.0)
-            .css_classes(["klipp-reveal-status"])
+            .css_classes(["shot-reveal-status"])
             .build();
         let rev_text = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -216,7 +216,7 @@ impl MainUi {
             .build();
         let rev_box = gtk::Box::builder()
             .spacing(10)
-            .css_classes(["klipp-reveal"])
+            .css_classes(["shot-reveal"])
             .build();
         // Bildet ønsker seg full bredde. Clampen holder det på 44 px.
         let rev_clamp = adw::Clamp::builder()
@@ -258,7 +258,7 @@ impl MainUi {
         empty_child.append(&empty_keyed);
         empty_child.append(&empty_plain);
         let empty = adw::StatusPage::builder()
-            .icon_name("klipp-shelf-symbolic")
+            .icon_name("shot-shelf-symbolic")
             .title(tr("Hylla er tom"))
             .child(&empty_child)
             .css_classes(["compact"])
@@ -273,23 +273,23 @@ impl MainUi {
         stack.add_named(&shelf.scroller, Some("shelf"));
 
         // Bunnlinja: antall bilder, Velg og Tøm. I valgmodus en handlingslinje.
-        let clear_btn = icon_button("klipp-clear-symbolic", &clear_tip(cfg));
-        clear_btn.connect_clicked(|_| Klipp::get().clear_shelf());
+        let clear_btn = icon_button("shot-clear-symbolic", &clear_tip(cfg));
+        clear_btn.connect_clicked(|_| App::get().clear_shelf());
         let select_btn = icon_button(
             "selection-mode-symbolic",
             tr("Velg flere bilder (Ctrl+A)\nCtrl+klikk på et bilde gjør det samme"),
         );
         select_btn.update_property(&[gtk::accessible::Property::Label(tr("Velg flere bilder"))]);
-        select_btn.connect_clicked(|_| Klipp::get().shelf.set_selecting(true));
+        select_btn.connect_clicked(|_| App::get().shelf.set_selecting(true));
         let shelf_count = gtk::Label::builder()
             .xalign(0.0)
             .hexpand(true)
             .ellipsize(gtk::pango::EllipsizeMode::End)
-            .css_classes(["klipp-bar-label", "dim-label"])
+            .css_classes(["shot-bar-label", "dim-label"])
             .build();
         let normal_bar = gtk::Box::builder()
             .spacing(2)
-            .css_classes(["klipp-bar-normal"])
+            .css_classes(["shot-bar-normal"])
             .build();
         normal_bar.append(&shelf_count);
         normal_bar.append(&select_btn);
@@ -300,27 +300,27 @@ impl MainUi {
             "selection-cancel",
             "Avbryt",
         ))]);
-        sel_cancel.connect_clicked(|_| Klipp::get().shelf.set_selecting(false));
+        sel_cancel.connect_clicked(|_| App::get().shelf.set_selecting(false));
         let sel_count = gtk::Label::builder()
             .xalign(0.0)
             .hexpand(true)
             .ellipsize(gtk::pango::EllipsizeMode::End)
-            .css_classes(["klipp-bar-label", "klipp-sel-count"])
+            .css_classes(["shot-bar-label", "shot-sel-count"])
             .build();
         let sel_trash = icon_button("user-trash-symbolic", tr("Legg i papirkurven (Delete)"));
-        sel_trash.add_css_class("klipp-bar-trash");
+        sel_trash.add_css_class("shot-bar-trash");
         sel_trash.update_property(&[gtk::accessible::Property::Label(tr("Legg i papirkurven"))]);
-        sel_trash.connect_clicked(|_| Klipp::get().trash_selected());
+        sel_trash.connect_clicked(|_| App::get().trash_selected());
         let sel_copy = gtk::Button::builder()
             // Oversettere: Keep the button short. It copies all selected screenshots.
             .label(trc("shelf-copy", "Kopier"))
             .tooltip_text(tr("Kopier de valgte bildene (Ctrl+C)"))
-            .css_classes(["suggested-action", "klipp-bar-copy"])
+            .css_classes(["suggested-action", "shot-bar-copy"])
             .build();
-        sel_copy.connect_clicked(|_| Klipp::get().copy_selected());
+        sel_copy.connect_clicked(|_| App::get().copy_selected());
         let select_bar = gtk::Box::builder()
             .spacing(2)
-            .css_classes(["klipp-bar-select"])
+            .css_classes(["shot-bar-select"])
             .build();
         select_bar.append(&sel_cancel);
         select_bar.append(&sel_count);
@@ -333,7 +333,7 @@ impl MainUi {
             .build();
         bar_stack.add_named(&normal_bar, Some("normal"));
         bar_stack.add_named(&select_bar, Some("select"));
-        let bottom = gtk::Box::builder().css_classes(["klipp-bottombar"]).build();
+        let bottom = gtk::Box::builder().css_classes(["shot-bottombar"]).build();
         bottom.append(&bar_stack);
 
         let body = gtk::Box::builder()
@@ -353,21 +353,21 @@ impl MainUi {
 
         let window = adw::ApplicationWindow::builder()
             .application(app)
-            .title("Klipp")
-            .icon_name(klipp_system::APP_ID)
+            .title("Agentic Screenshot")
+            .icon_name(agentic_screenshot_system::APP_ID)
             .default_width(if cfg.compact { COMPACT_W } else { STRIP_W })
             .default_height(if cfg.compact { -1 } else { strip_height() })
             .content(&toasts)
             .build();
-        window.add_css_class("klipp-main");
+        window.add_css_class("shot-main");
 
         window.connect_close_request(|_| {
-            Klipp::get().hide_main();
+            App::get().hide_main();
             glib::Propagation::Stop
         });
         window.connect_is_active_notify(|w| {
             if w.is_active() {
-                let k = Klipp::get();
+                let k = App::get();
                 if k.ui.minimized.replace(false) {
                     k.sync_tray();
                 }
@@ -416,7 +416,7 @@ impl MainUi {
                 return;
             }
             if let Some(m) = g.active_name().and_then(|n| Mode::from_id(&n)) {
-                Klipp::get().set_mode(m);
+                App::get().set_mode(m);
             }
         });
 
@@ -425,13 +425,13 @@ impl MainUi {
             let Some(ui) = weak.upgrade() else { return };
             let path = ui.rev_path.borrow().clone();
             ui.hide_reveal();
-            let k = Klipp::get();
+            let k = App::get();
             let shot = path.and_then(|p| k.shelf.find(&p));
             if let Some(shot) = shot {
                 k.annotate(&shot);
             }
         });
-        rev_shelf.connect_clicked(|_| Klipp::get().set_compact(false));
+        rev_shelf.connect_clicked(|_| App::get().set_compact(false));
 
         // Musa over raden holder den åpen.
         let hover = gtk::EventControllerMotion::new();
@@ -468,7 +468,7 @@ impl MainUi {
             let Some(display) = gdk::Display::default() else {
                 return glib::Propagation::Proceed;
             };
-            let k = Klipp::get();
+            let k = App::get();
             let action =
                 keys::action_for(&k.config.borrow(), &display, key, code, c.group(), state);
             // Egne snarveier først. Valgtastene virker uansett hvor fokus står.
@@ -506,10 +506,10 @@ impl MainUi {
         self.body.set_visible(!on);
         if on {
             self.header.remove_css_class("flat");
-            self.header.remove_css_class("klipp-narrow");
+            self.header.remove_css_class("shot-narrow");
         } else {
             self.header.add_css_class("flat");
-            self.header.add_css_class("klipp-narrow");
+            self.header.add_css_class("shot-narrow");
         }
         // AdwApplicationWindow har ellers 360 × 200 px som minste størrelse.
         self.window.set_size_request(MIN_W, MIN_H);
@@ -725,12 +725,12 @@ fn set_control_tooltips(controls: &gtk::WindowControls, minimized: &Rc<Cell<bool
                 (tr("Skjul til systemfeltet"), tr("Lukk vinduet"))
             } else if b.has_css_class("minimize") {
                 // Kontrollene går gjennom knappene igjen ved hver endring.
-                if !b.has_css_class("klipp-hooked") {
-                    b.add_css_class("klipp-hooked");
+                if !b.has_css_class("shot-hooked") {
+                    b.add_css_class("shot-hooked");
                     let m = minimized.clone();
                     b.connect_clicked(move |_| {
                         m.set(true);
-                        Klipp::get().sync_tray();
+                        App::get().sync_tray();
                     });
                 }
                 (tr("Minimer"), tr("Minimer"))

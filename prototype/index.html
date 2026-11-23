@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Klipp – prototype</title>
+<title>Agentic Screenshot – prototype</title>
 <link rel="icon" href="data:,">
 <style>
 /* ── Adwaita-tokens (dark) ── navnene følger GTK-fargene direkte */
@@ -52,7 +52,7 @@
   --mono:"Adwaita Mono","JetBrains Mono",monospace;
 }
 
-/* Klipp sine egne flater. Shell, Dock og de falske vinduene følger ikke temaet. */
+/* Appens egne flater. Shell, Dock og de falske vinduene følger ikke temaet. */
 .adw{color:var(--window_fg_color);color-scheme:dark}
 :root[data-theme="light"] .adw{
   color-scheme:light;
@@ -514,9 +514,9 @@ button.pref-row:active{background:var(--row_active_color)}
 
   <div id="dropZone"><span class="drop-label osd-pill">Slipp for å lime inn filstien</span></div>
 
-  <button id="trayBtn" class="topbtn" aria-label="Klipp i systemfeltet" aria-haspopup="menu" aria-expanded="false"></button>
+  <button id="trayBtn" class="topbtn" aria-label="Agentic Screenshot i systemfeltet" aria-haspopup="menu" aria-expanded="false"></button>
 
-  <section id="mainWin" class="window adw" aria-label="Klipp">
+  <section id="mainWin" class="window adw" aria-label="Agentic Screenshot">
     <header class="headerbar">
       <div class="hb-start">
         <div class="split">
@@ -542,7 +542,7 @@ button.pref-row:active{background:var(--row_active_color)}
     <div id="shelf" class="scroller"></div>
     <div id="bottomBar" class="bottombar">
       <span id="hintLine" class="hintline"></span>
-      <button id="btnClear" class="btn icon" data-tip="Tøm hylla&#10;Filene blir liggende i ~/Bilder/Klipp/" aria-label="Tøm hylla"><svg class="ic" aria-hidden="true"><use href="#i-clear"/></svg></button>
+      <button id="btnClear" class="btn icon" data-tip="Tøm hylla&#10;Filene blir liggende i ~/Bilder/Agentic Screenshot/" aria-label="Tøm hylla"><svg class="ic" aria-hidden="true"><use href="#i-clear"/></svg></button>
     </div>
     <div class="toast-overlay"></div>
   </section>
@@ -607,16 +607,16 @@ button.pref-row:active{background:var(--row_active_color)}
     <div class="toast-overlay"></div>
   </section>
 
-  <div id="trayMenu" class="shell-menu" role="menu" aria-label="Klipp" hidden>
+  <div id="trayMenu" class="shell-menu" role="menu" aria-label="Agentic Screenshot" hidden>
     <button id="tmCapture" role="menuitem"><span>Ta skjermbilde</span><span id="tmAccel" class="accel"></span></button>
-    <button id="tmToggle" role="menuitem"><span id="tmToggleLabel">Skjul Klipp</span></button>
+    <button id="tmToggle" role="menuitem"><span id="tmToggleLabel">Skjul Agentic Screenshot</span></button>
     <div class="sep" role="separator"></div>
     <button id="tmQuit" role="menuitem"><span>Avslutt</span></button>
   </div>
 
   <div id="banner" class="shell-banner" role="status" hidden>
     <span class="app-badge"><svg class="ic" aria-hidden="true"><use href="#i-capture"/></svg></span>
-    <div class="b-text"><b>Klipp kjører i bakgrunnen</b><span>Åpne den igjen fra ikonet i systemfeltet.</span></div>
+    <div class="b-text"><b>Agentic Screenshot kjører i bakgrunnen</b><span>Åpne den igjen fra ikonet i systemfeltet.</span></div>
     <button id="bannerClose" class="win-close" aria-label="Lukk varselet"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
   </div>
 
@@ -646,7 +646,7 @@ button.pref-row:active{background:var(--row_active_color)}
     <button role="radio" data-v="C" aria-checked="false">C Stripe</button>
   </div>
   <button id="pCapture" class="p-btn">Ta skjermbilde <kbd>Ctrl+Alt+K</kbd></button>
-  <button id="pStart" class="p-btn primary" hidden>Start Klipp</button>
+  <button id="pStart" class="p-btn primary" hidden>Start Agentic Screenshot</button>
   <button id="pReset" class="p-btn">Tilbakestill demo</button>
   <span id="pStatus" class="p-status" aria-live="polite"></span>
 </footer>
@@ -675,9 +675,9 @@ const SANS = '"Adwaita Sans", Cantarell, system-ui, sans-serif';
 const MONO = '"Adwaita Mono", "JetBrains Mono", monospace';
 const TOP = 32;               /* høyde på toppstolpen */
 const DOCK = 56;              /* høyde på Ubuntu Dock */
-const STORE_KEY = 'klipp.prototype.variant';
-const PREFS_KEY = 'klipp.prototype.prefs';
-const DRAG_MIME = 'application/x-klipp-shot';
+const STORE_KEY = 'agentic-screenshot.prototype.variant';
+const PREFS_KEY = 'agentic-screenshot.prototype.prefs';
+const DRAG_MIME = 'application/x-agentic-screenshot-shot';
 const MIN_SIZE = 4;           /* minste område i canvas-piksler */
 const COMPACT_W = 380;
 const HEADER_H = 47;
@@ -965,13 +965,13 @@ function makeThumb(src) {
   return t;
 }
 function makeShot(canvas, ts, alpha) {
-  let name = 'klipp-' + fmtStamp(ts), n = 1;
+  let name = 'screenshot-' + fmtStamp(ts), n = 1;
   const used = new Set(S.shots.map(s => s.name));
   let file = name + '.png';
   while (used.has(file)) { n += 1; file = name + '-' + n + '.png'; }
   return {
     id: ++uid, canvas: canvas, w: canvas.width, h: canvas.height, ts: ts,
-    name: file, path: '~/Bilder/Klipp/' + file, thumb: makeThumb(canvas), blob: null, alpha: !!alpha
+    name: file, path: '~/Bilder/Agentic Screenshot/' + file, thumb: makeThumb(canvas), blob: null, alpha: !!alpha
   };
 }
 function shotBlob(shot) {
@@ -1056,7 +1056,7 @@ const DOCK_APPS = [
   { name: 'terminal', bg: '#3d3846', d: 'M3 4.5L7 8l-4 3.5M8.5 12H13', open: true },
   { name: 'editor', bg: '#26a269', d: 'M3 13l1-3.5L11 2.5 13.5 5l-7 7zM9.5 4l2.5 2.5', open: true },
   { name: 'settings', bg: '#77767b', d: 'M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4' },
-  { name: 'klipp', bg: '#3584e4', d: 'M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11M8 5.5v5M5.5 8h5', open: true }
+  { name: 'agentic-screenshot', bg: '#3584e4', d: 'M2 5V3.5A1.5 1.5 0 0 1 3.5 2H5M11 2h1.5A1.5 1.5 0 0 1 14 3.5V5M14 11v1.5a1.5 1.5 0 0 1-1.5 1.5H11M5 14H3.5A1.5 1.5 0 0 1 2 12.5V11M8 5.5v5M5.5 8h5', open: true }
 ];
 function paintDock(c) {
   const y = G.H - DOCK;
@@ -1064,7 +1064,7 @@ function paintDock(c) {
   c.fillRect(0, y, G.W, DOCK);
   c.fillStyle = 'rgba(255,255,255,.09)';
   c.fillRect(0, y, G.W, 1);
-  const apps = DOCK_APPS.filter(a => a.name !== 'klipp' || S.running);
+  const apps = DOCK_APPS.filter(a => a.name !== 'agentic-screenshot' || S.running);
   const size = 38, gap = 12;
   let x = Math.round((G.W - (apps.length * size + (apps.length - 1) * gap)) / 2);
   const iy = y + 7;
@@ -1328,7 +1328,7 @@ function syncWindows() {
   setWin.hidden = !S.settingsOpen || cap;
   mainWin.inert = blocked;
   mainWin.classList.toggle('backdrop', blocked);
-  $('#tmToggleLabel').textContent = S.mainShown ? 'Skjul Klipp' : 'Vis Klipp';
+  $('#tmToggleLabel').textContent = S.mainShown ? 'Skjul Agentic Screenshot' : 'Vis Agentic Screenshot';
 }
 function syncChrome() {
   mainWin.classList.toggle('compact', prefs.compact);
@@ -1549,7 +1549,7 @@ function clearShelf() {
   const saved = S.shots;
   S.shots = [];
   renderShelf();
-  toast(mainWin, S.variant === 'C' ? 'Tømt. Filene er beholdt.' : 'Hylla er tømt. Filene ligger fortsatt i ~/Bilder/Klipp/', {
+  toast(mainWin, S.variant === 'C' ? 'Tømt. Filene er beholdt.' : 'Hylla er tømt. Filene ligger fortsatt i ~/Bilder/Agentic Screenshot/', {
     action: 'Angre',
     timeout: 6000,
     onAction: () => {
@@ -1664,7 +1664,7 @@ const CURSORS = { nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: '
 
 function startCapture() {
   if (S.capture) return;
-  if (!S.running) { setStatus('Klipp er avsluttet. Start appen først.'); return; }
+  if (!S.running) { setStatus('Agentic Screenshot er avsluttet. Start appen først.'); return; }
   closeTray();
   closePopover();
   cancelListen();
@@ -2196,7 +2196,7 @@ function listenKey(e) {
   const combo = comboOf(e);
   if (!combo) return;
   const other = ACTIONS.find(a => a.id !== id && prefs.keys[a.id] === combo);
-  if (RESERVED.indexOf(combo) !== -1) SET.err = '«' + combo + '» er reservert av Klipp';
+  if (RESERVED.indexOf(combo) !== -1) SET.err = '«' + combo + '» er reservert av Agentic Screenshot';
   else if (other) SET.err = '«' + combo + '» brukes allerede av ' + other.label;
   else { storeKey(id, combo); return; }
   renderKeys();
@@ -2720,7 +2720,7 @@ function quitApp() {
   syncWindows();
   syncProto();
   renderDesktop();
-  setStatus('Klipp er avsluttet.');
+  setStatus('Agentic Screenshot er avsluttet.');
 }
 function startApp() {
   S.running = true;

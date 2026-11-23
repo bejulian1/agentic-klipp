@@ -2,15 +2,15 @@
 //! portalen, som alltid gir hvit blits og lukkerlyd.
 
 use crate::trace;
+use agentic_screenshot_system::{CaptureMethod, Config};
 use gtk::glib::variant::ToVariant;
 use gtk::{gio, glib};
-use klipp_system::{CaptureMethod, Config};
 use std::cell::Cell;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-const BUS_NAME: &str = "io.github.AgenticKlipp.Shell";
-const OBJECT_PATH: &str = "/io/github/AgenticKlipp/Shell";
+const BUS_NAME: &str = "io.github.AgenticScreenshot.Shell";
+const OBJECT_PATH: &str = "/io/github/AgenticScreenshot/Shell";
 const CALL_TIMEOUT_MS: i32 = 3000;
 
 thread_local! {
@@ -64,7 +64,7 @@ async fn call(method: &str, args: glib::Variant) -> Result<(), glib::Error> {
 
 /// Ta bildet uten blits. `None` betyr at portalen må overta.
 pub async fn capture() -> Option<PathBuf> {
-    let name = format!("klipp-{}.png", std::process::id());
+    let name = format!("agentic-screenshot-{}.png", std::process::id());
     let path = glib::user_runtime_dir().join(name);
     match call("Capture", (path.to_str()?,).to_variant()).await {
         Ok(()) => Some(path),
@@ -94,7 +94,7 @@ pub fn shutter(config: &Config, area: Option<(i32, i32, i32, i32)>) {
 pub fn bind_shortcut(accel: String) {
     glib::spawn_future_local(async move {
         if let Err(e) = call("BindShortcut", (accel.as_str(),).to_variant()).await {
-            eprintln!("klipp: utvidelsen tok ikke tasten {accel}: {e}");
+            eprintln!("agentic-screenshot: utvidelsen tok ikke tasten {accel}: {e}");
         }
     });
 }
