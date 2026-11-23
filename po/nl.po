@@ -870,7 +870,7 @@ msgstr "Build {build}"
 
 #: crates/agentic-screenshot-system/src/history.rs:203
 #: crates/agentic-screenshot-system/src/history.rs:209
-#: crates/agentic-screenshot-system/src/settings.rs:644
+#: crates/agentic-screenshot-system/src/settings.rs:645
 msgid "Versjonslogg"
 msgstr "Versiegeschiedenis"
 
@@ -1056,97 +1056,97 @@ msgstr "GNOME heeft de wijziging geweigerd"
 msgid "Krever utvidelsen under. Til den kjører, tar GNOME bildet med blits og lukkerlyd"
 msgstr "Vereist de extensie hieronder. Tot die actief is, maakt GNOME de schermafdruk met flits en sluitergeluid"
 
-#: crates/agentic-screenshot-system/src/settings.rs:519
+#: crates/agentic-screenshot-system/src/settings.rs:520
 msgid "Opptaksmåte"
 msgstr "Opnamemethode"
 
-#: crates/agentic-screenshot-system/src/settings.rs:528
+#: crates/agentic-screenshot-system/src/settings.rs:529
 msgid "Blits"
 msgstr "Flits"
 
-#: crates/agentic-screenshot-system/src/settings.rs:529
+#: crates/agentic-screenshot-system/src/settings.rs:530
 msgid "Lyser opp området når bildet er tatt"
 msgstr "Laat het gebied oplichten na het maken van de schermafdruk"
 
-#: crates/agentic-screenshot-system/src/settings.rs:535
+#: crates/agentic-screenshot-system/src/settings.rs:536
 msgid "Lukkerlyd"
 msgstr "Sluitergeluid"
 
-#: crates/agentic-screenshot-system/src/settings.rs:536
+#: crates/agentic-screenshot-system/src/settings.rs:537
 msgid "Spiller GNOMEs lyd når bildet er tatt"
 msgstr "Speelt het sluitergeluid van GNOME af na het maken van de schermafdruk"
 
-#: crates/agentic-screenshot-system/src/settings.rs:565
+#: crates/agentic-screenshot-system/src/settings.rs:566
 msgid "Lagre skjermbilder i"
 msgstr "Schermafdrukken opslaan in"
 
-#: crates/agentic-screenshot-system/src/settings.rs:570
+#: crates/agentic-screenshot-system/src/settings.rs:571
 msgctxt "save-folder-reset"
 msgid "Standard"
 msgstr "Standaard"
 
-#: crates/agentic-screenshot-system/src/settings.rs:576
+#: crates/agentic-screenshot-system/src/settings.rs:577
 msgid "Velg mappe"
 msgstr "Map kiezen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:596
+#: crates/agentic-screenshot-system/src/settings.rs:597
 msgid "Velg mappe for skjermbilder"
 msgstr "Kies een map voor schermafdrukken"
 
-#: crates/agentic-screenshot-system/src/settings.rs:597
+#: crates/agentic-screenshot-system/src/settings.rs:598
 msgctxt "folder-chooser"
 msgid "Velg"
 msgstr "Selecteren"
 
-#: crates/agentic-screenshot-system/src/settings.rs:615
+#: crates/agentic-screenshot-system/src/settings.rs:616
 msgid "Agentic Screenshot kan ikke bruke den mappen"
 msgstr "Agentic Screenshot kan die map niet gebruiken"
 
-#: crates/agentic-screenshot-system/src/settings.rs:631
+#: crates/agentic-screenshot-system/src/settings.rs:632
 msgid "Om Agentic Screenshot"
 msgstr "Over Agentic Screenshot"
 
-#: crates/agentic-screenshot-system/src/settings.rs:633
+#: crates/agentic-screenshot-system/src/settings.rs:634
 msgid "Versjon"
 msgstr "Versie"
 
-#: crates/agentic-screenshot-system/src/settings.rs:633
+#: crates/agentic-screenshot-system/src/settings.rs:634
 msgid "Bygg"
 msgstr "Build"
 
-#: crates/agentic-screenshot-system/src/settings.rs:645
+#: crates/agentic-screenshot-system/src/settings.rs:646
 msgid "Endringer fra første til nyeste versjon"
 msgstr "Wijzigingen van de eerste tot de nieuwste versie"
 
-#: crates/agentic-screenshot-system/src/settings.rs:665
+#: crates/agentic-screenshot-system/src/settings.rs:666
 msgid "Navnet på byggeserien denne versjonen hører til"
 msgstr "Naam van de buildreeks van deze versie"
 
-#: crates/agentic-screenshot-system/src/settings.rs:683
+#: crates/agentic-screenshot-system/src/settings.rs:684
 msgid "Skjermbilde"
 msgstr "Schermafdruk"
 
-#: crates/agentic-screenshot-system/src/settings.rs:694
+#: crates/agentic-screenshot-system/src/settings.rs:695
 msgid "Ta bildet med en gang"
 msgstr "Meteen vastleggen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:695
+#: crates/agentic-screenshot-system/src/settings.rs:696
 msgid "Bildet tas når du slipper musa, uten bekreftelse"
 msgstr "Maakt de schermafdruk zodra je de muisknop loslaat, zonder bevestiging"
 
-#: crates/agentic-screenshot-system/src/settings.rs:701
+#: crates/agentic-screenshot-system/src/settings.rs:702
 msgid "Kopier automatisk"
 msgstr "Automatisch kopiëren"
 
-#: crates/agentic-screenshot-system/src/settings.rs:702
+#: crates/agentic-screenshot-system/src/settings.rs:703
 msgid "Legger hvert nye bilde på utklippstavlen"
 msgstr "Kopieert elke nieuwe schermafdruk naar het klembord"
 
-#: crates/agentic-screenshot-system/src/settings.rs:732
+#: crates/agentic-screenshot-system/src/settings.rs:733
 msgid "Hurtigtaster"
 msgstr "Sneltoetsen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:736
+#: crates/agentic-screenshot-system/src/settings.rs:737
 msgid "Tilbakestill"
 msgstr "Opnieuw instellen"
 

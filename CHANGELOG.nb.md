@@ -1,5 +1,9 @@
 # Versjonslogg
 
+## 2.0.2 — 2026-11-23
+
+- Blits og Lukkerlyd i Innstillinger kan endres igjen før utvidelsen kjører. I 2.0.1 var de grået ut. Teksten under Opptaksmåte forklarer fortsatt at GNOME tar bildet med blits og lyd til du har logget ut og inn.
+
 ## 2.0.1 — 2026-11-23
 
 - Vinduet åpner midt på skjermen igjen når du henter det frem. Etter at minimer-knappen var brukt én gang, havnet vinduet oppe i venstre hjørne når det ble åpnet fra appoversikten, og fra systemfeltet kom det ikke frem i det hele tatt.
