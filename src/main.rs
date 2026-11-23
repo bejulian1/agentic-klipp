@@ -53,13 +53,30 @@ fn choose_renderer() {
     }
 }
 
+/// Prosessen er borte, eller den er avsluttet og venter bare på at forelderen
+/// rydder opp (zombie). `kill(pid, 0)` lykkes for zombier, så tilstanden i
+/// `/proc` må sjekkes i tillegg.
+fn process_gone(pid: i32) -> bool {
+    // SAFETY: A positive PID and signal 0 only check whether the process exists.
+    if unsafe { libc::kill(pid, 0) } == -1
+        && std::io::Error::last_os_error().raw_os_error() == Some(libc::ESRCH)
+    {
+        return true;
+    }
+    std::fs::read_to_string(format!("/proc/{pid}/stat"))
+        .is_ok_and(|stat| matches!(process_state(&stat), Some('Z' | 'X')))
+}
+
+/// Tilstandsbokstaven i `/proc/<pid>/stat`. Programnavnet i parentes kan selv
+/// inneholde `)`, så tilstanden leses etter den siste.
+fn process_state(stat: &str) -> Option<char> {
+    stat.rsplit_once(')')?.1.trim_start().chars().next()
+}
+
 fn wait_for_exit(pid: i32) -> bool {
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
-        // SAFETY: A positive PID and signal 0 only check whether the process exists.
-        if unsafe { libc::kill(pid, 0) } == -1
-            && std::io::Error::last_os_error().raw_os_error() == Some(libc::ESRCH)
-        {
+        if process_gone(pid) {
             return true;
         }
         if Instant::now() >= deadline {
@@ -98,10 +115,11 @@ fn main() -> ExitCode {
             print!("{}", cli::help());
             return ExitCode::SUCCESS;
         }
+        // Starter uansett: Å bli borte uten beskjed er verre enn å møte en
+        // gammel prosess som fortsatt holder på å avslutte.
         cli::Command::RestartAfter(pid) if !wait_for_exit(pid) => {
             let error = tr("Agentic Screenshot avsluttet ikke i tide");
             eprintln!("agentic-screenshot: {error}");
-            return ExitCode::FAILURE;
         }
         _ => {}
     }
@@ -120,4 +138,34 @@ fn main() -> ExitCode {
     }
     let code = app.run_with_args(&argv);
     ExitCode::from(code.get().clamp(0, 255) as u8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reads_state_after_the_last_parenthesis() {
+        assert_eq!(process_state("42 (agentic-screenshot) S 1 42"), Some('S'));
+        assert_eq!(process_state("42 (a) b) Z 1 42"), Some('Z'));
+        assert_eq!(process_state("42 (uten slutt"), None);
+    }
+
+    #[test]
+    fn a_zombie_counts_as_gone() {
+        // Barnet avslutter, men blir ikke ryddet opp før `wait`, slik som når
+        // forelderen ikke venter på det.
+        let mut child = std::process::Command::new("true")
+            .spawn()
+            .expect("start true");
+        let pid = child.id() as i32;
+        assert!(wait_for_exit(pid), "zombien ble ikke sett som avsluttet");
+        child.wait().expect("rydd opp");
+        assert!(process_gone(pid));
+    }
+
+    #[test]
+    fn a_running_process_is_not_gone() {
+        assert!(!process_gone(std::process::id() as i32));
+    }
 }

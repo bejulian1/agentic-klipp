@@ -343,11 +343,11 @@ msgstr "{label} ({key})"
 
 #. Keep these placeholders where they occur: {build}, {version}.
 #. {version} is the app version and {build} is the build identifier.
-#: src/main.rs:90
+#: src/main.rs:107
 msgid "agentic-screenshot {version} (bygg {build})"
 msgstr "agentic-screenshot {version} (build {build})"
 
-#: src/main.rs:102
+#: src/main.rs:121
 msgid "Agentic Screenshot avsluttet ikke i tide"
 msgstr "Agentic Screenshot did not quit in time"
 

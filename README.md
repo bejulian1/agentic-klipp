@@ -64,6 +64,7 @@ The screenshots are taken from the app with demo images in an isolated profile.
 - Without the extension, GNOME asks once more for screenshot access and for the keyboard shortcut, because the app has a new app ID.
 - The Debian package is named `agentic-screenshot` and replaces `agentic-klipp`.
 - The version history in the app is shown in English for every language except Norwegian Bokmål, which still gets the Norwegian one.
+- Restart in Settings no longer leaves the app closed when the old process is slow to be cleaned up. The new instance starts anyway after five seconds.
 
 ### 1.3.0 — 2026-11-20
 
