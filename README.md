@@ -54,6 +54,10 @@ The screenshots are taken from the app with demo images in an isolated profile.
 
 <!-- BEGIN VERSION HISTORY -->
 
+### 2.0.2 — 2026-11-23
+
+- Flash and Shutter Sound in Settings can be changed again before the extension is running. They were grayed out in 2.0.1. The text under Capture Method still explains that GNOME takes the screenshot with flash and sound until you log out and back in.
+
 ### 2.0.1 — 2026-11-23
 
 - The window opens in the middle of the screen again when you reopen it. After the minimize button had been used once, reopening from the app overview put the window in the top-left corner, and reopening from the system tray did not show it at all.
@@ -370,8 +374,8 @@ Choose under **Settings > Screenshot > Capture Method**:
 - **Silent** captures through the extension. It is the fastest option, and you can
   choose whether to enable **Flash** and **Shutter Sound**. Both are
   off by default. They trigger after the screenshot is taken, and the flash only covers the
-  selected region. Without the extension, the app falls back to GNOME's method, and the
-  two toggles are grayed out until the extension is running.
+  selected region. Without the extension, the app falls back to GNOME's method with
+  flash and sound. You can still set both toggles; they take effect once the extension runs.
 - **GNOME** uses GNOME's standard screenshot flow, with a full-screen flash and shutter
   sound before you select an area. These cannot be disabled there, so the toggles are
   grayed out.

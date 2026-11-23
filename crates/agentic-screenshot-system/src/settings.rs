@@ -502,7 +502,8 @@ fn method_hint(method: CaptureMethod, extension_active: bool) -> &'static str {
 }
 
 /// Opptaksmåte, med blits og lyd som bare betyr noe for stille opptak. GNOMEs vei har
-/// dem alltid, så der er bryterne ute av spill. Det samme gjelder til utvidelsen kjører.
+/// dem alltid, så der er bryterne ute av spill. Før utvidelsen kjører, kan valgene
+/// likevel endres. Teksten under Opptaksmåte forklarer at de virker etter innlogging.
 fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup, extension_active: bool) {
     let (method, flash, sound) = {
         let config = state.config.borrow();
@@ -522,7 +523,7 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup, extension_activ
     row.add_suffix(&toggles);
     group.add(&row);
 
-    let silent = method == CaptureMethod::Silent && extension_active;
+    let silent = method == CaptureMethod::Silent;
     let flash_row = switch_row(
         state,
         tr("Blits"),
@@ -552,7 +553,7 @@ fn method_rows(state: &Rc<State>, group: &adw::PreferencesGroup, extension_activ
         };
         state.config.borrow_mut().capture_method = method;
         row.set_subtitle(method_hint(method, extension_active));
-        let silent = method == CaptureMethod::Silent && extension_active;
+        let silent = method == CaptureMethod::Silent;
         flash_row.set_sensitive(silent);
         sound_row.set_sensitive(silent);
         state.persist();

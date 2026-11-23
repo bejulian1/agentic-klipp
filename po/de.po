@@ -870,7 +870,7 @@ msgstr "Build {build}"
 
 #: crates/agentic-screenshot-system/src/history.rs:203
 #: crates/agentic-screenshot-system/src/history.rs:209
-#: crates/agentic-screenshot-system/src/settings.rs:644
+#: crates/agentic-screenshot-system/src/settings.rs:645
 msgid "Versjonslogg"
 msgstr "Versionsverlauf"
 
@@ -1056,97 +1056,97 @@ msgstr "GNOME hat die Änderung nicht akzeptiert"
 msgid "Krever utvidelsen under. Til den kjører, tar GNOME bildet med blits og lukkerlyd"
 msgstr "Benötigt die Erweiterung unten. Bis sie läuft, nimmt GNOME das Bildschirmfoto mit Blitz und Auslöserton auf"
 
-#: crates/agentic-screenshot-system/src/settings.rs:519
+#: crates/agentic-screenshot-system/src/settings.rs:520
 msgid "Opptaksmåte"
 msgstr "Aufnahmemethode"
 
-#: crates/agentic-screenshot-system/src/settings.rs:528
+#: crates/agentic-screenshot-system/src/settings.rs:529
 msgid "Blits"
 msgstr "Blitz"
 
-#: crates/agentic-screenshot-system/src/settings.rs:529
+#: crates/agentic-screenshot-system/src/settings.rs:530
 msgid "Lyser opp området når bildet er tatt"
 msgstr "Leuchtet den Bereich nach der Aufnahme kurz auf"
 
-#: crates/agentic-screenshot-system/src/settings.rs:535
+#: crates/agentic-screenshot-system/src/settings.rs:536
 msgid "Lukkerlyd"
 msgstr "Auslöserton"
 
-#: crates/agentic-screenshot-system/src/settings.rs:536
+#: crates/agentic-screenshot-system/src/settings.rs:537
 msgid "Spiller GNOMEs lyd når bildet er tatt"
 msgstr "Spielt nach der Aufnahme den GNOME-Auslöserton ab"
 
-#: crates/agentic-screenshot-system/src/settings.rs:565
+#: crates/agentic-screenshot-system/src/settings.rs:566
 msgid "Lagre skjermbilder i"
 msgstr "Bildschirmfotos speichern in"
 
-#: crates/agentic-screenshot-system/src/settings.rs:570
+#: crates/agentic-screenshot-system/src/settings.rs:571
 msgctxt "save-folder-reset"
 msgid "Standard"
 msgstr "Standard"
 
-#: crates/agentic-screenshot-system/src/settings.rs:576
+#: crates/agentic-screenshot-system/src/settings.rs:577
 msgid "Velg mappe"
 msgstr "Ordner wählen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:596
+#: crates/agentic-screenshot-system/src/settings.rs:597
 msgid "Velg mappe for skjermbilder"
 msgstr "Ordner für Bildschirmfotos wählen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:597
+#: crates/agentic-screenshot-system/src/settings.rs:598
 msgctxt "folder-chooser"
 msgid "Velg"
 msgstr "Auswählen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:615
+#: crates/agentic-screenshot-system/src/settings.rs:616
 msgid "Agentic Screenshot kan ikke bruke den mappen"
 msgstr "Agentic Screenshot kann diesen Ordner nicht verwenden"
 
-#: crates/agentic-screenshot-system/src/settings.rs:631
+#: crates/agentic-screenshot-system/src/settings.rs:632
 msgid "Om Agentic Screenshot"
 msgstr "Über Agentic Screenshot"
 
-#: crates/agentic-screenshot-system/src/settings.rs:633
+#: crates/agentic-screenshot-system/src/settings.rs:634
 msgid "Versjon"
 msgstr "Version"
 
-#: crates/agentic-screenshot-system/src/settings.rs:633
+#: crates/agentic-screenshot-system/src/settings.rs:634
 msgid "Bygg"
 msgstr "Build"
 
-#: crates/agentic-screenshot-system/src/settings.rs:645
+#: crates/agentic-screenshot-system/src/settings.rs:646
 msgid "Endringer fra første til nyeste versjon"
 msgstr "Änderungen von der ersten bis zur neuesten Version"
 
-#: crates/agentic-screenshot-system/src/settings.rs:665
+#: crates/agentic-screenshot-system/src/settings.rs:666
 msgid "Navnet på byggeserien denne versjonen hører til"
 msgstr "Der Name der Build-Serie dieser Version"
 
-#: crates/agentic-screenshot-system/src/settings.rs:683
+#: crates/agentic-screenshot-system/src/settings.rs:684
 msgid "Skjermbilde"
 msgstr "Bildschirmfoto"
 
-#: crates/agentic-screenshot-system/src/settings.rs:694
+#: crates/agentic-screenshot-system/src/settings.rs:695
 msgid "Ta bildet med en gang"
 msgstr "Sofort aufnehmen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:695
+#: crates/agentic-screenshot-system/src/settings.rs:696
 msgid "Bildet tas når du slipper musa, uten bekreftelse"
 msgstr "Nimmt das Bildschirmfoto beim Loslassen der Maustaste ohne Bestätigung auf"
 
-#: crates/agentic-screenshot-system/src/settings.rs:701
+#: crates/agentic-screenshot-system/src/settings.rs:702
 msgid "Kopier automatisk"
 msgstr "Automatisch kopieren"
 
-#: crates/agentic-screenshot-system/src/settings.rs:702
+#: crates/agentic-screenshot-system/src/settings.rs:703
 msgid "Legger hvert nye bilde på utklippstavlen"
 msgstr "Kopiert jedes neue Bildschirmfoto in die Zwischenablage"
 
-#: crates/agentic-screenshot-system/src/settings.rs:732
+#: crates/agentic-screenshot-system/src/settings.rs:733
 msgid "Hurtigtaster"
 msgstr "Tastenkombinationen"
 
-#: crates/agentic-screenshot-system/src/settings.rs:736
+#: crates/agentic-screenshot-system/src/settings.rs:737
 msgid "Tilbakestill"
 msgstr "Zurücksetzen"
 

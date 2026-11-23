@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2 — 2026-11-23
+
+- Flash and Shutter Sound in Settings can be changed again before the extension is running. They were grayed out in 2.0.1. The text under Capture Method still explains that GNOME takes the screenshot with flash and sound until you log out and back in.
+
 ## 2.0.1 — 2026-11-23
 
 - The window opens in the middle of the screen again when you reopen it. After the minimize button had been used once, reopening from the app overview put the window in the top-left corner, and reopening from the system tray did not show it at all.
