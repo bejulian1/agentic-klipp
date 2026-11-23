@@ -10,6 +10,7 @@
 - Uten utvidelsen spør GNOME én gang til om tilgang til skjermbilder og om hurtigtasten, fordi appen har ny app-ID.
 - Debian-pakken heter `agentic-screenshot` og erstatter `agentic-klipp`.
 - Versjonsloggen i appen vises på engelsk for alle språk utenom norsk bokmål, som fortsatt får den norske.
+- Start på nytt i Innstillinger lar ikke lenger appen være lukket når den gamle prosessen ikke blir ryddet bort med en gang. Den nye starter uansett etter fem sekunder.
 
 ## 1.3.0 — 2026-11-20
 
