@@ -1,7 +1,7 @@
 {
   "uuid": "agentic-screenshot@bejulian1.github.io",
   "name": "Agentic Screenshot",
-  "description": "Lar Agentic Screenshot ta skjermbilder uten blits og lukkerlyd, og åpne overlegget uten GNOMEs vindusanimasjon.",
+  "description": "Lets Agentic Screenshot take screenshots without flash and shutter sound, and open the overlay without the GNOME window animation.",
   "shell-version": [
     "50"
   ],
