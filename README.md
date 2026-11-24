@@ -1,6 +1,6 @@
 # Agentic Screenshot
 
-[![Version](https://img.shields.io/badge/version-2.0.0-3584e4)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.0.2-3584e4)](CHANGELOG.md)
 [Version history](#version-history) · [Download](https://github.com/bejulian1/agentic-screenshot/releases/latest) · [Contributors](#contributors)
 
 > **Formerly Agentic Klipp.** Version 2.0.0 renamed the app to Agentic Screenshot. Upgrading
@@ -517,7 +517,7 @@ cargo clippy --workspace --all-targets
 | `data/` | Icons, CSS, and GResource |
 | `prototype/` | HTML prototype used as the visual reference |
 
-Version **2.0.1**. The version is declared in all three
+Version **2.0.2**. The version is declared in all three
 `Cargo.toml` files. The build number is the build timestamp in `Europe/Oslo`, and can be
 pinned for a release with `AGENTIC_SCREENSHOT_BUILD_NUMBER=YYYYMMDD.HHMM`. Both are shown under
 **Settings > About Agentic Screenshot** and via `agentic-screenshot --version`.
@@ -556,8 +556,10 @@ Contributions — bug reports, features, translations, and documentation — are
 | Contributor / model | Tool | Contribution |
 | --- | --- | --- |
 | **Julian / [bejulian1](https://github.com/bejulian1)** | | Project owner, product decisions, and testing |
-| **Anthropic Claude Opus 5.5** | Claude Code | Initial implementation and development through 1.1.1, and the 2.0.0 rebrand to Agentic Screenshot |
+| **Anthropic Claude Opus 5.5** | Claude Code | Initial implementation and development through 1.1.1, the open-source preparation, review and integration of 1.3.0, the 2.0.0 rebrand to Agentic Screenshot, and the 2.0.2 fix |
 | **OpenAI GPT 6.1 Sol** | Codex | Version history, 1.2 series, documentation, and release packaging |
+| **OpenAI GPT 6.2 Sol** | Codex | 1.3.0: language option and English translation, Spanish, Italian, Brazilian Portuguese, and Dutch translations, and shelf persistence |
+| **Google Gemini 4 Neon** | | 1.3.0: Swedish, Danish, German, and French translations, and the English README and contribution guidelines |
 | **Anthropic Claude Fable 5.2** | Claude Code | The 2.0.1 fixes for window placement, silent capture, and accessibility |
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md) for full attribution. GitHub's automatic Contributors
